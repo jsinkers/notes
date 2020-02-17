@@ -1,8 +1,9 @@
 ---
+favorited: true
 tags: [Notebooks/missing_semester, vim]
 title: Text Editors and vim
 created: '2020-02-08T04:10:51.640Z'
-modified: '2020-02-09T04:27:34.601Z'
+modified: '2020-02-09T06:00:29.601Z'
 ---
 
 # Text Editors and vim
@@ -85,7 +86,10 @@ navigate the buffer
 - Lines: `0` (beginning of line), `^` (first non-blank character), `$` (end of line)
 - Screen: `H` (top of screen), `M` (middle of screen), `L` (bottom of screen)
 - Scroll: `Ctrl-u` (up), `Ctrl-d` (down)
+- Move forwards: `Ctrl-f`, move backwards: `Ctrl-b`
+- Centre screen on cursor: `zz`
 - File: `gg` (beginning of file), `G` (end of file)
+- Current line: `Ctrl-g`
 - Line numbers: `:{number}<CR>` or `{number}G` (line {number})
 - Misc: `%` (corresponding item)
 - Find: `f{character}`, `t{character}`, `F{character}`, `T{character}`
@@ -234,11 +238,11 @@ cover the basics pretty well.
 
 ## Shell
 
-If you're a Bash user, use `set -o vi`. If you use Zsh, `bindkey -v`. For Fish,
-`fish_vi_key_bindings`. Additionally, no matter what shell you use, you can
-`export EDITOR=vim`. This is the environment variable used to decide which
-editor is launched when a program wants to start an editor. For example, `git`
-will use this editor for commit messages.
+For vim keybindings: 
+* bash: `set -o vi`
+* Zsh, `bindkey -v`
+
+Set default editor: `export EDITOR=vim`
 
 ## Readline
 
@@ -268,12 +272,20 @@ A good heuristic: whenever you're using your editor and you think "there must be
 
 ## Search and replace
 
+- `/foo` search forward for foo
+- `?foo` search backward for foo
+- `n` goes to next occurrence in same direction; `N` goes to next occurrence in opposite direction
+- `%` on a bracket `([{` goes to its match
+
 `:s` (substitute) command ([documentation](http://vim.wikia.com/wiki/Search_and_replace)).
 
-- `%s/foo/bar/g`
-    - replace foo with bar globally in file
-- `%s/\[.*\](\(.*\))/\1/g`
-    - replace named Markdown links with plain URLs
+- `%s/foo/bar/g`: replace foo with bar globally in file
+- `%s/foo/bar/gc`: replace foo with bar globally, with confirmation each time
+- `%s/\[.*\](\(.*\))/\1/g`: replace named Markdown links with plain URLs
+
+## Execution 
+
+Type `:!` followed by command to execute external command 
 
 ## Multiple windows
 
@@ -314,6 +326,53 @@ A good heuristic: whenever you're using your editor and you think "there must be
             - `999@q`
         - Manually remove last `,` and add `[` and `]` delimiters
 
+# Integration with PyCharm
+
+1. Install IdeaVim extension
+1. Add .ideavimrc file in your home directory:
+    - Windows: `C:\Users\James`
+    - Linux: `~/`
+1. Activate [plugins](https://github.com/JetBrains/ideavim)
+
+## Commands
+- surround helps you surround code
+    - `ys`: you surround; surround current with
+    - `cs`: change surround; change surrounding characters
+    - `ds`: delete surrounding characters
+    - `S`: surround in visual mode?
+    - examples: `Hello world!`
+        - `ysiw]`: `[Hello]  world!`
+        - `cs]}`: `{Hello} world!`; change to braces without spaces
+        - `yss(`: `( {Hello} world! )`; surround whole line with parentheses
+        - `ds}ds(`: `Hello world!`
+        - `ysiw<em>`: `<em>Hello world!</em>`; add emphasis tags
+        - `VS<p class="important">`: 
+            ```
+            <p class="important>
+                <em>Hello world!</em>
+            </p>
+            ```
+          surround in linewise visual mode
+- [easymotion](https://github.com/easymotion/vim-easymotion#usage-example-for-the-base-features) helps you to move around
+    - at time of writing `<leader>` was configured as `\`
+    - `\\w`: trigger word motion
+    - `\\fo`: trigger find motion looking for character `o`
+    - [Tutorial](https://code.tutsplus.com/tutorials/vim-essential-plugin-easymotion--net-19223)
+    
+- commentary: comments out lines
+    - `gcc`: comment out a line
+    - `gc`: comment target of a motion
+        - `gcap`: comment out a paragraph
+    - `:g`: comment command e.g. `:g/TODO/Commentary`
+- multiple-cursors: 
+    - `<A-n>`
+    - `<A-x>`
+    - `<A-p>`
+    - `g<A-n>`
+- nerdcommenter:
+    - `<ldr>cc`: comment the current line (or selection in visual mode) out
+   - `<ldr>c<space>`: toggle current line (or selection) 
+    
 # Resources
 
 - `vimtutor` is a tutorial that comes installed with Vim
