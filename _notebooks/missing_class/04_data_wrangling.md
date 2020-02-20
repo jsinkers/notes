@@ -1,21 +1,17 @@
 ---
-favorited: false
-tags: [Notebooks/missing_semester, regex, data_science]
 title: Data Wrangling
-created: '2020-02-10T04:10:51.640Z'
-modified: '2020-02-11T06:00:29.601Z'
---- 
+layout: default
+date: '2020-02-11'
+notebook: missing_class
+order: 4
+tags: [Notebooks/missing_semester, regex, data_science]
+---
 
 [TOC]: #
 
 # Table of Contents
-- [favorited: false
-tags: [Notebooks/missing_semester, regex, data_science]
-title: Data Wrangling
-created: '2020-02-10T04:10:51.640Z'
-modified: '2020-02-11T06:00:29.601Z'](#favorited-falsetags-notebooksmissing-semester-regex-data-sciencetitle-data-wranglingcreated-2020-02-10t041051640zmodified-2020-02-11t060029601z)
-  - [Example: checking who has logged into a server](#example-checking-who-has-logged-into-a-server)
-  - [`sed`](#sed)
+- [Example: checking who has logged into a server](#example-checking-who-has-logged-into-a-server)
+- [`sed`](#sed)
 - [Regular Expressions](#regular-expressions)
   - [Email address matching: harder than it seems](#email-address-matching-harder-than-it-seems)
 - [`awk`](#awk)

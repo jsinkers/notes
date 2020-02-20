@@ -1,3 +1,11 @@
+---
+title: Potpourri
+layout: default
+date: 2020-10-18
+notebook: missing_class
+tags: [missing_class, remap, daemon, fuse, backup, boot, vm]
+order: 10
+---
 
 [TOC]: #
 

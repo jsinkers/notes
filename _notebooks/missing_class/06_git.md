@@ -1,9 +1,10 @@
 ---
-favorited: false
-tags: [Notebooks/missing_semester, git]
+layout: default
 title: Git
-created: '2020-02-15T00:00:00Z'
-modified: '2020-02-15T00:00:00Z'
+date: 2020-02-15
+notebook: missing_class
+order: 6
+tags: [Notebooks/missing_semester, git]
 ---
 
 # Git

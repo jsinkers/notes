@@ -1,17 +1,15 @@
 ---
-tags: [bash, linux, Notebooks/missing_semester]
 title: Shell scripting
-created: '2020-02-07T04:02:30.081Z'
-modified: '2020-02-08T05:46:47.518Z'
+layout: default
+notebook: missing_class
+date: 2020-02-08
+order: 2
+tags: [bash, linux, Notebooks/missing_semester]
 ---
 
 [TOC]: #
 
 # Table of Contents
-- [tags: [bash, linux, Notebooks/missing_semester]
-title: Shell scripting
-created: '2020-02-07T04:02:30.081Z'
-modified: '2020-02-08T05:46:47.518Z'](#tags-bash-linux-notebooksmissing-semestertitle-shell-scriptingcreated-2020-02-07t040230081zmodified-2020-02-08t054647518z)
 - [Assignment and string delimiters](#assignment-and-string-delimiters)
 - [Functions](#functions)
 - [Special Variables](#special-variables)

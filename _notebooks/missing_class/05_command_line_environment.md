@@ -1,19 +1,15 @@
 ---
-favorited: false
-tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
 title: Command-line environment
-created: '2020-02-14T00:00:00Z'
-modified: '2020-02-14T00:00:00Z'
+layout: default
+date: 2020-02-14
+order: 5
+notebook: missing_class
+tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
 ---
 
 [TOC]: #
 
 # Table of Contents
-- [favorited: false
-tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
-title: Command-line environment
-created: '2020-02-14T00:00:00Z'
-modified: '2020-02-14T00:00:00Z'](#favorited-falsetags-notebooksmissing-semester-dotfiles-shell-alias-tmuxtitle-command-line-environmentcreated-2020-02-14t000000zmodified-2020-02-14t000000z)
 - [Job control](#job-control)
   - [Pausing and backgrounding processes](#pausing-and-backgrounding-processes)
 - [Terminal Multiplexers](#terminal-multiplexers)
@@ -38,6 +34,9 @@ modified: '2020-02-14T00:00:00Z'](#favorited-falsetags-notebooksmissing-semester
 - [Remote Machines](#remote-machines-1)
 - [Job Control](#job-control-2)
 -
+
+
+
 
 
 ## Job control

@@ -1,16 +1,14 @@
 ---
-tags: [bash, linux, Notebooks/missing_semester]
 title: bash
-created: '2019-09-24T12:37:27.843Z'
-modified: '2020-02-08T05:46:16.464Z'
+notebook: missing_class
+layout: default
+date: '2020-02-08'
+order: 1
+tags: [bash, linux, Notebooks/missing_semester]
 ---
 [TOC]: #
 
 # Table of Contents
-- [tags: [bash, linux, Notebooks/missing_semester]
-title: bash
-created: '2019-09-24T12:37:27.843Z'
-modified: '2020-02-08T05:46:16.464Z'](#tags-bash-linux-notebooksmissing-semestertitle-bashcreated-2019-09-24t123727843zmodified-2020-02-08t054616464z)
 - [Paths and permissions](#paths-and-permissions)
 - [Long listing](#long-listing)
 - [Move, copy, create](#move-copy-create)

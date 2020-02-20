@@ -1,20 +1,16 @@
 ---
-favorited: false
-tags: [Notebooks/missing_semester, debug, log, profile]
 title: Debugging and profiling
-created: '2020-02-17T00:00:00Z'
-modified: '2020-02-17T00:00:00Z'
+layout: default
+date: 2020-02-17
+notebook: missing_class
+order: 7
+tags: [Notebooks/missing_semester, debug, log, profile]
 ---
 Based on https://missing.csail.mit.edu/2020/debugging-profiling/
 
 [TOC]: #
 
 # Table of Contents
-- [favorited: false
-tags: [Notebooks/missing_semester, debug, log, profile]
-title: Debugging and profiling
-created: '2020-02-17T00:00:00Z'
-modified: '2020-02-17T00:00:00Z'](#favorited-falsetags-notebooksmissing-semester-debug-log-profiletitle-debugging-and-profilingcreated-2020-02-17t000000zmodified-2020-02-17t000000z)
 - [Printf debugging and Logging](#printf-debugging-and-logging)
 - [Third party logs](#third-party-logs)
 - [Debuggers](#debuggers)

@@ -1,1 +1,23 @@
-theme: jekyll-theme-midnight
+# Setup
+title: 'Notes'
+
+# Settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+highlighter: rouge
+permalink: /:title/
+future: true
+timezone: Australia/Melbourne
+
+#collections_dir: notebooks
+collections:
+  notebooks:
+    output: true
+
+# Excludes
+excludes:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
