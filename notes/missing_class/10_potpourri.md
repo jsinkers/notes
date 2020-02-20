@@ -1,4 +1,18 @@
 
+[TOC]: #
+
+# Table of Contents
+- [Keyboard remap](#keyboard-remap)
+- [Daemons](#daemons)
+- [FUSE - Filesystem in User Space](#fuse---filesystem-in-user-space)
+- [Backups](#backups)
+  - [3-2-1 Rule](#3-2-1-rule)
+  - [Versioning](#versioning)
+- [APIs](#apis)
+- [Common command line patterns](#common-command-line-patterns)
+- [Booting + Live USBs](#booting--live-usbs)
+- [Docker, Vagrant, VMs, Cloud](#docker-vagrant-vms-cloud)
+
 Based on https://missing.csail.mit.edu/2020/potpourri/
 
 ## Keyboard remap

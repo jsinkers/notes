@@ -1,0 +1,11 @@
+- 📂 __notes__
+ - 📂 __missing\_class__
+   - 📄 [01\_bash.md](notes/missing_class/01_bash.md)
+   - 📄 [02\_shell\_scripting.md](notes/missing_class/02_shell_scripting.md)
+   - 📄 [03\_vim.md](notes/missing_class/03_vim.md)
+   - 📄 [04\_data\_wrangling.md](notes/missing_class/04_data_wrangling.md)
+   - 📄 [05\_command\_line\_environment.md](notes/missing_class/05_command_line_environment.md)
+   - 📄 [06\_git.md](notes/missing_class/06_git.md)
+   - 📄 [07\_profiling\_debugging.md](notes/missing_class/07_profiling_debugging.md)
+   - 📄 [10\_potpourri.md](notes/missing_class/10_potpourri.md)
+

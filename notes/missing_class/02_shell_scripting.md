@@ -5,7 +5,34 @@ created: '2020-02-07T04:02:30.081Z'
 modified: '2020-02-08T05:46:47.518Z'
 ---
 
-# Shell scripting
+[TOC]: #
+
+# Table of Contents
+- [tags: [bash, linux, Notebooks/missing_semester]
+title: Shell scripting
+created: '2020-02-07T04:02:30.081Z'
+modified: '2020-02-08T05:46:47.518Z'](#tags-bash-linux-notebooksmissing-semestertitle-shell-scriptingcreated-2020-02-07t040230081zmodified-2020-02-08t054647518z)
+- [Assignment and string delimiters](#assignment-and-string-delimiters)
+- [Functions](#functions)
+- [Special Variables](#special-variables)
+- [Streams](#streams)
+- [Stream redirection](#stream-redirection)
+- [Return codes and conditional execution](#return-codes-and-conditional-execution)
+- [Command and process substitution](#command-and-process-substitution)
+- [Shell globbing](#shell-globbing)
+- [Shebang](#shebang)
+- [Shell functions and scripts: the differences](#shell-functions-and-scripts-the-differences)
+- [Finding how to use commands](#finding-how-to-use-commands)
+- [Finding files](#finding-files)
+  - [`find`](#find)
+  - [`fd`](#fd)
+  - [`locate`](#locate)
+- [Finding code](#finding-code)
+- [History: Finding shell commands](#history-finding-shell-commands)
+  - [History-based autosuggestions](#history-based-autosuggestions)
+- [Directory Navigation](#directory-navigation)
+- [Alternative Shells](#alternative-shells)
+
 
 Based on https://missing.csail.mit.edu/2020/shell-tools/
 

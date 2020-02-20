@@ -6,7 +6,39 @@ created: '2020-02-14T00:00:00Z'
 modified: '2020-02-14T00:00:00Z'
 ---
 
-# Command-line environment
+[TOC]: #
+
+# Table of Contents
+- [favorited: false
+tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
+title: Command-line environment
+created: '2020-02-14T00:00:00Z'
+modified: '2020-02-14T00:00:00Z'](#favorited-falsetags-notebooksmissing-semester-dotfiles-shell-alias-tmuxtitle-command-line-environmentcreated-2020-02-14t000000zmodified-2020-02-14t000000z)
+- [Job control](#job-control)
+  - [Pausing and backgrounding processes](#pausing-and-backgrounding-processes)
+- [Terminal Multiplexers](#terminal-multiplexers)
+  - [Sessions](#sessions)
+  - [Windows](#windows)
+  - [Panes](#panes)
+  - [References](#references)
+- [Aliases](#aliases)
+- [Dotfiles](#dotfiles)
+- [Remote machines](#remote-machines)
+  - [SSH Keys](#ssh-keys)
+  - [Key generation](#key-generation)
+  - [Key based authentication](#key-based-authentication)
+  - [Copying files over SSH](#copying-files-over-ssh)
+- [Port Forwarding](#port-forwarding)
+- [SSH Configuration](#ssh-configuration)
+- [Miscellaneous](#miscellaneous)
+- [Job control](#job-control-1)
+- [Terminal multiplexer](#terminal-multiplexer)
+- [Aliases](#aliases-1)
+- [Dotfiles](#dotfiles-1)
+- [Remote Machines](#remote-machines-1)
+- [Job Control](#job-control-2)
+-
+
 
 ## Job control
 

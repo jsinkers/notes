@@ -7,7 +7,30 @@ modified: '2020-02-17T00:00:00Z'
 ---
 Based on https://missing.csail.mit.edu/2020/debugging-profiling/
 
-# Debugging
+[TOC]: #
+
+# Table of Contents
+- [favorited: false
+tags: [Notebooks/missing_semester, debug, log, profile]
+title: Debugging and profiling
+created: '2020-02-17T00:00:00Z'
+modified: '2020-02-17T00:00:00Z'](#favorited-falsetags-notebooksmissing-semester-debug-log-profiletitle-debugging-and-profilingcreated-2020-02-17t000000zmodified-2020-02-17t000000z)
+- [Printf debugging and Logging](#printf-debugging-and-logging)
+- [Third party logs](#third-party-logs)
+- [Debuggers](#debuggers)
+- [Specialized Tools](#specialized-tools)
+- [Static Analysis](#static-analysis)
+- [Timing](#timing)
+- [Profilers](#profilers)
+  - [CPU](#cpu)
+  - [Memory](#memory)
+  - [Event Profiling](#event-profiling)
+  - [Visualization](#visualization)
+- [Resource Monitoring](#resource-monitoring)
+  - [Specialized tools](#specialized-tools-1)
+- [Debugging](#debugging)
+- [Profiling](#profiling)
+
 
 ## Printf debugging and Logging
 

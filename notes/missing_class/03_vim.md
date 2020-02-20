@@ -6,7 +6,34 @@ created: '2020-02-08T04:10:51.640Z'
 modified: '2020-02-09T06:00:29.601Z'
 ---
 
-# Text Editors and vim
+[TOC]: #
+
+# Table of Contents
+- [favorited: true
+tags: [Notebooks/missing_semester, vim]
+title: Text Editors and vim
+created: '2020-02-08T04:10:51.640Z'
+modified: '2020-02-09T06:00:29.601Z'](#favorited-truetags-notebooksmissing-semester-vimtitle-text-editors-and-vimcreated-2020-02-08t041051640zmodified-2020-02-09t060029601z)
+- [Notation](#notation)
+- [Philosophy](#philosophy)
+- [Modes](#modes)
+- [Buffers, tabs, windows](#buffers-tabs-windows)
+- [Command-line](#command-line)
+- [Movement](#movement)
+- [Selection](#selection)
+- [Edits](#edits)
+  - [deletion example](#deletion-example)
+- [Counts](#counts)
+- [Modifiers](#modifiers)
+- [Shell](#shell)
+- [Readline](#readline)
+- [Others](#others)
+- [Search and replace](#search-and-replace)
+- [Execution](#execution)
+- [Multiple windows](#multiple-windows)
+- [Macros](#macros)
+- [Commands](#commands)
+
 
 Based on https://missing.csail.mit.edu/2020/editors/
 
