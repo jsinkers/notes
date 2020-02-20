@@ -459,6 +459,53 @@ command is used for merging.
 - `git reset HEAD <file>`: unstage a file
 - `git checkout -- <file>`: discard changes
 
+- `git reset`: moves branch reference backwards in time to an older commit
+  - moves a branch backwards in time as if the commit had never taken place
+  - `git reset HEAD~1`: moves `HEAD` back by one commit
+- `git revert`: for reversing changes already propagated to the remote.  Adds a new
+  commit of changes
+
+## Relative Refs
+
+Relative refs are useful to refer to commits without having to type out the
+hash
+- `^`: move upwards by one commit
+  - `^<num>`: move upwards to parent reference e.g. for a merge commit with multiple
+    parents (default: 1)
+- `~<num>`: move upwards by num commits
+- e.g.
+  - `git checkout master^`: checks out first parent of master
+  - `master^^`: grandparent of `master`
+  - `HEAD~4`: 4th ancestor of `HEAD`
+- chaining e.g. `git checkout HEAD~^2~2`: move to parent commit, move to second
+  co-parent of commit, move two commits up
+- Applications
+  - Branch forcing: directly reassign a branch to a commit
+    - `git branch -f master HEAD~3` forces master branch to 3 parents behind `HEAD`
+
+## Moving work around
+
+- `git cherry-pick <commit1> <commit2> <...>`: copies a series of commits below
+  current location, i.e. add new commit corresponding to `commit1`, then
+  `commit2`, etc.
+- `git rebase -i` interactive rebase.  Opens a text editor showing which commits
+  are about to be copied below the rebase target.  You can then
+  - reorder commits by changing order
+  - omit commits by setting `pick` off
+  - squash commits (i.e. combine multiple commits)
+
+## Finding your way around
+
+- `git tag <name>` to apply `name` to a specific commit e.g. version number
+- `git describe` describes where you are relative to nearest anchor (tagged commit)
+  - output: `<tag>_<numCommits>_g<hash>`
+    - `tag`: tag of nearest anchor
+    - `numCommits`: number of commits away to anchor
+    - `hash`: hash of commit being described (not the anchor)
+
+
+
+
 # Advanced Git
 
 - `git config`: Git is [highly customizable](https://git-scm.com/docs/git-config)
