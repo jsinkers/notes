@@ -16,7 +16,7 @@ title: Notes
 <ul>
     {% for note in notes.docs %}
         <li>
-            <a href="{{ note.url }}">{{ note.title }}</a> : {{ note.notebook }}
+            <a href="{{ site.baseurl }}{{ note.url }}">{{ note.title }}</a> : {{ note.notebook }}
         </li>
     {% endfor %}
 </ul>
