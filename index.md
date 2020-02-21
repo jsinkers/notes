@@ -3,21 +3,15 @@ layout: default
 title: Notes
 ---
 <div>
-{% assign notes = site.collections | where: "label", "notebooks" | first %}
-{% comment %}
-{% assign notebooks = notes | group_by: "notebook" %}
+{% assign notebooks = site.notebooks | group_by: "notebook" %}
 {% for notebook in notebooks %}
-    {{ notebook.name }}
-    {% for note in notebook %}
-        {{ note.title }}
-    {% endfor %}
-{% endfor %}
-{% endcomment %}
-<ul>
-    {% for note in notes.docs %}
+    <h1>{{ notebook.name }}</h1>
+    <ul>
+    {% for note in notebook.items %}
         <li>
-            <a href="{{ site.baseurl }}{{ note.url }}">{{ note.title }}</a> : {{ note.notebook }}
+            <a href="{{ site.baseurl }}{{ note.url }}">{{ note.title }}</a>
         </li>
     {% endfor %}
-</ul>
+    </ul>
+{% endfor %}
 </div>
