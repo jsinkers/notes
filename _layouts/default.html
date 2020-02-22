@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  {% include head.html %}
+{% include head.html %}
 
-  <body>
+<body>
 
-    {% include nav.html %}
-
-    <div id="content">
+{% include nav.html %}
+<ul id="slide-out" class="sidenav">
+    <li><a href="#!">Second Link</a></li>
+    <li>
+        <div class="divider"></div>
+    </li>
+    <li><a class="subheader">Subheader</a></li>
+    <li><a class="waves-effect" href="#!">Third Link With Waves</a></li>
+    {% include toc.html html=content %}
+</ul>
+<div id="content">
     {{ content }}
-    </div>
-
-  </body>
+</div>
+<!--JavaScript at end of body for optimized loading-->
+<script type="text/javascript" src="{{ site.baseurl }}/static/js/materialize.min.js"></script>
+<script type="text/javascript" src="{{ site.baseurl }}/static/js/default.js"></script>
+</body>
 
 </html>

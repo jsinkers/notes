@@ -4,8 +4,8 @@
 
 - To keep notes organised add a folder
   `<project_root>/_notebooks/<notebook_name>`
-- Create notes in this folder, use front-matter to specify
-  which notebook the note belongs to
+  - Create notes in this folder
+  - Use front-matter to specify which notebook the note belongs to
 
 ## Create a note
 
@@ -19,10 +19,42 @@ layout: default
 order: <specifies sequential order of page in notebook>
 ---
 ```
+A file template has been set up so that it's easy to create a new note:
+```markdown
+---
+title: $title
+notebook: $notebook
+layout: default
+date: ${YEAR}-${MONTH}-${DAY} ${HOUR}:${MINUTE}
+tags: $tag
+---
 
-## Development
+# $title
+
+[TOC]: #
+```
+## Images
+
+Ideally would be stored in `_notebooks/<notebook>/files/` but haven't been able
+to find a way to have the correct path for both preview and the jekyll build.
+
+# Development
 
 To build and view the site locally, run:
 ```bash
 bundle exec jekyll serve -w 
+```
+- `-w`: auto-regeneration
+- `-v`: verbose
+
+## PyCharm Run Config
+
+So that you aren't constantly running this command, you can [ set up a configuration ](https://turing4ever.github.io/2018/07/16/use-pycharm-to-blog-with-jekyll.html)
+in pycharm and just hit run (`shift+f10`).
+
+My setup:
+![pycharm_jekyll_config](./static/img/pycharm_jekyll_config.png)
+On Windows, to find the path to bundler, in PowerShell run:
+```commandline
+> where.exe bundle
 ```
