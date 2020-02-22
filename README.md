@@ -16,7 +16,7 @@ title: <title of note>
 notebook: <notebook name>
 date: YYYY-mm-dd
 layout: default
-order: <specifies sequential order in notebook>
+order: <specifies sequential order of page in notebook>
 ---
 ```
 

@@ -1,1 +1,5 @@
 _site/
+path/
+.vscode
+.sass-cache
+.bundle
