@@ -243,6 +243,7 @@ hr {
 #top-nav a {
   color: #fff;
   text-decoration: none;
+  display: inline; /* necessary as materialize stops displaying on large screens */
 }
 
 #top-nav a:hover {
@@ -261,14 +262,6 @@ a:hover#logo {
 #menu-icon {
   display: none;
 }
-
-#sidebar {
-  width: 200px;
-  position: fixed;
-  height: 100%;
-  overflow: auto;
-}
-
 
 .trigger {
   display: none;

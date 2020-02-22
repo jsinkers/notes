@@ -1,7 +1,9 @@
-<div id="nav-bg">
+<div id="nav-bg" class="navbar-fixed">
     <nav id="top-nav">
         <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-        <a href="{{ site.baseurl }}/" id="logo">Notes</a>
+<!--        <a href="{{ site.baseurl }}/" id="logo">Notes</a>-->
+        {{ page.notebook }} - {{ page.title }}
+        {% comment %}
         <input type="checkbox" id="menu-icon">
         <label class="menu-label" for="menu-icon"></label>
         <div class="trigger">
@@ -9,5 +11,6 @@
                 <!--        <span class="nav-link"><a href="/about/">about</a></span>-->
             </div>
         </div>
+        {% endcomment %}
     </nav>
 </div>
