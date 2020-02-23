@@ -22,6 +22,8 @@ tags: [security, cryptography, hash]
   - [Lock analogy](#lock-analogy)
   - [Applications](#applications-3)
   - [Key distribution](#key-distribution)
+- [Case Studies](#case-studies)
+- [Resources](#resources)
 
 
 ## Entropy
@@ -180,4 +182,39 @@ verify(message: array<byte>, signature: array<byte>, public key) -> bool  (wheth
 - PGP: uses a web of trust
 - Keybase: uses social proof
 
+## Case Studies
+
+- *2FA* Helps protect against stolen passwords and phishing attacks
+    - TOTP: time-based one-time password e.g. google authenticator doesn't protect against phishing
+    - ideally use a FIDO/U2F dongle e.g. YubiKey
+    - SMS is useless except for strangers picking up password in transit
+- *disk encryption*: protect your files if your device is lost or stolen
+    - encrypt entire disk with symmetric cipher, with key protected by passphrase
+    - Bitlocker, Windows
+    - cryptsetup + LUKS, Linux
+  - *private messaging*: Signal, Keybase
+    - end-to-end security bootstrapped from asymmetric-key encryption
+    - critical step: obtaining contacts' public keys
+    - for good security you need to authenticate out-of-band, or trust social proofs
+    - Electron based desktop apps: huge trust stack so avoid where possible
+- *SSH*:
+    - `ssh-keygen`: generates asymmetric keypair `public_key, private_key`
+        - randomly generated using OS entropy (hardware events, ...)
+        - public key stored as is
+        - at rest, private key should be stored encrypted: when you supply a passphrase, key derivation function is used to produce a key which then encrypts the private key with a symmetric cipher
+    - `.ssh/authorized_keys` stores public keys
+    - connecting clients prove identity through asymmetric signatures, challenge-response.
+        - server picks random number and sends to client
+        - client signs the message and sends signature to server, which verifies signature against public key on record
+        - proves that client possesses private key corresponding to public key
+          stored by server, authenticating connection
+- *Tor*:
+  - not resistant to powerful global attackers
+  - weak against traffic analyis attacks
+  - useful for small scale traffic hiding, but not particularly useful for privacy
+  - better to use more secure services (Signal, TLS, ...)
+
+## Resources
+
+- [2019 security lecture](https://missing.csail.mit.edu/2019/security/)
 

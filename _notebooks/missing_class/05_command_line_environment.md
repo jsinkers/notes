@@ -39,6 +39,8 @@ tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
 
 
 
+
+
 ## Job control
 
 - there are a variety of software interrupts or signals which can effect execution
@@ -175,10 +177,12 @@ $ jobs
 - short form of another command that shell automatically replaces
 - a `bash` alias has the following structure, defined in the 
   .bashrc/.zshrc:
+
 ```bash
 alias alias_name="command_to_alias arg1 arg"
 ```
 Aliases
+
 ```bash
 # Save a lot of typing for common commands
 alias gs="git status"

@@ -20,6 +20,7 @@ order: 10
 - [Common command line patterns](#common-command-line-patterns)
 - [Booting + Live USBs](#booting--live-usbs)
 - [Docker, Vagrant, VMs, Cloud](#docker-vagrant-vms-cloud)
+- [Filesystem Hierarchy Standard](#filesystem-hierarchy-standard)
 
 Based on https://missing.csail.mit.edu/2020/potpourri/
 
@@ -153,3 +154,20 @@ OS recovery.
     - need lots of CPU, disk, RAM, GPU
     - many machines than you have access to (e.g. 1000 computers for a 
       couple of minutes)
+
+## Filesystem Hierarchy Standard
+[Wikipedia](https://en.m.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)
+- `/bin`: essential command binaries
+- `/sbin`: essential system binaries, usually run by root
+- `/dev`: device files; special files that interface with hardware devices
+- `/etc`: host-specific system-wide configuration files
+- `/home`: home dirs for users in the system
+- `/lib`: common libraries for system programs
+- `/opt`: optional application software
+- `/sys`: contains info and config for system
+- `/tmp`, `/var/tmp`: temporary files, deleted between reboots
+- `/usr/`: read only user data
+  - `/usr/bin`: non-essential command binaries
+  - `/usr/sbin`: non-essential system binaries
+  - `/usr/local/bin`: binaries for user compiled programs
+- `/var`: variable files, e.g. logs, caches
