@@ -5,7 +5,7 @@ title: Text Editors and vim
 notebook: missing_class
 date: 2020-02-09
 order: 3
----
+...
 
 [TOC]: #
 

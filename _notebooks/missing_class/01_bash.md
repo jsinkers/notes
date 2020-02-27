@@ -5,7 +5,8 @@ layout: default
 date: '2020-02-08'
 order: 1
 tags: [bash, linux, Notebooks/missing_semester]
----
+...
+
 [TOC]: #
 
 # Table of Contents

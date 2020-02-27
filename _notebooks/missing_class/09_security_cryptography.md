@@ -4,7 +4,7 @@ notebook: missing_class
 layout: default
 date: 2020-02-21 22:45
 tags: [security, cryptography, hash]
----
+...
 
 # Security and Cryptography
 
@@ -31,7 +31,7 @@ tags: [security, cryptography, hash]
 - entropy: measure of randomness
 - useful for measuring strength of password
 - relevant xkcd
-  ![correct horse battery staple](https://imgs.xkcd.com/comics/password_strength.png)
+![correct horse battery staple](https://imgs.xkcd.com/comics/password_strength.png)
 - entropy measured in bits: selecting uniformly at random from a set of `n`
   possible outcomes, entropy is `log_2(n)`
   - coin toss: 1 bit of entropy
@@ -149,7 +149,7 @@ You can also use a key-pair for authentication: sign and verify an unencrypted m
 sign(message: array<byte>, private key) -> array<byte>  (signature)
 verify(message: array<byte>, signature: array<byte>, public key) -> bool  (whether or not the signature is valid)
 ```
-![signing and verification, without encryption](https://en.m.wikipedia.org/wiki/File:Private_key_signing.svg)
+![signing and verification, without encryption](https://upload.wikimedia.org/wikipedia/commons/7/78/Private_key_signing.svg)
 
 - Messages encrypted with _public key_
 - Given _ciphertext_ its hard to determine _plaintext_ without _private key_

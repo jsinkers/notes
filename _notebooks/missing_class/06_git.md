@@ -1,11 +1,12 @@
 ---
-layout: default
-title: Git
-date: 2020-02-15
-notebook: missing_class
+title: "Git"
+author: "JS"
+date: "2020-02-15"
+notebook: "missing_class"
 order: 6
-tags: [Notebooks/missing_semester, git]
----
+tags: ["missing_semester", "git"]
+layout: default
+...
 
 # Git
 
@@ -95,16 +96,15 @@ The arrows point to the parent of each commit (it's a "comes before" relation,
 not "comes after"). After the third commit, the history branches into two
 separate branches. This might correspond to, for example, two separate features
 being developed in parallel, independently from each other. In the future,
-these branches may be merged to create a new snapshot that incorporates both of
+kkthese branches may be merged to create a new snapshot that incorporates both of
 the features, producing a new history that looks like this, with the newly
 created merge commit shown in bold:
-
-<pre>
+```
 o <-- o <-- o <-- o <---- <strong>o</strong>
             ^            /
              \          v
               --- o <-- o
-</pre>
+```
 
 Commits in Git are immutable. This doesn't mean that mistakes can't be
 corrected, however; it's just that "edits" to the commit history are actually
@@ -115,7 +115,7 @@ to the new ones.
 
 Git's data model written down in pseudocode:
 
-```
+```C
 // a file is a bunch of bytes
 type blob = array<byte>
 
@@ -144,7 +144,7 @@ type object = blob | tree | commit
 In Git data store, all objects are content-addressed by their [SHA-1
 hash](https://en.wikipedia.org/wiki/SHA-1).
 
-```
+```python
 objects = map<string, object>
 
 def store(object):
@@ -188,7 +188,7 @@ immutable, references are mutable (can be updated to point to a new commit).
 For example, the `master` reference usually points to the latest commit in the
 main branch of development.
 
-```
+```python
 references = map<string, string>
 
 def update_reference(name, id):
@@ -256,12 +256,10 @@ for more information, or watch the lecture video.
 
 ## Basics
 
-{% comment %}
-
 The `git init` command initializes a new Git repository, with repository
 metadata being stored in the `.git` directory:
 
-```console
+```bash
 $ mkdir myproject
 $ cd myproject
 $ git init
@@ -277,7 +275,7 @@ nothing to commit (create/copy files and use "git add" to track)
 How do we interpret this output? "No commits yet" basically means our version
 history is empty. Let's fix that.
 
-```console
+```bash
 $ echo "hello, git" > hello.txt
 $ git add hello.txt
 $ git status
@@ -311,7 +309,7 @@ version, which hides the graph structure. If you use a command like `git log
 --all --graph --decorate`, it will show you the full version history of the
 repository, visualized in graph form.
 
-```console
+```bash
 $ git log --all --graph --decorate
 * commit 4515d17a167bdef0a91ee7d50d75b12c9c2652aa (HEAD -> master)
   Author: Missing Semester <missing-semester@mit.edu>
@@ -324,7 +322,7 @@ This doesn't look all that graph-like, because it only contains a single node.
 Let's make some more changes, author a new commit, and visualize the history
 once more.
 
-```console
+```bash
 $ echo "another line" >> hello.txt
 $ git status
 On branch master
@@ -350,7 +348,7 @@ $ git commit -m 'Add a line'
 
 Now, if we visualize the history again, we'll see some of the graph structure:
 
-```
+```bash
 * commit 35f60a825be0106036dd2fbc7657598eb7b04c67 (HEAD -> master)
 | Author: Missing Semester <missing-semester@mit.edu>
 | Date:   Tue Jan 21 22:26:20 2020 -0500
@@ -369,7 +367,7 @@ Also, note that it shows the current HEAD, along with the current branch
 
 We can look at old versions using the `git checkout` command.
 
-```console
+```bash
 $ git checkout 4515d17  # previous commit hash; yours will be different
 Note: checking out '4515d17'.
 
@@ -396,7 +394,7 @@ another line
 Git can show you how files have evolved (differences, or diffs) using the `git
 diff` command:
 
-```console
+```bash
 $ git diff 4515d17 hello.txt
 diff --git c/hello.txt w/hello.txt
 index 94bab17..f0013b2 100644
@@ -406,8 +404,6 @@ index 94bab17..f0013b2 100644
  hello, git
  +another line
 ```
-
-{% endcomment %}
 
 - `git help <command>`: get help for a git command
 - `git init`: creates a new git repo, with data stored in the `.git` directory
@@ -423,8 +419,6 @@ index 94bab17..f0013b2 100644
 
 ## Branching and merging
 
-{% comment %}
-
 Branching allows you to "fork" version history. It can be helpful for working
 on independent features or bug fixes in parallel. The `git branch` command can
 be used to create new branches; `git checkout -b <branch name>` creates and
@@ -433,8 +427,6 @@ branch and checks it out.
 Merging is the opposite of branching: it allows you to combine forked version
 histories, e.g. merging a feature branch back into master. The `git merge`
 command is used for merging.
-
-{% endcomment %}
 
 - `git branch`: shows branches
 - `git branch <name>`: creates a branch
@@ -476,7 +468,7 @@ hash
 - `~<num>`: move upwards by num commits
 - e.g.
   - `git checkout master^`: checks out first parent of master
-  - `master^^`: grandparent of `master`
+  - `master^` `^`: grandparent of `master`
   - `HEAD~4`: 4th ancestor of `HEAD`
 - chaining e.g. `git checkout HEAD~^2~2`: move to parent commit, move to second
   co-parent of commit, move two commits up
@@ -504,9 +496,6 @@ hash
     - `numCommits`: number of commits away to anchor
     - `hash`: hash of commit being described (not the anchor)
 
-
-
-
 # Advanced Git
 
 - `git config`: Git is [highly customizable](https://git-scm.com/docs/git-config)
@@ -525,7 +514,7 @@ out there for Git. We personally don't use them and use the command-line
 interface instead.
 - **Shell integration**: It's super handy to have a Git status as part of your
 shell prompt ([zsh](https://github.com/olivierverdier/zsh-git-prompt),
-[bash](https://github.com/magicmonty/bash-git-prompt)). Often included in
+[](https://github.com/magicmonty/bash-git-prompt)). Often included in
 frameworks like [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh).
 - **Editor integration**: Similarly to the above, handy integrations with many
 features. [fugitive.vim](https://github.com/tpope/vim-fugitive) is the standard
@@ -579,10 +568,10 @@ class website](https://github.com/missing-semester/missing-semester).
     1. What was the commit message associated with the last modification to the
        `collections:` line of `_config.yml`? (Hint: use `git blame` and `git
        show`)
-       ```
-       git blame -L /collections:/ _config.yml
-       git show a88b4eac
-       ```
+```
+git blame -L /collections:/ _config.yml
+git show a88b4eac
+```
 1. One common mistake when learning Git is to commit large files that should
    not be managed by Git or adding sensitive information. Try adding a file to
    a repository, making some commits and then deleting that file from history

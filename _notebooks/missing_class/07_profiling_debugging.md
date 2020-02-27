@@ -5,7 +5,8 @@ date: 2020-02-17
 notebook: missing_class
 order: 7
 tags: [Notebooks/missing_semester, debug, log, profile]
----
+...
+
 Based on https://missing.csail.mit.edu/2020/debugging-profiling/
 
 [TOC]: #

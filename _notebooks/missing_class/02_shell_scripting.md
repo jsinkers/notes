@@ -5,7 +5,7 @@ notebook: missing_class
 date: 2020-02-08
 order: 2
 tags: [bash, linux, Notebooks/missing_semester]
----
+...
 
 [TOC]: #
 

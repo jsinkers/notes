@@ -5,7 +5,7 @@ date: 2020-02-14
 order: 5
 notebook: missing_class
 tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
----
+...
 
 [TOC]: #
 
@@ -34,6 +34,14 @@ tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
 - [Remote Machines](#remote-machines-1)
 - [Job Control](#job-control-2)
 -
+
+
+
+
+
+
+
+
 
 
 
@@ -396,6 +404,14 @@ Since you might be spending hundreds to thousands of hours in your terminal it p
 - Tab/Pane support
 - Scrollback configuration
 - Performance (some newer terminals like [Alacritty](https://github.com/jwilm/alacritty) or [kitty](https://sw.kovidgoyal.net/kitty/) offer GPU acceleration).
+
+# TeX and pandoc
+
+- `pandoc` converts between all sorts of file formats
+- `fc-list : family | sort > font_list.txt` outputs list of files
+- [Customising pandoc](https://learnbyexample.github.io/tutorial/ebook-generation/customizing-pandoc/)
+- [Syntax highlighting](https://stackoverflow.com/questions/30880200/pandoc-what-are-the-available-syntax-highlighters/47876166#47876166)
+- [Eisvogel notes template]( https://github.com/Wandmalfarbe/pandoc-latex-template )
 
 # Exercises
 
