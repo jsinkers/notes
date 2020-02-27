@@ -178,6 +178,7 @@ Now this works: here output from `echo` gets piped as input for `tee`, which is 
 There are no execute permissions set for anyone.
 
 6. `$ man chmod`: `chmod` changes file mode bits
+[chmod calculator](https://chmodcommand.com/)
 
 7. ```bash
     $ chmod u+x semester
