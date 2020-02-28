@@ -1,11 +1,11 @@
-<div id="nav-bg" class="navbar-fixed">
+<div id="nav-bg" class="navbar-fixed z-depth-4">
     <nav id="top-nav">
         <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
         <a href="{{ site.baseurl }}/" id="logo">Notes</a>
         {% if page.layout == "note" %}
         <input type="checkbox" id="menu-icon">
         <label class="menu-label" for="menu-icon"></label>
-        <div class="trigger">
+        <div class="trigger z-depth-2">
             <div class="trigger-child">
                 <span class="nav-link">
                     <a href="{{ site.baseurl }}{{ page.url }}#">{{ page.notebook }} - {{ page.title }}</a>
