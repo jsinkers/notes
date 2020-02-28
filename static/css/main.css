@@ -297,6 +297,11 @@ input[type=checkbox]:checked ~ .menu-label:after {
   content: "- ";
 }
 
+#slide-out a {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 /* in terms of our fixed-width layout; if smaller than this, we want to
  * collapse the menu */
 @media (min-width: 40rem) {
@@ -324,7 +329,6 @@ input[type=checkbox]:checked ~ .menu-label:after {
 }
 
 @media (prefers-color-scheme: dark) {
-
     body {
         background-color: #303030;
         color: #ddd
@@ -358,6 +362,20 @@ input[type=checkbox]:checked ~ .menu-label:after {
 
     .accent {
         color: #F92672;
+    }
+
+    #slide-out {
+      background-color: #1b1f23;
+      color: #eee;
+    }
+
+    #slide-out a {
+      color: #eee;
+    }
+
+    #slide-out .subheader {
+      color: #ddd;
+      background-color: #0e1014;
     }
 }
 
