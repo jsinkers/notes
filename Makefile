@@ -31,8 +31,8 @@ $(output)/%.pdf: $(source)/%.md
 		$< \
 		-o $@ \
 		--from markdown \
-		--template eisvogel \
-		--include-in-header inline_code.tex \
+		--template static/tex/eisvogel.latex \
+		--include-in-header static/tex/inline_code.tex \
 		--listings \
 		--pdf-engine xelatex
 
