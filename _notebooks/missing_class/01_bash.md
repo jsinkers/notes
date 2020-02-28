@@ -1,11 +1,11 @@
 ---
 title: bash
 notebook: missing_class
-layout: default
+layout: note
 date: '2020-02-08'
 order: 1
 tags: [bash, linux, Notebooks/missing_semester]
-...
+---
 
 [TOC]: #
 

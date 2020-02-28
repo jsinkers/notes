@@ -1,6 +1,6 @@
 ---
 title: Debugging and profiling
-layout: default
+layout: note
 date: 2020-02-17
 notebook: missing_class
 order: 7

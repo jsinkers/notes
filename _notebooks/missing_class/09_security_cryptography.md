@@ -1,7 +1,7 @@
 ---
 title: Security and Cryptography
 notebook: missing_class
-layout: default
+layout: note
 date: 2020-02-21 22:45
 tags: [security, cryptography, hash]
 ...

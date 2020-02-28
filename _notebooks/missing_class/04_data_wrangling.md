@@ -1,6 +1,6 @@
 ---
 title: Data Wrangling
-layout: default
+layout: note
 date: '2020-02-11'
 notebook: missing_class
 order: 4

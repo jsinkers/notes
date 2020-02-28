@@ -5,7 +5,7 @@ date: "2020-02-15"
 notebook: "missing_class"
 order: 6
 tags: ["missing_semester", "git"]
-layout: default
+layout: note
 ...
 
 # Git

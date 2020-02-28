@@ -1,6 +1,6 @@
 ---
 title: Command-line environment
-layout: default
+layout: note
 date: 2020-02-14
 order: 5
 notebook: missing_class
@@ -34,6 +34,7 @@ tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
 - [Remote Machines](#remote-machines-1)
 - [Job Control](#job-control-2)
 -
+
 
 
 

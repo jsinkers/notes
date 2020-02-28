@@ -1,7 +1,7 @@
 ---
 title: Metaprogramming
 notebook: missing_class
-layout: default
+layout: note
 date: 2020-02-26
 tags:
 - make
