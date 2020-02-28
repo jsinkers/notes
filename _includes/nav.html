@@ -1,16 +1,17 @@
 <div id="nav-bg" class="navbar-fixed">
     <nav id="top-nav">
         <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-<!--        <a href="{{ site.baseurl }}/" id="logo">Notes</a>-->
-        {{ page.notebook }} - {{ page.title }}
-        {% comment %}
+        <a href="{{ site.baseurl }}/" id="logo">Notes</a>
+        {% if page.layout == "note" %}
         <input type="checkbox" id="menu-icon">
         <label class="menu-label" for="menu-icon"></label>
         <div class="trigger">
             <div class="trigger-child">
-                <!--        <span class="nav-link"><a href="/about/">about</a></span>-->
+                <span class="nav-link">
+                    <a href="{{ site.baseurl }}{{ page.url }}#">{{ page.notebook }} - {{ page.title }}</a>
+                </span>
             </div>
         </div>
-        {% endcomment %}
+        {% endif %}
     </nav>
 </div>

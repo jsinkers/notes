@@ -36,20 +36,6 @@ tags: [Notebooks/missing_semester, dotfiles, shell, alias, tmux]
 -
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Job control
 
 - there are a variety of software interrupts or signals which can effect execution
