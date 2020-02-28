@@ -31,6 +31,7 @@ tags: [security, cryptography, hash]
 - entropy: measure of randomness
 - useful for measuring strength of password
 - relevant xkcd
+
 ![correct horse battery staple](https://imgs.xkcd.com/comics/password_strength.png)
 - entropy measured in bits: selecting uniformly at random from a set of `n`
   possible outcomes, entropy is `log_2(n)`

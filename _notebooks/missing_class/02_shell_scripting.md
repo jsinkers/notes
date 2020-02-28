@@ -1,10 +1,10 @@
 ---
-title: Shell scripting
+title: "Shell scripting"
 layout: note
 notebook: missing_class
 date: 2020-02-08
 order: 2
-tags: [bash, linux, Notebooks/missing_semester]
+tags: [bash, linux]
 ...
 
 [TOC]: #
@@ -447,9 +447,9 @@ To bridge this disconnect there's the [`xargs`](http://man7.org/linux/man-pages/
 For example `ls | xargs rm` will delete the files in the current directory.
 
     Your task is to write a command that recursively finds all HTML files in the folder and makes a zip with them. Note that your command should work even if the files have spaces (hint: check `-d` flag for `xargs`)
-    {% comment %}
+    ```bash
     find . -type f -name "*.html" | xargs -d '\n'  tar -cvzf archive.tar.gz
-    {% endcomment %}
+    ```
 
 1. (Advanced) Write a command or script to recursively find the most recently modified file in a directory. More generally, can you list all files by recency?
 

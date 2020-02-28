@@ -3,16 +3,19 @@
 # In order to use this makefile, you need some tools:
 # - GNU make
 # - Pandoc
-# - LuaLaTeX
+# - xelatex
 
 # Directory containing source (Markdown) files
-source := ./
+source := _notebooks
 
 # Directory containing pdf files
-output := pdf
+output := assets/pdf
 
-# All markdown files in src/ are considered sources
-sources := $(wildcard $(source)/*.md)
+# All markdown files in _notebooks/<notebook>/ are considered sources
+sources := $(wildcard $(source)/*/*.md)
+#notebooks := $(wildcard $(source)/*/)
+#sources = $(wildcard $(source)/$(notebook)/*.md)
+#sources := $(shell git ls-files -m **.md)
 
 # Convert the list of source files (Markdown files in directory src/)
 # into a list of output files (PDFs in directory print/).
@@ -22,16 +25,21 @@ all: $(objects)
 
 # Recipe for converting a Markdown file into PDF using Pandoc
 $(output)/%.pdf: $(source)/%.md
+	# ensure target directory exists
+	mkdir -p $(@D)
 	pandoc \
 		$< \
 		-o $@ \
-		--from gfm \
+		--from markdown \
 		--template eisvogel \
 		--include-in-header inline_code.tex \
 		--listings \
 		--pdf-engine xelatex
 
-
 .PHONY : clean
 clean:
-	rm -f $(output)/*.pdf
+	rm -rIdv $(output)/*/*.pdf
+
+.PHONY : list
+list: $(sources)
+	echo $?

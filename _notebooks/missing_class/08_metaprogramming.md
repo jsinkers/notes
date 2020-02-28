@@ -153,7 +153,7 @@ should still work with later versions
         un-buildable version of the paper.
 
      **`.git/hooks/pre-commit`**:
-     ``` bash
+     ```
      #!/bin/sh
      #
      # Pre-commit script to prevent commit if the make fails
@@ -166,7 +166,7 @@ should still work with later versions
      then
              echo "Make successful"
      else
-             cat <<\EOF
+            cat << EOF
      Error: could not make pdf
      EOF
              exit 1
