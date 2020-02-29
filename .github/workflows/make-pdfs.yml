@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run Makefile
-        uses: jsinkers/md-to-pdf@master
+        uses: jsinkers/md-to-pdf@2e467f0
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Commit files
