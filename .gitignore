@@ -3,3 +3,5 @@ path/
 .vscode
 .sass-cache
 .bundle
+node_modules/
+.idea/
