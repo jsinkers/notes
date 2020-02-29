@@ -1,0 +1,28 @@
+name: make-pdfs
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Makefile
+        uses: jsinkers/md-to-pdf
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make all
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout -b pdf
+          git add assets/pdf
+          git commit -m ":wave: Here are the pdf files for the latest notes"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
