@@ -14,7 +14,6 @@ jobs:
         uses: jsinkers/md-to-pdf
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: make all
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
