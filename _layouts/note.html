@@ -1,8 +1,20 @@
 ---
 layout: default
 ---
-
-<h1 class="title">{{ page.title }}{% if page.subtitle %} <span class="subtitle">{{ page.subtitle }}</span>{% endif %}</h1>
+<h2>{{ page.notebook }}</h2>
+<div class="row valign-wrapper">
+    <div class="col s11">
+        <h1 class="title">{{ page.title }}{% if page.subtitle %} <span class="subtitle">{{ page.subtitle }}</span>{%
+        endif %}</h1>
+    </div>
+    <div class="col s1 right-align">
+        <a id="pdf-link"
+          href="https://github.com/jsinkers/notes/blob/master/assets/pdf/{{ page.notebook }}/{{ page.path | split: '/' | last | split: '.' | first }}.pdf">
+        <i class="material-icons">menu_book</i>
+        </a>
+    </div>
+</div>
+{% comment %} for some reason page.name is empty so I can't just split that {% endcomment %}
 
 {{ content }}
 

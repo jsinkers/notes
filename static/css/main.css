@@ -301,6 +301,11 @@ input[type=checkbox]:checked ~ .menu-label:after {
   white-space: nowrap;
   overflow: hidden;
 }
+
+#pdf-link {
+  display: inline-block;
+  padding: 0.2rem;
+}
 /* need to override materialize headings sizes because they are huge */
 h1 {
   font-size: 3em !important;
