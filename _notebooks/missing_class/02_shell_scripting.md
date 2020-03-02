@@ -9,7 +9,7 @@ tags: [bash, linux]
 
 [TOC]: #
 
-# Table of Contents
+## Table of Contents
 - [Assignment and string delimiters](#assignment-and-string-delimiters)
 - [Functions](#functions)
 - [Special Variables](#special-variables)
@@ -30,6 +30,8 @@ tags: [bash, linux]
   - [History-based autosuggestions](#history-based-autosuggestions)
 - [Directory Navigation](#directory-navigation)
 - [Alternative Shells](#alternative-shells)
+- [Exercises](#exercises)
+- [Solutions](#solutions)
 
 
 Based on https://missing.csail.mit.edu/2020/shell-tools/
@@ -371,7 +373,7 @@ $ autoload -Uz zsh-newuser-install
 $ zsh-newuser-install -f
 ```
 
-# Exercises
+## Exercises
 
 1. Read [`man ls`](http://man7.org/linux/man-pages/man1/ls.1.html) and write an `ls` command that lists files in the following manner
 
@@ -453,7 +455,7 @@ For example `ls | xargs rm` will delete the files in the current directory.
 
 1. (Advanced) Write a command or script to recursively find the most recently modified file in a directory. More generally, can you list all files by recency?
 
-# Solutions
+## Solutions
 
 1. `$ ls -laht --color`
 1. ```bash

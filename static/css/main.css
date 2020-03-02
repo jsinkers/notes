@@ -65,36 +65,41 @@ em {
 }
 
 ul {
-  list-style-position: inside;
-  padding-left: 1rem;
+  list-style-position: inside !important;
+  padding-left: 1rem !important;
 }
 
 ol {
-  margin-left: 1rem;
+  margin-left: 1rem !important;
 }
 
 li > ul {
-  padding-left: 2rem;
+  padding-left: 2rem !important;
 }
 
 ul li {
-  list-style-type: none;
+  list-style-type: none !important;
 }
 
 ul, ol {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem !important;
 }
 
 ul ul, ol ul, ul ol, ol ol {
-  margin-bottom: inherit;
+  margin-bottom: inherit !important;
 }
 
 ul li:before {
   content: "\2013  "; /* note: extra space needed because first is consumed by css parser */
-  position: absolute;
-  margin-left: -1rem;
+  position: absolute !important;
+  margin-left: -1rem !important;
 }
 
+#slide-out li:before {
+  content: none !important; /* note: extra space needed because first is consumed by css parser */
+  position: inherit;
+  margin-left: auto !important;
+}
 ul.double-spaced li {
   margin-top: 1rem;
 }
@@ -316,19 +321,19 @@ h2 {
 }
 
 h3 {
-  font-size: 2em;
+  font-size: 2em !important;
 }
 
 h4 {
-  font-size: 1.7em;
+  font-size: 1.7em !important;
 }
 
 h5 {
-  font-size: 0.83em;
+  font-size: 0.83em !important;
 }
 
 h6 {
-  font-size: 0.67em;
+  font-size: 0.67em !important;
 }
 /* in terms of our fixed-width layout; if smaller than this, we want to
  * collapse the menu */
@@ -395,8 +400,11 @@ h6 {
     #slide-out {
       background-color: #1b1f23;
       color: #eee;
+      padding-left: 0 !important;
     }
-
+    #slide-out ul {
+      padding-left: 0 !important;
+    }
     #slide-out a {
       color: #eee;
     }
