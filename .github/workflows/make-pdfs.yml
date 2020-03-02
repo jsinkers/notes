@@ -19,7 +19,7 @@ jobs:
           git config --local user.email "github-actions[bot] "
           git config --local user.name "GitHub Action"
           git checkout -b pdf
-          git add assets/pdf
+          git add static/pdf
           git diff-index --quiet HEAD || git commit -m ":wave: Here are the pdf files for the latest notes"
       - name: Push changes
         uses: ad-m/github-push-action@master

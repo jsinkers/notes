@@ -33,22 +33,30 @@ tags: $tag
 
 [TOC]: #
 ```
-## Images
+## Images and other files
 
-Ideally would be stored in `_notebooks/<notebook>/files/` but haven't been able
-to find a way to have the correct path for both preview and the jekyll build.
+Through use of [jekyll-relative-links](https://github.com/benbalter/jekyll-relative-links),  
+images can be placed in `_notebooks/<notebook>/img/`.
+
+Alternative location: `static/img/<notebook>/` can be used to uncouple an image
+from a particular notebook for whatever reason.
+
+Other files should be placed in:
+- `_notebooks/<notebook>/files`: for tightly coupled files
+- `static/files`: for loosely coupled files
 
 # PDFs
 
 In the project root run `make` to build all PDFs for all *.md files in notebook folders. Note I have only used this on WSL.
 
-PDFs are stored as `assets/pdf/<notebook>/<note>.pdf`
+PDFs are stored as `static/pdf/<notebook>/<note>.pdf`
 
 To remove generated pdfs, run `make clean`
 
 The template used for PDFs is [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template)
 
-Templates for building PDFs are stored in
+Templates for building PDFs are stored in `static/tex`
+
 # Development
 
 To build and view the site locally, run:

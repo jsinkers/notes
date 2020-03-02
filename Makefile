@@ -9,7 +9,7 @@
 source := _notebooks
 
 # Directory containing pdf files
-output := assets/pdf
+output := static/pdf
 
 # All markdown files in _notebooks/<notebook>/ are considered sources
 sources := $(wildcard $(source)/*/*.md)
@@ -34,7 +34,8 @@ $(output)/%.pdf: $(source)/%.md
 		--template static/tex/eisvogel.latex \
 		--include-in-header static/tex/inline_code.tex \
 		--listings \
-		--pdf-engine xelatex
+		--pdf-engine xelatex \
+		--resource-path $(dir $<)
 
 .PHONY : clean
 clean:

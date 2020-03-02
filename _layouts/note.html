@@ -9,13 +9,13 @@ layout: default
     </div>
     <div class="col s1 right-align">
         <a id="pdf-link"
-          href="https://github.com/jsinkers/notes/blob/master/assets/pdf/{{ page.notebook }}/{{ page.path | split: '/' | last | split: '.' | first }}.pdf">
+          href="{{ site.baseurl }}static/pdf/{{ page.dir }}{{ page.url | split: '/' | last | split: '.' | first }}.pdf">
         <i class="material-icons">menu_book</i>
         </a>
     </div>
 </div>
 {% comment %} for some reason page.name is empty so I can't just split that {% endcomment %}
-
+test: {{ site.static_files | first }}
 {{ content }}
 
 <hr>

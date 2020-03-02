@@ -7,8 +7,9 @@ markdown: kramdown
 kramdown:
   input: GFM
   hard_wrap: false
+  show_warnings: true
 highlighter: rouge
-permalink: /:title/
+permalink: :title:output_ext
 future: true
 timezone: Australia/Melbourne
 
@@ -23,3 +24,11 @@ excludes:
   - Gemfile
   - Gemfile.lock
   - vendor
+
+plugins:
+  - jekyll-relative-links
+
+# https://github.com/benbalter/jekyll-relative-links
+relative_links:
+  enabled: true
+  collectoins: true
