@@ -9,7 +9,7 @@ layout: default
     </div>
     <div class="col s1 right-align">
         <a id="pdf-link"
-          href="{{ site.baseurl }}static/pdf/{{ page.dir }}{{ page.url | split: '/' | last | split: '.' | first }}.pdf">
+          href="{{ site.baseurl }}/static/pdf/{{ page.url | split: '/' | pop | last }}/{{ page.url | split: '/' | last | split: '.' | first }}.pdf">
         <i class="material-icons">menu_book</i>
         </a>
     </div>
