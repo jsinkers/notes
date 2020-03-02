@@ -307,7 +307,6 @@ final int MAX_LENGTH = 420;
   } while (expression) 
   ```
 
-}
 - `for`
 
   ```java
