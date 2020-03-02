@@ -38,17 +38,18 @@ tags: java, oop
 
 - 1991: James Gosling at Sun Microsystems developed first version of Java
 - intended for embedded systems (home appliances e.g. washing machines, TVs).
-    - complex: various processors make it difficult to make portable, and
-      manufacturers wouldn't want to develop expensive compilers
-    - used two-step translation:
-      - translate to an intermediate language, _Java byte-code_ which is the same for all appliances
-      - small, easy-to-write interpreter converts to machine language
+  - complex: various processors make it difficult to make portable, and
+    manufacturers wouldn't want to develop expensive compilers
+  - used two-step translation:
+    - translate to an intermediate language, _Java byte-code_ which is the same
+      for all appliances
+    - small, easy-to-write interpreter converts to machine language
 - Oracle now owns Java
 - _byte code_: computer-readable program
 - *object-oriented programming*: Java is an OOP language
-    - objects
-    - methods: actions an object can take
-    - class: collects objects of the same type
+  - objects
+  - methods: actions an object can take
+  - class: collects objects of the same type
 - *Java application program*: class with a `main` method
 - *application*: meant to be run by computer, c.f. applet
   - has a `main` method
@@ -62,12 +63,12 @@ tags: java, oop
 ## Java Features
 
 1. Compiled and interpreted
-  - Compiled language (e.g. C)
-    ![compile](img/compile.png)
-  - Java
-   ![java_compiled_and_interpreted](img/java_compiled_and_interpreted.png)
-  - Java is compiled to bytecode, then interpreted to machine code
-  - porting Java to a new system involves writing an interpreter
+   - Compiled language (e.g. C)
+![compile](img/compile.png)
+   - Java
+![java_compiled_and_interpreted](img/java_compiled_and_interpreted.png)
+   - Java is compiled to bytecode, then interpreted to machine code
+   - porting Java to a new system involves writing an interpreter
 2. Platform independent
 ![platform_independence](img/platform_independence.png)
 3. Object oriented
@@ -86,6 +87,7 @@ public class HelloWorld{        // name of class must be same as filename
     }
 }
 ```
+
 ### Compiling and running
 
 ```console
@@ -116,6 +118,7 @@ java HelloWorld
   - safe, well-define: memory is managed by VM not programmer
 
 ### identifiers
+
 - *rules*:
   - must not start with a digit
   - all charactes must in {letters, digits, underscore}
@@ -123,19 +126,20 @@ java HelloWorld
   - are case-sensitive
 - *conventions*:
   - `camelCase`:
-    - variables, methods, objects: start with lower case, word boundaries uppercase, remaining characters are digits and lower case letters
+    - variables, methods, objects: start with lower case, word boundaries
+      uppercase, remaining characters are digits and lower case letters
   - classes: start with upper case letter; otherwise camelCase
 - *keywords, reserved words*: cannot be used as identifiers
   - e.g. `public, class, void, static`
-- *pre-defined identifiers*: defined in libraries required by Java
-  standard packages e.g. `System, String, println`
+- *pre-defined identifiers*: defined in libraries required by Java standard
+  packages e.g. `System, String, println`
   - can be redefined but can be confusing/dangerous
 
 ## Data types
 
 ![java_data_types](img/java_data_types.png)
 
-![java_numeric_data_types](/_notebooks/oop/img/java_numeric_data_types.png)
+![java_numeric_data_types](img/java_numeric_data_types.png)
 
 - floating point numbers are treated as double-precision unless forced by
   appending `f` or `F` to the number e.g. `float a = 2.3F;`
@@ -144,19 +148,26 @@ java HelloWorld
 ## Variables
 
 - must be _declared_ and _initialised_ before use:
+
 ```
 <type> <variable name> = <initial value>;
 ```
+
 - a value of any type in the list can be assigned to a variable to its right:
+
 ```
 byte -> short -> int -> long -> float -> double
 char -> int
 ```
-- explicit *type cast* required to assign a value of one type to variable whose type appears to left on above list (e.g. `double` to `int`)
+
+- explicit *type cast* required to assign a value of one type to variable whose
+  type appears to left on above list (e.g. `double` to `int`)
+
 ```
 int x = 2.99; // invalid assignment
 int y = (int)2.99; // valid assignment; x will be 2
 ```
+
 - `int` variable cannot be assigned to `boolean` variable or vice-versa
 
 ## Variable classes
@@ -171,6 +182,7 @@ int y = (int)2.99; // valid assignment; x will be 2
 - declared with `final` keyword
 - convention: upper case letters with words separated by `_`
 - data type need to be explicitly specified
+
 ```java
 final int MAX_LENGTH = 420;
 ```
@@ -187,8 +199,9 @@ final int MAX_LENGTH = 420;
 |   `/`    |         division         |
 |   `%`    |     modulo division      |
 
-- *mixed-mode arithmetic expression*: if one operand is real and other is integer
-    - integer operand converted to real, real arithmetic performed
+- *mixed-mode arithmetic expression*: if one operand is real and other is
+  integer
+  - integer operand converted to real, real arithmetic performed
 
 ### Relational
 
@@ -200,8 +213,6 @@ final int MAX_LENGTH = 420;
 |   `>=`   | Is greater than or equal to |
 |   `==`   |         Is equal to         |
 |   `!=`   |       Is not equal to       |
-|          |                             |
-|          |                             |
 
 - result of relational operator is `boolean`
 
@@ -217,13 +228,13 @@ final int MAX_LENGTH = 420;
 
 | operator |          Meaning           |
 |:--------:|:--------------------------:|
-|    &     |        bitwise AND         |
-|    !     |         bitwise OR         |
-|    ^     |    bitwise exclusive OR    |
-|    ~     |      one's compliment      |
-|    <<    |         shift Left         |
-|    >>    |        shift Right         |
-|   >>>    | shift Right with zero fill |
+|   `&`    |        bitwise AND         |
+|   `!`    |         bitwise OR         |
+|   `^`    |    bitwise exclusive OR    |
+|   `~`    |      one's compliment      |
+|   `<<`   |         shift Left         |
+|   `>>`   |        shift Right         |
+|  `>>>`   | shift Right with zero fill |
 
 ### Other operators
 
@@ -242,54 +253,62 @@ final int MAX_LENGTH = 420;
 ### Branching
 
 - `if-else`:
-    ```java
-    if (boolean_expression) {
-      // statements
-    } else if (boolean_expression_2) {
-      // statements
-    } else {
-      // otherwise statements
-    }
-    ```
+
+  ```java
+  if (boolean_expression) {
+    // statements
+  } else if (boolean_expression_2) {
+    // statements
+  } else {
+    // otherwise statements
+  }
+  ```
 - `switch`
-    ```java
-    switch (control expression)
-    {
-        case Case_Label_1:
-            Statement_Sequence_1
-            break;
-        case Case_Label_2:
-            Statement_Sequence_2
-            break;
-        case Case_Label_n:
-            Statement_sequence_n
-            break;
-        default:
-            Default_Statement_Sequence
-            break;
-    }
-    ```
+
+  ```java
+  switch (control expression)
+  {
+      case Case_Label_1:
+          Statement_Sequence_1
+          break;
+      case Case_Label_2:
+          Statement_Sequence_2
+          break;
+      case Case_Label_n:
+          Statement_sequence_n
+          break;
+      default:
+          Default_Statement_Sequence
+          break;
+  }
+  ```
 - two way decision expression: `expression ? value_true : value_false`
 
 ### Loops
 
 - `while`
-    ```java
-    while (condition) {
-        // statements to execute
-    }
-    ```
+
+  ```java
+  while (condition) {
+      // statements to execute
+  }
+  ```
 - `do-while`
-    ```java
-    do {
-        // statements to execute
-    } while (expression) 
+
+  ```java
+  do {
+      // statements to execute
+  } while (expression) 
+  ```
+
 }
 - `for`
-    ```java
-    for (initialise_expr; terminate_expr; update_expr) {
-        // statements to execute
-    }
-    ```
+
+  ```java
+  for (initialise_expr; terminate_expr; update_expr) {
+      // statements to execute
+  }
+  ```
 - `break`: exits `while, do, for` loop
 - `continue`: skips rest of statements in loop
+
