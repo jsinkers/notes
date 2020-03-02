@@ -64,13 +64,19 @@ tags: java, oop
 
 1. Compiled and interpreted
    - Compiled language (e.g. C)
+
 ![compile](img/compile.png)
+
    - Java
+
 ![java_compiled_and_interpreted](img/java_compiled_and_interpreted.png)
+
    - Java is compiled to bytecode, then interpreted to machine code
    - porting Java to a new system involves writing an interpreter
 2. Platform independent
+
 ![platform_independence](img/platform_independence.png)
+
 3. Object oriented
 
 ## Hello world!
