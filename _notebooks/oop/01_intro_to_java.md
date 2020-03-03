@@ -44,6 +44,8 @@ tags: java, oop
     - translate to an intermediate language, _Java byte-code_ which is the same
       for all appliances
     - small, easy-to-write interpreter converts to machine language
+    - *Write Once, Run Anywhere*
+    - Less low-level facilities
 - Oracle now owns Java
 - _byte code_: computer-readable program
 - *object-oriented programming*: Java is an OOP language
@@ -59,6 +61,8 @@ tags: java, oop
   - program embedded in a web page
   - run by Java-enabled web browser
   - always use a window interface
+- Java 13: latest stable verion (3/2020)
+    - Java 11: long-term support
 
 ## Java Features
 
