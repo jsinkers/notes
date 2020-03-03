@@ -70,7 +70,7 @@ tags:
 - place function prototype declarations at top of file as good practice so you
   don't need to worry about ordering of functions in file
   
-```C
+```c
 // prototype (at top of file)
 return_type function_name(arg_type arg_name);
 
@@ -88,7 +88,7 @@ return_type function_name(arg_type arg_name) {
 - return value: indicates success (0) or failure (non-zero) of program
 
 Program to print the number of arguments and what they are:
-```C
+```c
 int main(int argc, char **argv) {
     int i;
 
@@ -123,7 +123,7 @@ $ gcc -Wall -pedantic -o hello hello.c
 ## Library functions
 
 Standard library header files imported using `#include` preprocessor directive
-```C
+```c
 #include <assert.h> // contains assert, frequently used to verify malloc
 #include <math.h>   // math functions e.g. cos, sin, log, sqrt, ceil, floor
 #include <stdio.h>  // input/output e.g. printf, scanf
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 - explicit definition of static array: `int arr[] = {1, 2, 3, 4, 5};`
 
 - tip: always use pointer notation for data types (in function definitions etc.) i.e.
-```C
+```c
 // preferred
 int get_length(int *array) {
     /* ... */
@@ -176,7 +176,7 @@ int get_length(int array[]) {
 ## Structs
 
 - encapsulate multiple pieces of data e.g. student record
-```C
+```c
 typedef struct student Student;
 struct student {
     char *first_name;
@@ -189,7 +189,7 @@ struct student {
 - syntactic sugar: `typedef` this to `Student`, such that `Student` is an alias for
   `struct student`
 - an alternative that avoids the intermediate name is:
-```C
+```c
 typedef struct {
     char *first_name;
     char *last_name;
@@ -199,7 +199,7 @@ typedef struct {
 ```
 - this doesn't allow you to reference the struct within the definition e.g. nodes
   for a linked list/graph:
-```C
+```c
 typedef struct node Node;
 struct node {
     int data;
@@ -208,7 +208,7 @@ struct node {
 ```
 
 ### Accessing fields
-```C
+```c
 Student matthew;
 // dot notation
 matthew.student_number = 123456; 
@@ -238,12 +238,12 @@ james = NULL;
 - use `assert` to check the pointer is not NULL i.e. has been successfully allocated
 - `malloc` returns a void pointer
 
-```C
+```c
 void *malloc(size_t size)   // size: size of memory block [bytes]
 ```
 ### Example: allocating memory for an int
 
-```C  
+```c
 int *my_int = malloc(sizeof(*my_int)); // cast to (int *)
 assert(my_int);     // check pointer is not null, i.e. malloc succeeded
 /* do stuff */
@@ -256,7 +256,7 @@ my_int = NULL;      // ensure that we don't inadvertently access freed memory
 - arrays are pointers to first element in the array, so you can use `malloc` to allocate
   a variable sized array.  For `n` items you can allocate a block with enough space
   for `n` adjacent items:
-```C
+```c
 int n = 10000;
 double *array = malloc(sizeof(*array) * n);
 /* magic happens here */
@@ -281,8 +281,9 @@ array = NULL;
 - define a macro per header file, and only declare anything if it hasn't been defined yet
 
 e.g. to write a hello world module
+
 *`hello.h`*:
-```C
+```c
 // import guard
 #ifndef HELLO_H
 #define HELLO_H
@@ -293,7 +294,7 @@ void hello(char *name);
 ```
 
 *`hello.c`*:
-```C 
+```c
 #include <stdio.h>
 #include "hello.h"
 
@@ -304,7 +305,7 @@ void hello(char *name) {
 ```
 
 *`main.c`*
-```C
+```c
 #include "hello.h"
 
 int main(int argc, char **argv) {
