@@ -33,6 +33,7 @@ tags: $tag
 
 [TOC]: #
 ```
+
 ## Images and other files
 
 Through use of [jekyll-relative-links](https://github.com/benbalter/jekyll-relative-links),  
@@ -44,6 +45,34 @@ from a particular notebook for whatever reason.
 Other files should be placed in:
 - `_notebooks/<notebook>/files`: for tightly coupled files
 - `static/files`: for loosely coupled files
+
+## Math
+
+
+TODO: need a solution for
+- inline math with LaTeX
+- fenced math with LaTeX
+that is compatible with
+- Markdown preview
+  - with Katex engine can use \$\` \`\$ for inline math
+  - fenced math with \```math \latexthing \```
+  - e.g.
+1.
+```math
+G = \langle{V,E}\rangle
+```
+1.
+$`G = \langle{V,E}\rangle`$
+1.
+$ G = \langle{V,E}\rangle $
+1.
+1.
+$$  
+G = \langle{V,E}\rangle  
+$$
+
+- Jekyll
+- pandoc converter
 
 # PDFs
 

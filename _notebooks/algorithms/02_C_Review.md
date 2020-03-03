@@ -55,7 +55,7 @@ tags:
 - `char` stores a single ASCII character
 - Strings: arrays of chars terminated by a null byte (`'\0'`)
   - e.g. "Hello world!" is stored as the array of characters:
-    ['H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0']`
+    `['H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0']`
 
 ### Boolean values
 
@@ -220,8 +220,8 @@ james->student = 654321;
 free(james);
 james = NULL;
 ```
-- `foo.bar`$`\iff`$`(&foo)->bar`
-- `foo->bar`$`\iff`$`(*foo).bar`
+- `foo.bar` $`\iff`$ `(&foo)->bar`
+- `foo->bar` $`\iff`$ `(*foo).bar`
 
 ## Dynamic Memory Allocation
 
