@@ -6,6 +6,7 @@ baseurl: /notes
 markdown: kramdown
 kramdown:
   input: GFM
+  math_engine: katex
   hard_wrap: false
   show_warnings: true
 highlighter: rouge

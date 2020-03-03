@@ -61,15 +61,18 @@ that is compatible with
 ```math
 G = \langle{V,E}\rangle
 ```
-1.
-$`G = \langle{V,E}\rangle`$
-1.
-$ G = \langle{V,E}\rangle $
-1.
-1.
-$$  
+2.
+  $`G = \langle{V,E}\rangle`$
+
+3. Katex is supposed to work with $ G = \langle{V,E}\rangle $ for inline and  
+$$`
 G = \langle{V,E}\rangle  
-$$
+`$$
+```latex
+G = \langle{V,E}\rangle
+```
+
+for block
 
 - Jekyll
 - pandoc converter
