@@ -24,6 +24,17 @@ tags:
   - [Queue](#queue)
   - [Priority queues](#priority-queues)
 - [Graphs](#graphs)
+  - [Graph representations](#graph-representations)
+  - [Weighted graphs](#weighted-graphs)
+  - [Paths and Cycles](#paths-and-cycles)
+- [Trees](#trees)
+  - [Rooted trees](#rooted-trees)
+  - [Ordered trees](#ordered-trees)
+- [Sets and Dictionaries](#sets-and-dictionaries)
+  - [Universal set](#universal-set)
+  - [List structure](#list-structure)
+  - [Dictionary](#dictionary)
+
 
 
 ## Algorithms
@@ -228,6 +239,141 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 - graph with few missing edges is **dense**
 - graph with few edges present is **sparse**
 
+### Graph representations
+
+- **adjacency matrix**: for graph with $`n`$ vertices is $`n \times n`$ boolean
+  matrix
+  - row i, col j: 1 if edge from i to j; 0 otherwise
+  - undirected graph has a symmetric adjacency matrix $`A_{ij}=A_{ji}`$ for all i, j
+- **adjacency list**: collection of linked lists for each vertex containing all
+  adjacent vertices (those connected by an edge)
+- sparse graphs more efficiently represented by adjacency list
+- dense graphs more efficiently represented by adjacency matrix
+
+![graph_representation](img/graph_representation.png)
+
+### Weighted graphs
+
+- **weighted graph**: graph with numbers (**weights**, **costs**) assigned to edges
+- adjacency matrix can be updated to a **weight matrix** such that $`A_{ij}`$ is the weight for that edge
+  - if there is no such edge, entries are $`\infty`$
+
+### Paths and Cycles
+
+- **path** from vertex u to vertex v of graph G: sequence of adjacent vertices from
+  u to v.
+- **simple path**: all vertices of a path are distinct
+- **path length**: (num. vertices)-1, (num. edges)
+- **directed path**: sequence of vertices, with each successive pair of vertices u, v
+  having a directed edge (u,v)
+- **connected graph**: for every pair of vertices u,v there is a path from u to v
+  - i.e. no **unreachable** vertices
+- a disconnected graph forms multiple **connected components**: maximal connected
+  subgraphs of a graph
+
+![graph_connectivity](/_notebooks/algorithms/img/graph_connectivity.png )
+*Graph becomes disconnected when dashed line is removed*
+
+- **cycle**: path of positive length that starts and ends at the same vertex,
+  without traversing the same edge more than once
+- **acyclic**: graph without cycles
+
+## Trees
+
+- **free tree**, aka tree: connected acyclic graph
+  - Necessary property for graph to be a tree:
+    - (number of edges) = (number of vertices) - 1
+    - $` |E| = |V| - 1 `$
+  - For connected graphs this is a sufficient property; useful for checking if a
+    connected graph has a cycle
+- **forest**: graph with no cycles but is not necessarily connected, with each
+  component being called a tree
+
+![graph_tree_forest](img/graph_tree_forest.png)
+
+### Rooted trees
+
+- for every two vertices in a tree, there exists exactly one simple path from one 
+  vertex to the other
+- can select arbitrary vertex in a free tree as **root** of the **rooted tree**
+- e.g. file system hierarchy
+
+![rooted_tree](/_notebooks/algorithms/img/rooted_tree.png)
+
+- **ancestor** of vertex v: all vertices on simple path from root to vertex v
+  - vertex usually considered its own ancestor
+  - **proper ancestor** excludes the vertex itself
+- if $`(u,v)`$ is the last edge of simple path from root to vertex v
+  - u is **parent** of v
+  - v is **child** of u
+- **sibling**: vertices with same parents
+- **leaf**: vertex with no children
+- **parental**: vertex with at least one child
+- **descendants**: all vertices for which v is an ancestor
+  - **proper descendants**: excludes v itself
+- **subtree** rooted at v: all descendants of v with all edges connecting
+- **depth** of a vertex v: length of simple path to v
+- **height** of a tree: longest simple path from root to leaf
+
+### Ordered trees
+
+- **ordered tree**: rooted tree in which all children of each vertex are ordered
+- **binary tree**: ordered tree where each vertex has at most two children
+  - each child is a **left child** or a **right child**
+  - binary tree with root at left child of a vertex in a binary tree is the **left subtree**
+  - as subtrees are also binary trees, they are useful for recursive algorithms
+  - inequality for height _h_ of a binary search tree with _n_ nodes:
+    $`\lfloor \log_2 n \rfloor \leq h \leq n-1`$
+- **binary search tree**: numbers assigned to vertices, with parent vertex being
+  larger than all elements in left subtree, and smaller than all elements in right
+  subtree
+- **multiway search tree**: generalisation of binary search trees
+  - useful for efficient access to very large datasets
+- **first child-next sibling** representation: left subtree of vertex is child,
+  while right subtree is siblings.
+  - useful for computer representation of an arbitrary ordered tree with widely
+    varying numbers of children by converting to a binary tree
+
+![binary_search_tree](img/binary_search_tree.png)
+
+## Sets and Dictionaries
+
+- **set**: unordered collection of _distinct_ **elements**
+- operations:
+  - checking membership
+  - finding union
+  - finding intersection
+
+### Universal set
+
+- consider large set U with n elements
+- **bit vector**: subset S of U can be represented by bit string of size n
+
+e.g.
+```math
+U = \{1, 2, 3, 4, 5, 6, 7, 8\}
+\newline
+S = \{2, 3, 7\}
+```
+- bit string: 01100010
+- these set representations allow very fast set operations but with high memory
+  use
+
+### List structure
+
+- more common approach for handling sets
+- **multiset/bag**: circumvents uniqueness set requirement with an unordered collection of items
+  that are not necessarily distinct
+- lists are ordered, where as sets are not: largely this doesn't matter for practical
+  purposes
+
+### Dictionary
+
+- **dictionary**: data structure that implements most common set operations:
+  - searching for an item
+  - adding items
+  - deleting items
+- many implementations, from arrays to hashing and balanced search trees
 
 
 

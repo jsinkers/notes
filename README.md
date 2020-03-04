@@ -68,14 +68,22 @@ G = \langle{V,E}\rangle
 $$`
 G = \langle{V,E}\rangle  
 `$$
+4.
+$$`
 ```latex
 G = \langle{V,E}\rangle
 ```
+`$$
 
 for block
 
 - Jekyll
 - pandoc converter
+
+Table comparing methods that work vs environment
+
+- see if can get jekyll working with gitlab markdown syntax
+- may have to use regex to edit markdown files before pdf build
 
 # PDFs
 
