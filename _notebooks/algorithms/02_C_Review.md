@@ -154,8 +154,8 @@ int main(int argc, char **argv) {
   100 integers
 - `my_array[7]` to access the 8th element of the array
 - arrays in C are simply pointers to the first element of the array, so:
-  - `my_array[10] `$`\iff`$` *(my_array + 10)`
-  - `&my_array[10]`$`\iff`$` my_array + 10`
+  - `my_array[10] `$\iff$` *(my_array + 10)`
+  - `&my_array[10]`$\iff$` my_array + 10`
 
 - explicit definition of static array: `int arr[] = {1, 2, 3, 4, 5};`
 
@@ -220,8 +220,8 @@ james->student = 654321;
 free(james);
 james = NULL;
 ```
-- `foo.bar` $`\iff`$ `(&foo)->bar`
-- `foo->bar` $`\iff`$ `(*foo).bar`
+- `foo.bar` $\iff$ `(&foo)->bar`
+- `foo->bar` $\iff$ `(*foo).bar`
 
 ## Dynamic Memory Allocation
 

@@ -6,7 +6,11 @@ baseurl: /notes
 markdown: kramdown
 kramdown:
   input: GFM
-  math_engine: katex
+  math_engine: "nil"
+  # math_engine_opts: {
+  #   delimiters: [{left: "$$", right: "$$", display: true},
+  #                {left: "$", right: "$", display: false}]
+  # }
   hard_wrap: false
   show_warnings: true
 highlighter: rouge
