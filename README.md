@@ -48,42 +48,14 @@ Other files should be placed in:
 
 ## Math
 
+Math is rendered with Katex on jekyll and markdown preview (in Pycharm) with Markdown
+Navigator enabled.  This required some custom setup which can likely be improved upon.
 
-TODO: need a solution for
-- inline math with LaTeX
-- fenced math with LaTeX
-that is compatible with
-- Markdown preview
-  - with Katex engine can use \$\` \`\$ for inline math
-  - fenced math with \```math \latexthing \```
-  - e.g.
-1.
-```math
-G = \langle{V,E}\rangle
-```
-2.
-  $`G = \langle{V,E}\rangle`$
+Math is enclosed in `$$ $$`
 
-3. Katex is supposed to work with $ G = \langle{V,E}\rangle $ for inline and  
-$$`
-G = \langle{V,E}\rangle  
-`$$
-4.
-$$`
-```latex
-G = \langle{V,E}\rangle
-```
-`$$
+e.g. $$E = mc^2$$
 
-for block
-
-- Jekyll
-- pandoc converter
-
-Table comparing methods that work vs environment
-
-- see if can get jekyll working with gitlab markdown syntax
-- may have to use regex to edit markdown files before pdf build
+### Katex with Jekyll
 [Part 1](https://web.archive.org/web/20170117172154/http://willdrevo.com/latex-equation-rendering-in-javascript-with-jekyll-and-katex/)
 I installed katex with npm, then copied the katex dist directory into static files
 I added javascript and css imports for katex to the default.html and head.html files
@@ -91,6 +63,31 @@ Then I added .equation to main.css and katex rendering to default.js
 This enabled rendering of katex in raw display tags
 [Part 2](https://nealde.github.io/blog/2017/10/20/How-to-make-a-local-Jekyll-website/)
 I instead moved to copy this approach which enables \$\$ syntax
+This makes Katex work with Jekyll both locally and on github pages.
+This syntax also seems to work with pandoc for pdf generation.
+
+### Katex in Preview
+
+- Only way I could get this to work was to add the following to the HTML head in
+  _Settings > Markdown > HTML Generation > Head Top_
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+```
+_From [Katex docs](https://katex.org/docs/autorender.html)_
+
+The default delimiters are:
+```
+[
+  {left: "$$", right: "$$", display: true},
+  {left: "\\(", right: "\\)", display: false},
+  {left: "\\[", right: "\\]", display: true}
+]
+```
+\\(E=mc^2\\)
+
 
 
 # PDFs
