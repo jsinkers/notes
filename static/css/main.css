@@ -335,6 +335,17 @@ h5 {
 h6 {
   font-size: 0.67em !important;
 }
+/*
+ * Equations with KaTeX
+ *
+ * Center the equation content.
+ */
+.equation {
+  padding-bottom:  1rem;
+  padding-top:     1rem;
+  text-align:      center;
+  font-size:       1.5em;
+}
 /* in terms of our fixed-width layout; if smaller than this, we want to
  * collapse the menu */
 @media (min-width: 40rem) {

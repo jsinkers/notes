@@ -197,15 +197,15 @@ Since `gcd(m, 0) = m`
 
 - collection of points, called **vertices** or **nodes**, with some connected by
   **edges**
-- a graph $`G = \langle{V,E}\rangle`$, is a pair of two sets
+- a graph $$G = \langle{V,E}\rangle$$, is a pair of two sets
   - finite nonempty set V, vertices
   - set E of pairs of these items, edges
-- if these pairs of vertices is unordered i.e. $`(u, v)`$ is the same as $`(v, u)`$,
-  v and u are **adjacent**, connected by **undirected edge** $`(u,v)`$
-- vertices _u_ and _v_ are **endpoints** of edge $`(u, v)`$
+- if these pairs of vertices is unordered i.e. $$(u, v)$$ is the same as $$(v, u)$$,
+  v and u are **adjacent**, connected by **undirected edge** $$(u,v)$$
+- vertices _u_ and _v_ are **endpoints** of edge $$(u, v)$$
   - _u_ and_v_ are **incident** to this edge (and vice versa)
 - a graph is **undirected** if all edges are undirected
-- **directed** edge $`(u, v)`$ means vertices $`(u, v)`$ are not the same as vertices $`(v, u)`$
+- **directed** edge $$(u, v)$$ means vertices $$(u, v)$$ are not the same as vertices $$(v, u)$$
   - from **tail** u to **head** v
 - a graph is **directed** if all edges are directed (aka **digraphs**)
 
@@ -231,20 +231,20 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 - this definition allows **loops**, including edges connecting vertices
   to themselves, however unless stated will be expected to have no loops
 - definition disallows multiple edges between the same vertices of an undirected graph:
-  - number of edges $`|E|`$
-  - number of vertices $`|V|`$
-  - $` 0 \le |E| \le |V|\frac{(|V|-1)}{2}`$
+  - number of edges $$\mid E\mid$$
+  - number of vertices $$\mid V\mid $$
+  - $$ 0 \le \mid E\mid  \le \mid V\mid \frac{(\mid V\mid -1)}{2}$$
 - graph is **complete** if every pair of vertices is connected by an edge
-  - complete graph with $`|V|`$ vertices: $`K_{|V|}`$
+  - complete graph with $$\mid V\mid $$ vertices: $$K_{\mid V\mid }$$
 - graph with few missing edges is **dense**
 - graph with few edges present is **sparse**
 
 ### Graph representations
 
-- **adjacency matrix**: for graph with $`n`$ vertices is $`n \times n`$ boolean
+- **adjacency matrix**: for graph with $$n$$ vertices is $$n \times n$$ boolean
   matrix
   - row i, col j: 1 if edge from i to j; 0 otherwise
-  - undirected graph has a symmetric adjacency matrix $`A_{ij}=A_{ji}`$ for all i, j
+  - undirected graph has a symmetric adjacency matrix $$A_{ij}=A_{ji}$$ for all i, j
 - **adjacency list**: collection of linked lists for each vertex containing all
   adjacent vertices (those connected by an edge)
 - sparse graphs more efficiently represented by adjacency list
@@ -255,8 +255,8 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 ### Weighted graphs
 
 - **weighted graph**: graph with numbers (**weights**, **costs**) assigned to edges
-- adjacency matrix can be updated to a **weight matrix** such that $`A_{ij}`$ is the weight for that edge
-  - if there is no such edge, entries are $`\infty`$
+- adjacency matrix can be updated to a **weight matrix** such that $$A_{ij}$$ is the weight for that edge
+  - if there is no such edge, entries are $$\infty$$
 
 ### Paths and Cycles
 
@@ -271,7 +271,7 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 - a disconnected graph forms multiple **connected components**: maximal connected
   subgraphs of a graph
 
-![graph_connectivity](/_notebooks/algorithms/img/graph_connectivity.png )
+![graph_connectivity](img/graph_connectivity.png )
 *Graph becomes disconnected when dashed line is removed*
 
 - **cycle**: path of positive length that starts and ends at the same vertex,
@@ -283,7 +283,7 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 - **free tree**, aka tree: connected acyclic graph
   - Necessary property for graph to be a tree:
     - (number of edges) = (number of vertices) - 1
-    - $` |E| = |V| - 1 `$
+    - $$ \mid E/\mid  = \mid V\mid  - 1 $$
   - For connected graphs this is a sufficient property; useful for checking if a
     connected graph has a cycle
 - **forest**: graph with no cycles but is not necessarily connected, with each
@@ -298,12 +298,12 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 - can select arbitrary vertex in a free tree as **root** of the **rooted tree**
 - e.g. file system hierarchy
 
-![rooted_tree](/_notebooks/algorithms/img/rooted_tree.png)
+![rooted_tree](img/rooted_tree.png)
 
 - **ancestor** of vertex v: all vertices on simple path from root to vertex v
   - vertex usually considered its own ancestor
   - **proper ancestor** excludes the vertex itself
-- if $`(u,v)`$ is the last edge of simple path from root to vertex v
+- if $$(u,v)$$ is the last edge of simple path from root to vertex v
   - u is **parent** of v
   - v is **child** of u
 - **sibling**: vertices with same parents
@@ -323,7 +323,7 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
   - binary tree with root at left child of a vertex in a binary tree is the **left subtree**
   - as subtrees are also binary trees, they are useful for recursive algorithms
   - inequality for height _h_ of a binary search tree with _n_ nodes:
-    $`\lfloor \log_2 n \rfloor \leq h \leq n-1`$
+    $$\lfloor \log_2 n \rfloor \leq h \leq n-1$$
 - **binary search tree**: numbers assigned to vertices, with parent vertex being
   larger than all elements in left subtree, and smaller than all elements in right
   subtree
@@ -350,11 +350,13 @@ E = \{(a,c), (b,c), (b,f), (c,e), (d,a), (d,e), (e,c), (e,f)\}
 - **bit vector**: subset S of U can be represented by bit string of size n
 
 e.g.
-```math
+
+$$  
 U = \{1, 2, 3, 4, 5, 6, 7, 8\}
 \newline
-S = \{2, 3, 7\}
-```
+S = \{2, 3, 7\}  
+$$
+
 - bit string: 01100010
 - these set representations allow very fast set operations but with high memory
   use

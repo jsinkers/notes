@@ -26,6 +26,7 @@ excludes:
   - Gemfile.lock
   - vendor
 
+
 plugins:
   - jekyll-relative-links
 

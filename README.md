@@ -84,6 +84,14 @@ Table comparing methods that work vs environment
 
 - see if can get jekyll working with gitlab markdown syntax
 - may have to use regex to edit markdown files before pdf build
+[Part 1](https://web.archive.org/web/20170117172154/http://willdrevo.com/latex-equation-rendering-in-javascript-with-jekyll-and-katex/)
+I installed katex with npm, then copied the katex dist directory into static files
+I added javascript and css imports for katex to the default.html and head.html files
+Then I added .equation to main.css and katex rendering to default.js
+This enabled rendering of katex in raw display tags
+[Part 2](https://nealde.github.io/blog/2017/10/20/How-to-make-a-local-Jekyll-website/)
+I instead moved to copy this approach which enables \$\$ syntax
+
 
 # PDFs
 
