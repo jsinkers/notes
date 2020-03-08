@@ -20,6 +20,9 @@ tags:
   - [L’Hopital’s rule](#lhopitals-rule)
   - [Stirling's Formula](#stirlings-formula)
 - [Efficiency Classes](#efficiency-classes)
+- [Process: Analysing time efficiency of non-recursive algorithms](#process-analysing-time-efficiency-of-non-recursive-algorithms)
+  - [Basic rules](#basic-rules)
+
 
 
 
@@ -154,3 +157,22 @@ $$n! \approx \sqrt{2\pi n}\frac{n}{e}^n$$
 |   $n^3$   |    cubic     | three embedded loops; e.g. often used in linear algebra              |
 |   $2^n$   | exponential  | generate all subsets of $n$-element set                              |
 |   $n!$    |  factorial   | generate all permutations of $n$-element set                         |
+
+## Process: Analysing time efficiency of non-recursive algorithms
+
+1. define parameter indicating input's size
+2. identify algorithm's basic operation (typically on innermost loop)
+3. check if number of times basic operation is executed is only a function of input size
+    - if not: worst case, average case to be considered separately
+4. set up sum expressing number of times the basic operation is executed
+5. use formulas/sum manipulation to find a closed form solution for the count or
+   determine order of growth
+
+### Basic rules
+
+$$\sum_{i=l}^{u}{ca_i} = c\sum_{i=l}^{u}{a_i}$$
+$$\sum_{i=l}^{u}{a_i+b_i} = \sum_{i=l}^{u}{a_i}+\sum_{i=l}^{u}{b_i}$$
+$$\sum_{i=l}^{u}1 = u-l+1$$
+In particular
+$$\sum_{i=1}^{n}{1} = n$$
+$$\sum_{i=l}^{u}{i} = \frac{n(n+1)}{2}$$
