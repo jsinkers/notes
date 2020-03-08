@@ -142,6 +142,14 @@ $else$
 \setstretch{1.2}
 $endif$
 \usepackage{amssymb,amsmath}
+% add symbol for Reals, Integers, Naturals
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+% add less than and greater than as I keep doing it
+\newcommand{\lt}{<}
+\newcommand{\gt}{>}
+% =====================================================================================================================
 \usepackage{ifxetex,ifluatex}
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}

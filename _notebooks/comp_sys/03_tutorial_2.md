@@ -62,7 +62,7 @@ of its customers. Describe how this can be done with cookies.
 
 7. Consider the following string of ASCII characters that were captured by
 Wireshark when the browser sent an HTTP GET message (i.e., this is the
-actual content of an HTTP GET message). The characters $\<cr\>\<lf\>$ are
+actual content of an HTTP GET message). The characters $\langle cr\rangle\langle lf\rangle$ are
 carriage return and line-feed characters Answer the following questions,
 indicating where in the HTTP GET message below you find the answer.
 ```console

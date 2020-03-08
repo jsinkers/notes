@@ -52,7 +52,7 @@ tags:
   between algorithms
 
 Some functions
-$$\log_{2}n \lt n \lt n\log_{2}n \lt n^2 \lt n^3 \lt 2^n \lt n!$$
+$$\log_{2}n < n < n\log_{2}n < n^2 < n^3 < 2^n < n!$$
 
 - $\log$ grows so slowly you would expect an algorithm with basic-operation to run
   practically instantaneously on inputs of all realistic size
@@ -126,7 +126,7 @@ efficient part)
 - to directly compare two functions, compute the limit of their ratio:
   $$\lim_{n\rightarrow\infty}\frac{t(n)}{g(n)}$$
   - This could be: ($\sim$: order of growth)
-    1. $0: \sim t(n) \lt \sim g(n)$
+    1. $0: \sim t(n) < \sim g(n)$
     2. $c: \sim t(n) = \sim g(n)$
     3. $\infty: \sim t(n) \gt \sim g(n)$
 - Case a, b $\Rightarrow t(n) \in O(g(n))$
