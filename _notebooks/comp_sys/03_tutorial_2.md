@@ -10,17 +10,20 @@ tags:
 
 [TOC]: #
 
+Renlord Yang
+
 Service Models, Application Layer: HTTP and Cookies
 1. List two advantages and two disadvantages of having international standards for network protocols.
-
   - Advantages:
     - you are able to produce a system with global interoperability, without being locked
       into proprietary systems
+    - focus on interfaces
+    - easier maintenance and installation
     - standards provide a framework that allows engineers to approach
       development with well defined boundaries about which layer of the stack they
       are interacting with
   - Disadvantages:
-    - very slow to develop, meaning that non-standardised solutions may appear and
+    - very slow to develop, and cumbersome bureaucracy, meaning that non-standardised solutions may appear and
       dominate prior to any standard being released
     - you may be locked into a system with inferior performance (per some metric)
       as a result of a) satisfying the needs of a large group rather than the specific
@@ -57,9 +60,12 @@ protocols that they use. (Search beyond the lecture notes.)
   - time synchronisation: NTP (Network time protocol)
   - network management; collating log files and modifying device behaviour: SNMP
     (Simple network management protocol)
+  - remote: telnet
 6. Consider an e-commerce site that wants to keep a purchase record for each
 of its customers. Describe how this can be done with cookies.
-
+- user makes HTTP GET request to website a.com
+- a.com responds with HTTP response with Set-Cookie: field
+- 
 7. Consider the following string of ASCII characters that were captured by
 Wireshark when the browser sent an HTTP GET message (i.e., this is the
 actual content of an HTTP GET message). The characters $\langle cr\rangle\langle lf\rangle$ are
@@ -86,10 +92,12 @@ Accept-Language: en-AU,en;q=0.9<cr><lf>
 - c. Does the browser request a non-persistent or a persistent connection?
   - persistent (keep-alive), line 3
 - d. What is the IP address of the host on which the browser is running?
+  - IP addresses not provided in response headers
   - Not listed, requires DNS resolution for cis.unimelb.edu.au
 - e. What type of browser initiates this message? Why is the browser
   type needed in an HTTP request message?
-  - browser is Firefox; they implement features differently so you may need to be
+  - chromium: implements for everything
+  - they implement features differently so you may need to be
     served slightly different content for compatibility
 8. True or false?
 - a. A user requests a Web page that consists of some text and three
@@ -97,7 +105,7 @@ images. For this page, the client will send one request message and
 receive four response messages.
   - False: four requests and four responses, but assuming on HTTP >= 1.1 then likely
     only one connection established
-- Two distinctWeb pages (for example, http://cis.unimelb.edu.au/research/
+- Two distinct Web pages (for example, http://cis.unimelb.edu.au/research/
   and http://cis.unimelb.edu.au/people) can be sent over the same persistent connection.
   - True: they are on the same server.
 - With non-persistent connections between browser and origin server,
@@ -108,4 +116,4 @@ receive four response messages.
 object in the response was last modified.
   - False: indicates datetime message was sent
 - HTTP response messages never have an empty message body.
-  - False: e.g. Statuscode 204: no content; must not include a message body
+  - False: e.g. Statuscode 204: no content; must not include a message body; also redirects

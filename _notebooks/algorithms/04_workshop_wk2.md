@@ -10,6 +10,9 @@ tags:
 
 [TOC]: #
 
+Santa Maiti
+smaiti@student.unimelb.edu.au
+
 **Reminder: Big O notation*** Recall from prerequisite subjects that big O notation allows us to
 easily describe and compare algorithm performance. Algorithms in the class $O(n)$ take time linear
 in the size of their input. $O(log n)$ algorithms run in time proportional to the logarithm of their
@@ -58,7 +61,7 @@ element.
   - doubly-linked: store deleteNode = head; set head = head.next; store head.prev = NULL; deallocate deleteNode ~ $O(1)$
 - Inserting an element at the end of the list
   - singly-linked: create new node pointing to NULL; point tail point to new node; update tail ~ $O(1)$
-  - doubly-linked: create new node pointing to NULL and prev pointint to tail; point tail.next to new node; update tail ~ $O(1)$
+  - doubly-linked: create new node pointing to NULL and prev pointing to tail; point tail.next to new node; update tail ~ $O(1)$
 - Deleting an element from the end of the list
   - singly-linked: traverse list until you find node.next == tail ~$O(n)$; node.next = NULL; deallocate tail; tail  = node;
   - doubly-linked: newTail = tail.prev; newTail.next = NULL; deallocate tail; tail = newTail; ~$O(1)$
@@ -73,6 +76,7 @@ top element). Describe how to implement these operations using
 - ii. a singly-linked list
   - `push`: create new node pointing to NULL; point tail point to new node; update tail ~ $O(1)$
   - `pop`: traverse list until you find node.next == tail ~$O(n)$; node.next = NULL; deallocate tail; tail  = node;
+    - would be better to add elements at start of list so $O(1)$
 
 4. **Queues** A standard queue is a collection where elements are removed in the order
 they were inserted; the first element added is the first to be removed (just like lining up to use an ATM).

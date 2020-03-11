@@ -9,7 +9,7 @@ order: 10
 
 [TOC]: #
 
-# Table of Contents
+## Table of Contents
 - [Keyboard remap](#keyboard-remap)
 - [Daemons](#daemons)
 - [FUSE - Filesystem in User Space](#fuse---filesystem-in-user-space)
@@ -21,6 +21,7 @@ order: 10
 - [Booting + Live USBs](#booting--live-usbs)
 - [Docker, Vagrant, VMs, Cloud](#docker-vagrant-vms-cloud)
 - [Filesystem Hierarchy Standard](#filesystem-hierarchy-standard)
+- [LaTeX](#latex)
 
 Based on https://missing.csail.mit.edu/2020/potpourri/
 
@@ -171,3 +172,13 @@ OS recovery.
   - `/usr/sbin`: non-essential system binaries
   - `/usr/local/bin`: binaries for user compiled programs
 - `/var`: variable files, e.g. logs, caches
+
+## LaTeX
+
+- [Web based symbols](https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols)
+- Sure, there's [Short Symbol list PDF](https://www.caam.rice.edu/~heinken/latex/symbols.pdf)
+- and [Comprehensive Symbols List PDF](http://mirrors.ctan.org/info/symbols/comprehensive/symbols-a4.pdf)
+- [Detexify](http://detexify.kirelabs.org/classify.html) by drawing the symbol you want
+- Use pandoc for conversion from markdown to latex to pdf
+- Eisvogel is an awesome template for PDFs with code
+

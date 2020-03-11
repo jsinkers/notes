@@ -43,6 +43,14 @@ tags: java, oop
   - [Example: Integer wrapper class](#example-integer-wrapper-class)
   - [String parsing](#string-parsing)
   - [Boxing and Unboxing](#boxing-and-unboxing)
+  - [String Comparison](#string-comparison)
+- [IO](#io)
+  - [Input](#input)
+  - [Output](#output)
+  - [String Formatting](#string-formatting)
+- [Arrays](#arrays)
+  - [Array Methods and Tools](#array-methods-and-tools)
+  - [Multi-dimensional arrays](#multi-dimensional-arrays)
 
 
 
@@ -336,10 +344,11 @@ Math.pow(5, 2);
   {
       case Case_Label_1:
           Statement_Sequence_1
-          break;
+          break; // necessary in most cases, otherwise execution falls through to next case
       case Case_Label_2:
           Statement_Sequence_2
           break;
+      case Case_Label_<n-1>: // cascading cases: you can join cases together like this to produce the same output
       case Case_Label_n:
           Statement_sequence_n
           break;
@@ -360,7 +369,7 @@ Math.pow(5, 2);
   }
   ```
 - `do-while`
-
+  - use sparingly.  `while` is usually a better approach
   ```java
   do {
       // statements to execute
@@ -375,6 +384,8 @@ Math.pow(5, 2);
   }
   ```
 - `break`: exits `while, do, for` loop
+  - exits exactly 1 loop
+  - if unlabelled, exits innermost loop
   - loops can be labelled, and then you can specify which loop to break from
 ```java
 // break with a label used inside the inner loop to break from the outer loop
@@ -399,6 +410,7 @@ Output:
 2 1
 ```
 - `continue`: skips rest of statements in loop
+  - kills current iteration of loop
 
 ## Operator Precedence
 
@@ -522,3 +534,149 @@ boolean b = Boolean.parseBoolean("TrUe"); // -> true
   a primitive, and when a class is expected, the primitive is automatically **boxed**
 
 ![boxing_unboxing](img/boxing_unboxing.png)
+
+### String Comparison
+
+Use `string1.equals(string2)`
+
+## IO
+
+### Input
+
+```
+import java.util.Scanner;
+
+public class Program {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // read next line of input: NB this is the only one to eat newline characters
+        String inputLine = scanner.nextLine(); 
+        // read next word of input
+        String input = scanner.next();
+        // read next int
+        int i = scanner.nextInt();
+        // read next double
+        double d = scanner.nextDouble()
+        // read next bool
+        boolean b = scanner.nextBoolean() 
+        
+    }
+```
+Use `scanner.hasNextXXX()` to determine if there is input of type `XXX` ready to be read
+
+### Output
+
+```
+System.out.print(...) // outputs without newline character
+System.out.format(...) // format and print to terminal
+String.format(...) // returns formatted string
+```
+### String Formatting
+
+- [string formatting documentation](https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html)
+![format_specifier](img/format_specifier.png)
+
+- `%`: indicates start of format specifier
+- argument index: indexes arguments provided after string to be formatted
+  - `<` references previous value
+- flags: special characters that can be applied to all formatting
+  - `0` pads with zeroes
+  - `-` left justify
+- width: minimum number of characters a formatted value should occupy
+  - by default it is padded with spaces
+- precision: number of decimals for a float
+- conversion: type of value
+  - `d`: integer/decimal
+  - `f`: floating point
+  - `s`: String
+
+```java
+String.format("%3.2f", 4.56789); // min width 3, 2 decimal points, float
+// output: 4.57
+
+String.format("%+05d", 10);  // always include a sign, pad with zeroes, min width 5, integer
+// output: +0010
+
+String.format("%2$d %<05d %1$d %3$10s", 10, 22, "Hello");
+// %2$d: 2nd arg, integer 
+// %<05d: use previous arg (2nd arg), pad with zeroes, min width 5, integer
+// %1$d: use 1st arg, integer
+// %3$10s: use 3rd arg, min width 10, string
+// output: 22 00022 10 Hello
+```
+
+## Arrays
+
+- Declaration: Brackets can be attached to the _type_ or the _variable_name_
+```java
+int[] nums;
+int nums[];
+```
+- Allocation: declaring an array doesn't initialise it, so you first need to allocate it
+  - can use the `new` operator, declare an array of `<type>` values, storing up to `<size>`
+    elements
+  - primitives are initialised to "zero" (`int`: 0, `double`: 0.0, ...)
+  - objects: initialised to `null`
+```java
+<type>[] var = new <type>[<size>];
+```
+- can also specify initial values
+```java
+<type>[] var = new <type>[]{element1, element2, ..., elementn};
+```
+- can use an already declared array to initialise a second,
+- second array is an **alias** for the first array; they both refer to same values
+```java
+<type>[] var = new <type>[<size>];
+<type>[] var2 = var;
+```
+- any variable that stores a **non-primitive** value is a **pointer/reference**
+
+### Array Methods and Tools
+
+```java 
+int num = nums[0];          // array indexing
+int length = nums.length;   // array length
+```
+
+- `Arrays` library 
+```java
+import java.util.Arrays;
+...
+System.out.println(Arrays.toString(nums));      // converting to a string
+int[] nums = Arrays.copyOf(nums, nums.length);  // create distinct copy of an array
+Arrays.sort(nums)                               // in-place sort
+Arrays.equal(nums, nums2);                      // equality: same length + holds same values
+```
+
+### Multi-dimensional arrays
+
+- treated as arrays of arrays
+![multi_dim_array](img/multi_dim_array.png)
+
+- declaration and initialisation: rectangular 2D array
+```java
+int[][] nums = new int[100][10]; // array with 100 rows and 10 columns, each cell initialised to 0
+```
+- irregular array (e.g. triangular)
+```java
+import java.util.Arrays;
+
+public class Program {
+    public static void main(String args[]) {
+        final int NUM_ROWS = 5;
+        final int MAX_COLS = NUM_ROWS;
+        
+        int[][] nums = new int[NUM_ROWS][]; // <- declaration of uninitialised 2D array
+
+        for (int i = 0; i < nums.length; i++) {
+	    nums[i] = new int[NUM_ROWS - i];
+	}
+
+        for (int i = 0; i < NUM_ROWS; i++) {
+	    System.out.println(Arrays.toString(nums[i]));
+        }
+    }
+```
+
+}

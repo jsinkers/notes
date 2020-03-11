@@ -29,17 +29,32 @@ tags:
   - [HTTP Response Message](#http-response-message)
   - [Cookies](#cookies)
   - [Web Caching](#web-caching)
+  - [Static Web Documents](#static-web-documents)
+  - [Dynamic content](#dynamic-content)
 - [File Transfer Protocol: FTP](#file-transfer-protocol-ftp)
   - [FTP Commands and Replies](#ftp-commands-and-replies)
 - [Email](#email)
+  - [SMTP](#smtp)
+  - [SMTP Commands](#smtp-commands)
+  - [SMTP vs HTTP](#smtp-vs-http)
+  - [Mail message header](#mail-message-header)
+  - [Mail access protocols](#mail-access-protocols)
 - [DNS](#dns)
+  - [DNS Components](#dns-components)
+  - [Domain name characteristics](#domain-name-characteristics)
+  - [Database: Resource Records](#database-resource-records)
+  - [Inserting records into DNS](#inserting-records-into-dns)
+  - [Types of name servers](#types-of-name-servers)
+  - [Resolving queries](#resolving-queries)
+  - [DNS Security](#dns-security)
+
 
 
 
 
 ## Readings
 - [x] K&R 2.1
-- [ ] K&R 2.2
+- [x] K&R 2.2
 
 ## Principles of Network Applications
 
@@ -215,6 +230,9 @@ Consists of
 
 - **cookies** allow sites to keep track of users to identify users, either to restrict
   access or serve tailored content
+- place small amount of info (<4kB) on user's computer,
+- fields: domain: server the cookie belongs to, path, content, expiry, security
+- HTTP messages carry state
 - components
   - cookie header line in HTTP response message
   - cookie header line in HTTP request message
@@ -249,6 +267,30 @@ Consists of
   - if the object has not been modified, the server responds with a `304 Not Modified`
     and an empty entity body
   - conditional GET saves bandwidth and increases end user response times
+
+![conditional_get](img/conditional_get.png)
+**_Conditional get from browser cache_**
+
+![proxy_server](img/proxy_server.png)
+**_Proxy server for cacheing, security, IP address sharing_**
+
+### Static Web Documents
+
+- **hypertext markup language (HTML)**
+  - plain text encoding, browser rendering
+- components of a web page
+  - Head <head>...</head>
+  - Body <body>...</body>
+  - Attributes and values <img src="pic1.gif" alt="<pic1.gif>">
+  - hyperlinks/anchors <a href="next_page.html">
+  - cannot nest tags, < and > can be in argument strings
+  - cannot mis-nest <b><i>text</b></i> $\Rightarrow$ <b><i>text</i></b>
+
+### Dynamic content
+
+- server side: PHP script
+- client side: e.g. JavaScript, AJAX
+  - script sent to client
 
 ## File Transfer Protocol: FTP
 
@@ -290,6 +332,168 @@ Consists of
 
 ## Email
 
+- high level view
+  - **user agents**: e.g. Microsoft Outlook, allows users to read/compose/etc. email
+  - **mail servers**: user **mailboxes** stored on the mail server
+    - manages and maintains messages sent to him
+    - authenticates users
+    - attempts to deliver message to recipient's mail server.  This goes in **message queue**
+      and stays on the senders queue until successfully sent.  User is notified if
+      there is no success after several days
+  - **Simple Mail Transfer Protocol (SMTP)**: principal application-layer protocol for Internet e-mail
+    - uses TCP for reliable data transfer between mail servers
+
+### SMTP
+
+- defined in RFC5321, first published 1982, but protocol was around much earlier
+- port 25
+- much older than HTTP, has archaic characteristics
+  - e.g. restricts message body to 7-bit ASCII: binary media data has to be encoded
+    in ASCII then decoded back to binary
+- does not normally use intermediate mail servers for sending mail: TCP connection
+  is direct between mail servers
+- when sending mail:
+  - user submits mail to client mail server
+  - client mail server establishes TCP connection with recipient mail server
+  - SMTP handshake: identifies sender address and recipient address
+  - client sends message
+  - process is repeated if there are other messages to send to that server, otherwise
+    the connection is closed (persistent connections)
+![smtp](img/smtp.png)
+
+### SMTP Commands
+
+- `HELO`: Hello; initiate handshake
+- `MAIL FROM`: sender email
+- `RCPT TO`: recipient email
+- `DATA`: email message, terminated with period `.`
+- `QUIT`: close connection
+
+### SMTP vs HTTP
+
+- HTTP transfers objects (files) from Web server to Web client
+- SMTP transfers messages (files) from mail server to mail server
+- HTTP mainly **pull protocol**: someone loads information, HTTP used to pull at convenience
+  - TCP connection initiated by machine that _wants to receive_ file
+- SMTP mainly **push protocol**: sending mail server pushes file to receiving mail server
+  - TCP connection initiated by machine that _wants to send_ file
+- SMTP requires ASCII message, HTTP does not
+- HTTP encapsulates each object in an individual HTTP response message
+- SMTP combines all message objects into one message
+
+### Mail message header
+
+- distinct from SMTP handshake
+- mandatory header lines:
+```
+From: abc@xyz.com
+To: ijk@bbb.com
+Subject: searching for the meaning of life
+```
+
+### Mail access protocols
+
+![mail_access_protocols](img/mail_access_protocols.png)
+
+- used to access mailbox from user's mail server
+- cannot use SMTP to pull mail as it is a push protocol
+- options:
+  - **POP3 (Post office protocol - version 3):** simple, limited functionality
+    - user agent opens TCP connection on port 110 of mail server
+    - 3 phases:
+      - authorisation phase
+      - transaction phase: user agent retrieves messages, mark messages for deletion etc.
+      - update phase: ends POP3 session, then mail server deletes messages marked
+    - does not maintain state between POP3 sessions
+  - **IMAP: Internet Mail Access Protocol**
+    - nomadic user wants to maintain state e.g. folders of mail across
+      different devices
+    - IMAP provides ability to
+      - add folders
+      - move mail to folders
+      - search remote folders
+      - obtain component of a message (e.g. message header) saving bandwidth
+    - IMAP server maintains state across folders
+  - HTTP
+    - Hotmail introduced Web based email access in 1990s
+    - user agent is an ordinary broswer
+    - messages retrieved from mail server via HTTP
+
 ## DNS
 
+- **hostname**: human-readable identifier of Internet host
+  - provides little info on location of host on Internet
+  - variable length strings: difficult to process by routers
+- **IP addresses**: "machine-readable" host identifier
+  - IPv4 address: 4 bytes a.b.c.d, $a,b,c,d \in \[0,255\]$
+  - hierarchical: address from left to right is increasingly specific about
+    where host resides in Internet
+- **domain name system (DNS)**: directory service translating hostnames to IP addresses
+  - distributed database implemented in a hierarchy of DNS servers
+  - application-layer protocol that allows hosts to query this database
+  - servers are typically UNIX machines running Berkeley Internet Domain Name (BIND) software
+  - uses **UDP, port 53**
+  - commonly used by other application-layer protocols (e.g. HTTP, SMTP) to translate
+    user-supplied hostnames to IP addresses
+  - IP addresses are often cached in nearby servers to reduce DNS traffic and latency
+  - unlike HTTP, FTP, SMTP; DNS is not intended for end user use
+- other services DNS provides
+  - **host aliasing**: resolve to **canonical hostname** and corresponding IP address from multiple aliases
+  - **mail server aliasing**: useful to have mnemonic mail server address, which
+    can also be identical to Web server hostname
+  - **load distribution** among replicated servers by providing round robin response of IP address
+  - 
+### DNS Components
+[TODO]
+- **domain name space**:
+- **DNS database**
+- **name servers**
+- **resolvers**:
+
+### Domain name characteristics
+
+- case insensitive
+- $\le$ 63 chars per constituent
+- $\le$ 255 chars per path
+- can be internationalised: introduces security problems as people can repeat domain name
+![dns_tree](img/dns_tree.png)
+
+- opened up in 2014 to allow e.g. `.accenture`
+
+### Database: Resource Records
+
+| Type | Meaning | Value |
+|:----:|:-------:|:-----:|
+| A    |         |       |
+|      |         |       |
+
+### Inserting records into DNS
+
+- **DNS registrar** provided with names, IP addresses of authoritative name server
+- registerar inserts two resource records into TLD server
+- create authoritative server: [TODO]
+
+### Types of name servers
+
+Hierarchy
+- Root name servers
+- Top-level domain DNS servers
+- Authoritative DNS servers
+- (Local DNS server): not part of hierarchy
+  - ISP has default name server that handles DNS queries
+  - local DNS server acts as proxy
+
+### Resolving queries
+
+![dns_resolve_query](img/dns_resolve_query.png)
+
+### DNS Security
+
+- no security in original design
+  - DNS spoofing: e.g. "I'm google"
+  - DNS flooding: DNS critical to Internet so DOS on DNS could break a huge amount
+- solutions to make DNS secure
+  - DNSSEC: digitally signed answers to DNS queries
+    - not yet fully deployed
+  - root signing
 
