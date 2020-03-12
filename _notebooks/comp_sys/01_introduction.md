@@ -305,7 +305,7 @@ Readings
 
 ### Protocols
 
-- internet's principal protocols are ****TCP/IP**
+- internet's principal protocols are **TCP/IP**
   - **Transmission Control Protocol (TCP)**
   - **Internet Protocol (IP)**
 - **internet standards** developed by Internet Engineering Task Force (IETF)

@@ -46,6 +46,8 @@ tags:
   - [Inserting records into DNS](#inserting-records-into-dns)
   - [Types of name servers](#types-of-name-servers)
   - [Resolving queries](#resolving-queries)
+  - [DNS Messages](#dns-messages)
+  - [DNS Caching](#dns-caching)
   - [DNS Security](#dns-security)
 
 
@@ -55,6 +57,9 @@ tags:
 ## Readings
 - [x] K&R 2.1
 - [x] K&R 2.2
+- [x] K&R 2.3
+- [x] K&R 2.4
+- [ ] K&R 2.6
 
 ## Principles of Network Applications
 
@@ -442,7 +447,15 @@ Subject: searching for the meaning of life
   - **mail server aliasing**: useful to have mnemonic mail server address, which
     can also be identical to Web server hostname
   - **load distribution** among replicated servers by providing round robin response of IP address
-  - 
+
+  - why DNS is distributed not centralised:
+    - single point of failure: if DNS failed entire Internet would cease working
+    - traffic volume
+    - distant centralised database: e.g. Australian queries directed to America would introduce
+      significant latency
+    - maintenance
+    - in summary: it doesn't scale
+
 ### DNS Components
 [TODO]
 - **domain name space**:
@@ -462,30 +475,113 @@ Subject: searching for the meaning of life
 
 ### Database: Resource Records
 
-| Type | Meaning | Value |
-|:----:|:-------:|:-----:|
-| A    |         |       |
-|      |         |       |
+- resource records carried by DNS replies
+  - 4-tuple: `(Name, Value, Type, TTL)`
+
+| Type  |                                                   Value                                                    |
+|:-----:|:----------------------------------------------------------------------------------------------------------:|
+|   A   |                                      IPv4 address for hostname `Name`                                      |
+| AAAA  |                                      IPv6 address for hostname `Name`                                      |
+|  NS   |                           Hostname of authoritative DNS server for domain `Name`                           |
+| CNAME |                                Canonical hostname for alias hostname `Name`                                |
+|  MX   | Mail exchange. Canonical name of a mail server.  Allows company to have same aliased name for mail and Web |
+
+- Authoritative DNS server for a particular hostname contains corresponding A record
+- Non-authoritative server for a given hostname: contains a NS record for domain that includes the hostname
+  - also contains A record that provides IP address of the DNS server referenced in the NS record
+- Can use multiple A records for a single domain name to balance traffic across multiple servers
 
 ### Inserting records into DNS
 
 - **DNS registrar** provided with names, IP addresses of authoritative name server
-- registerar inserts two resource records into TLD server
+  - ensures uniqueness of the domain name
+  - inserts two resource records into TLD server
 - create authoritative server: [TODO]
 
 ### Types of name servers
 
 Hierarchy
-- Root name servers
-- Top-level domain DNS servers
-- Authoritative DNS servers
-- (Local DNS server): not part of hierarchy
+- **Root DNS servers**: managed by 13 different organisations, with [~1100 (at 2020-03-12)](https://root-servers.org/) distinct server instances around the world
+  - provide IP address of TLD servers
+  - [IANA list of root servers](https://www.iana.org/domains/root/servers)
+  - a.root-servers.net
+  - 13 root servers [due to](https://securitytrails.com/blog/dns-root-servers)
+    old DNS infrastructure + IPv4: IP addresses needed to fit in
+    single packet of 512 bytes = 13*(32 bytes)+(96 bytes for protocol info)
+- **Top-level domain DNS servers**: server clusters for
+  - top-level domains e.g. com, edu, org, net
+  - country top-level domains e.g. au, fr
+  - provide IP address of Authoritative DNS servers
+- **Authoritative DNS servers**: houses DNS records that map hostnames to IP addresses
+  - publicly accessible hosts e.g. web servers, mail servers, provide these records
+  - organisations can implement their own or pay to host records with a service provider that implements authoritative DNS server
+- **Local DNS server**: not part of hierarchy
+  - each ISP has a local DNS server (default name server)
+  - when host connects to an ISP, ISP provides IP addresses of 1+ local DNS servers
+  - local DNS server is typically close to the host
+  - local DNS server acts as a proxy, forwarding DNS queries into server hierarchy
   - ISP has default name server that handles DNS queries
   - local DNS server acts as proxy
 
 ### Resolving queries
 
 ![dns_resolve_query](img/dns_resolve_query.png)
+
+- **recursive query** e.g. $1$ in image, as `dns.nyu.edu` obtains mapping on behalf of
+  `cse.nyu.edu`
+- **iterative query** e.g. $2, 3, 4$ in image, as replies are directly returned to `dns.nyu.edu`
+- in theory: any query could be recursive or iterative, but usually follow pattern
+  - requesting host $\rarrow$ local DNS server: recursive
+  - remaining queries: iterative
+
+### DNS Messages
+
+- DNS has only query and reply messages
+![dns_msg_format](img/dns_msg_format.png)
+_**DNS message format**_
+
+- to see this in action, use `nslookup`:
+```bash
+# query A record for google.com
+$ nslookup
+> google.com
+Server:         192.168.20.1
+Address:        192.168.20.1#53
+
+Non-authoritative answer:
+Name:   google.com
+Address: 216.239.32.117
+Name:   google.com
+Address: 216.239.34.117
+Name:   google.com
+Address: 216.239.38.117
+Name:   google.com
+Address: 216.239.36.117
+Name:   google.com
+Address: 2001:4860:4802:38::75
+>^C
+# look up NS record of registermachine.com with google name server 8.8.8.8
+$ nslookup -type=NS registermachine.com 8.8.8.8
+Server:         8.8.8.8
+Address:        8.8.8.8#53
+
+Non-authoritative answer:
+registermachine.com     nameserver = ns-1362.awsdns-42.org.
+registermachine.com     nameserver = ns-1556.awsdns-02.co.uk.
+registermachine.com     nameserver = ns-363.awsdns-45.com.
+registermachine.com     nameserver = ns-894.awsdns-47.net.
+
+Authoritative answers can be found from:
+```
+### DNS Caching
+
+- DNS caching used extensively to
+  - improve delay performance
+  - reduce number of DNS messages travelling through the Internet
+- when DNS server receives a DNS reply, it caches the mapping in local memory,
+  and returns this for any future queries
+- DNS servers discard cached information after time period (typically 2 days)
+- due to caching, root servers are largely bypassed
 
 ### DNS Security
 

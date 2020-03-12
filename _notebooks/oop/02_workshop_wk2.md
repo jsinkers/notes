@@ -14,6 +14,8 @@ tags:
 - [Discussion](#discussion)
   - [Transitioning to Java](#transitioning-to-java)
   - [Software Projects](#software-projects)
+- [Compilers, Interpreters, etc.](#compilers-interpreters-etc)
+  - [Java Virtual Machine](#java-virtual-machine)
 
 
 ## Discussion
@@ -83,4 +85,28 @@ tags:
       - improve documentation
       - record design process in documentation!
       - look for existing solutions
+
+## Compilers, Interpreters, etc.
+
+[python interpreter](https://softwareengineering.stackexchange.com/a/313257)
+- **compiler** converts between one language and another
+  - **parser** constructs abstract syntax tree, a tree whose nodes are a syntax element
+  - **semantic analysis**: checks for illegal operations (e.g. 3 args given to a 1 arg function)
+    - analyse AST and modify to syntax for machine code, and produce code in output language
+  - **generator**: walks AST and produces code in output language
+- **interpreter** performs same operations, except instead of code generation, it loads output in-memory
+  and executes directly on the system
+
+### Java Virtual Machine
+
+[JVM](https://www.guru99.com/java-virtual-machine-jvm.html)
+- JVM lives in RAM
+- **class loader** loads classes into RAM
+- bytecode is verified for security breaches
+- **execution engine** converts bytecode to native machine code via **just-in-time compilation**
+[JIT compilation](https://stackoverflow.com/a/95679/9940194)
+- compiles bytecode on the fly to CPU's native instruction set
+- has access to dynamic runtime info, which is not available to standard compiler, allowing
+  for some optimisations
+[Crash course in JIT Compilers](https://hacks.mozilla.org/2017/02/a-crash-course-in-just-in-time-jit-compilers/)https://hacks.mozilla.org/2017/02/a-crash-course-in-just-in-time-jit-compilers/)
 

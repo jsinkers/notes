@@ -10,25 +10,29 @@ tags:
 
 [TOC]: #
 
+## Table of Contents
+- [Extra: Ramakrishnan 2.1](#extra-ramakrishnan-21)
+
 
 ![database_dev_lifecycle](img/database_dev_lifecycle.png)
 
 1. The diagram above shows the stages of the Database Development Lifecycle.
     1. What is the purpose of each stage and what do we, as database designers, need to do in each stage?
-        - Database planning: project management; understanding the enterprise and enterprise data model
+        - **Database planning:** project management; understanding the enterprise and enterprise data model
           from a very high level
-        - Systems definition: specify the scope and boundaries, how the system will interface with other
+        - **Systems definition:** specify the scope and boundaries, how the system will interface with other
           organisational systems
-        - Requirements definition and analysis: understanding user needs, existing infrastructure,
+        - **Requirements definition and analysis:** perspectives; understanding user needs, existing infrastructure,
           the nature and volume of the data to be stored, what operations are most frequent, what is performance
           critical.
+          - business rules between entities; constraints
           - discussions with users, assessment of existing documentation
-        - Conceptual design: construct concept model of data in the database independent of physical implementation.
+        - **Conceptual design:** construct concept model of data in the database independent of physical implementation.
           Typically includes forming Entity-Relationship diagrams
           - **semantic** data models
           - simple description of data that closely matches how users and developers think of data
           - facilitates discussion with end users while providing something sufficiently precise to progress
-        - Logical design: construct relational model based on concept model; independent of physical implementation
+        - Logical design: construct **relational model** based on concept model; independent of physical implementation
           [TODO: differentiate from conceptual]
         - Physical design: description of implementation of logical design for specific DBMS, describing basic relations, data types,
           file organisation, indexes
@@ -78,3 +82,26 @@ tags:
         - release date
         - title
         - rating
+
+### Extra: Ramakrishnan 2.1
+
+Brief descriptions of each of the following terms:
+- **Attribute:** an attribute is a property of an entity (or relationship)
+- **Domain:** the set of possible values of an attribute
+- **Entity:** an object distinguishable from another object
+- **Relationship:** an association between multiple entities
+- **Entity set:** set of similar entities that share the same attributes
+- **Relationship set:** set of similar relationships
+- **One-to-many relationship:** key constraint that indicates one entity can be associated with many of a different entity e.g. employee can work for only one department, departments have many employees
+- **Many-to-many relationship:** key constraint that indicates many entities of one type can be associated
+  with many of a different entity e.g. a student can register for many classes, any class can have many students
+- **Participation constraint:** a constraint indicating the number of entities participating in a relationship; whether a relationship must involve certain entities
+  - **total participation:** every entity must participate in a relationship e.g. each department must have a head;
+  - **partial participation:** otherwise; e.g. each specialty may have a subject matter expert
+- **Overlap constraint:** determines whether two subclasses can contain the same entity
+  - consider employee subclasses:** e.g. salaried employee cannot also be hourly; but salaried employee can be a senior employee
+- **Covering constraint:** determines if entities in the subclass collectively include all entities in the superclass
+  - e.g. a car superclass must be fully covered by all subclass makes of car; car make A and car make B cover cars
+- **Weak entity set:** entities uniquely identified by some of its attributes in combination with an owner key e.g. dependents on an employee health plan
+- **Aggregation:** used to model relationships between relationships, such that one relationship set participates in another relationship set, indicated with a dashed box around the aggregation
+- **Role indicator:** used when entity play more than one role; role indicators describe the different purpose in the relationship e.g. employee entity set has ReportsTo relation with supervisors and subordinates
