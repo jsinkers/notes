@@ -222,12 +222,12 @@ Readings
 - inter-layer exchanges per protocol
 - in reality layering violations do occur, but a helpful abstraction
 
-![]()
+![TODO]()
 
 - *service*: set of primitives that a layer provides to a layer above it (think API)
 - *protocol*: rules which governs format and meaning of packets exchanged by peers within layer
   - packets are sent between peer entities
-![]()
+![TODO]()
 
 ## Connection-oriented vs connectionless
 

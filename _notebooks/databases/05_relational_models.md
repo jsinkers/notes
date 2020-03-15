@@ -1,6 +1,6 @@
 ---
 title: Relational Models
-notebook: Datbase Systems
+notebook: Database Systems
 layout: note
 date: 2020-03-12 16:22
 tags: 
@@ -13,6 +13,7 @@ tags:
 ## Table of Contents
 - [Definitions](#definitions)
 - [Keys](#keys)
+- [Integrity Constraints](#integrity-constraints)
 - [Logical Design](#logical-design)
   - [Multi-valued Attributes](#multi-valued-attributes)
   - [Composite Attributes](#composite-attributes)
@@ -21,7 +22,9 @@ tags:
 
 
 ## Definitions
-- **data model**: transforms real world objects into structures a computer can store
+
+- **data model**: transforms real world objects into structures a computer can
+  store
   - many approaches: relational, ER, object-oriented, network, hierarchical, ...
 - **relational model**:
   - rows (Tuples/records)
@@ -53,18 +56,20 @@ tags:
   - others are **candidate keys**
   - every relation has a primary key
   - `PRIMARY KEY (<key>)
-- **foreign key**: set of fields in one relation used to refer to a tuple/row in another
-  relation
+- **foreign key**: set of fields in one relation used to refer to a tuple/row in
+  another relation
   - must correspond to primary key of other relation
-- **referential integrity**: implies all foreign key constraints are enforced in DBMS
+- **referential integrity**: implies all foreign key constraints are enforced in
+  DBMS
   - `FOREIGN KEY (<key>) REFERENCES <table>`
   - i.e. referenced tuple exists in referenced table
-  - can define behaviour on tuple deletion: disallow deletion of referenced object,
-    cascade deletion through relations that reference the object, ...
+  - can define behaviour on tuple deletion: disallow deletion of referenced
+    object, cascade deletion through relations that reference the object, ...
 
- ## Integrity Constraints
+## Integrity Constraints
 
-- **integrity constraint**: condition must be true for _any_ instance of database
+- **integrity constraint**: condition must be true for _any_ instance of
+  database
   - e.g. **domain constraints**
   - ICs specified when schema defined
   - ICs checked when relations modified
@@ -82,7 +87,8 @@ tags:
 
 ### Composite Attributes
 
-- e.g. address: flatten by breaking into components (postcode, street name, street num)
+- e.g. address: flatten by breaking into components (postcode, street name,
+  street num)
 
 ### Many-to-many relationships
 

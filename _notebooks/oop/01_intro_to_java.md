@@ -13,6 +13,9 @@ tags: java, oop
 ## Table of Contents
 - [Overview](#overview)
 - [Java Features](#java-features)
+  - [Compilers, Interpreters, etc.](#compilers-interpreters-etc)
+  - [Java Virtual Machine](#java-virtual-machine)
+  - [Just-in-time compilation](#just-in-time-compilation)
 - [Hello world!](#hello-world)
   - [Compiling and running](#compiling-and-running)
   - [Comments](#comments)
@@ -96,15 +99,55 @@ tags: java, oop
 ![java_compiled_and_interpreted](img/java_compiled_and_interpreted.png)
 
    - Java is compiled to bytecode, then interpreted to machine code
-   - porting Java to a new system involves writing an interpreter
-   - Java uses **just-in-time** compilation: parts of bytecode are compiled to
-     native code at runtime based on which parts are used most often, and what is
-     expected to be needed next
+   - that bytecode is portable: you can take it to any machine
+   - porting Java to a new system involves writing a JVM implementation for that system
+   - most modern implementations of the JVM use **just-in-time** compilation
+   - older implementations use interpreters that translate and execute bytecode
+     instruction by instruction
+
 2. Platform independent
 
 ![platform_independence](img/platform_independence.png)
 
 3. Object oriented
+
+### Compilers, Interpreters, etc.
+
+Drawn from [python interpreter](https://softwareengineering.stackexchange.com/a/313257)
+and Absolute Java Ch 1.
+- **compiler** converts between one language and another
+  - **parser** constructs abstract syntax tree, a tree whose nodes are a syntax element
+  - **semantic analysis**: checks for illegal operations (e.g. 3 args given to a 1 arg function)
+    - analyse AST and modify to syntax for machine code, and produce code in output language
+  - **generator**: walks AST and produces code in output language
+  - disadvantage: compiler translates high level program directly into machine language
+    for particular computer: as different computers have different machine languages,
+    you need a different compiler for each computer type.
+- **interpreter** performs same operations, except instead of code generation, it loads output in-memory
+  and executes directly on the system
+
+### Java Virtual Machine
+
+[JVM](https://www.guru99.com/java-virtual-machine-jvm.html)
+- JVM lives in RAM
+- **class loader** loads byte-code from distinct class files together in RAM
+- bytecode is verified for security breaches
+- **execution engine** converts bytecode to native machine code via **just-in-time compilation**
+- running code on JVM makes Java more secure: if a program behaves badly, it does
+  so in context of JVM, instead of directly on your native machine
+
+### Just-in-time compilation
+
+[JIT compilation](https://stackoverflow.com/a/95679/9940194)
+- combo of compilation and interpretation
+- reads chunks of byte-code and compiles to native machine code on the fly
+- caches compiled chunks, meaning that chunk doesn't need to be recompiled
+- if the chunk is used very frequently, it can be recompiled with more optimisation
+  to improve performance
+- has access to dynamic runtime info, which is not available to standard compiler, allowing
+  for some optimisations
+- performance improvements over pure interpretation
+[Crash course in JIT Compilers](https://hacks.mozilla.org/2017/02/a-crash-course-in-just-in-time-jit-compilers/)https://hacks.mozilla.org/2017/02/a-crash-course-in-just-in-time-jit-compilers/)
 
 ## Hello world!
 
@@ -125,9 +168,12 @@ public class HelloWorld{        // name of class must be same as filename
 
 ```console
 # compile
-javac HelloWorld.java
-# run
-java HelloWorld
+$ javac HelloWorld.java
+# compiler outputs 
+$ ls HelloWorld*
+
+# run: note absence of extension
+$ java HelloWorld
 ```
 
 ### Comments
