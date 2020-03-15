@@ -430,7 +430,7 @@ Subject: searching for the meaning of life
   - provides little info on location of host on Internet
   - variable length strings: difficult to process by routers
 - **IP addresses**: "machine-readable" host identifier
-  - IPv4 address: 4 bytes a.b.c.d, $a,b,c,d \in \[0,255\]$
+  - IPv4 address: 4 bytes a.b.c.d, $a,b,c,d \in [0,255]$
   - hierarchical: address from left to right is increasingly specific about
     where host resides in Internet
 - **domain name system (DNS)**: directory service translating hostnames to IP addresses
@@ -531,7 +531,7 @@ Hierarchy
   `cse.nyu.edu`
 - **iterative query** e.g. $2, 3, 4$ in image, as replies are directly returned to `dns.nyu.edu`
 - in theory: any query could be recursive or iterative, but usually follow pattern
-  - requesting host $\rarrow$ local DNS server: recursive
+  - requesting host $\rightarrow$ local DNS server: recursive
   - remaining queries: iterative
 
 ### DNS Messages

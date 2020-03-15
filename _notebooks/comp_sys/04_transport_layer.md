@@ -22,6 +22,7 @@ tags:
   - [Web servers and TCP](#web-servers-and-tcp)
 - [UDP](#udp)
 - [UDP Segment Structure](#udp-segment-structure)
+- [Reliable Data Transfer](#reliable-data-transfer)
 
 
 ## Reading
@@ -196,4 +197,11 @@ tags:
     error-checking, and it's possible an error will occur while segment is stored in
     router's memory
 
+## Reliable Data Transfer
+
+- reliable data transfer is fundamentally important problem in networking
+  and applies at transport layer, link layer, application layer
+- service abstraction provided to upper layers is a reliable channel through which
+  data can be transferred
+  - reliable channel: no data bits corrupted, all data delivered in order sent/
 

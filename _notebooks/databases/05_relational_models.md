@@ -38,7 +38,7 @@ tags:
     - **degree/arity**: number of fields
   - consider relation a _set of rows/tuples_
   - all rows are **distinct and unordered**
-- logical design: **entity set $\rarrow$ relation**
+- logical design: **entity set $\rightarrow$ relation**
 - physical design: select data types
 
 ![database_design](img/database_design.png)
@@ -83,7 +83,7 @@ tags:
 - **multi-valued attributes**: options
   - unpack/flatten when converting to logical design
   - otherwise create a lookup table
-  - e.g. multiple phone numbers for an employee $\Rarrow$ (home_num, work_num)
+  - e.g. multiple phone numbers for an employee $\Rightarrow$ (home_num, work_num)
 
 ### Composite Attributes
 
@@ -92,7 +92,7 @@ tags:
 
 ### Many-to-many relationships
 
-- **many-to-many** relationship $\rarrow$ relation
+- **many-to-many** relationship $\rightarrow$ relation
   - attributes include:
     - keys for each participating entity set (as foreign keys)
       - set of attributes forms **superkey** of relation
