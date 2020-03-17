@@ -89,6 +89,11 @@ tags:
 - **partial key** uniquely identifies weak entity when considering primary key of owner entity
   - represented with _dashed underline_
 
+|**Key constraint**  |**Total participation**|**Partial participation**|
+|:---:|:---:|:---:|
+|**1**|  one-to-one  |0-to-one|
+|**many**  |  one-to-many| 0-to-many|
+
 - **ternary relationships** [TODO]
 
 ### Special attribute

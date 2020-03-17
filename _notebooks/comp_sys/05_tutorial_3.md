@@ -19,18 +19,20 @@ sent over the control connection.
 What are the benefits and disadvantages of using a separate control channel?
     - benefits:
       - you can initiate multiple transfers, terminate transfers, etc. while the
-      - maintenance of state e.g. current directory
         transfer is happening, without having to wait for transfer to complete
+      - maintenance of state e.g. current directory
+      - designed in days of unreliable control connection: signal client-server connection is healthy
+      - control bandwidth
     - disadvantages:
       - additional overhead associated with maintaining multiple TCP connections
-      - security concerns
 2. Describe the commonalities and differences between SMTP and (persistent) HTTP.
     - commonalities:
-      - uses TCP in transport layer
+      - can persistent TCP in transport layer
       - both transfer files from host to client
     - differences:
       - HTTP operates between server and client (typically browser), while SMTP
         operates between mail servers
+      - HTTP 80 vs SMTP 25
       - HTTP primarily pull; SMTP is a push protocol
       - SMTP messages must be ASCII, HTTP messages don't have this limitation
       - HTTP: one response per object; SMTP: all objects in one response
@@ -40,7 +42,12 @@ address, which he shares with his wife. John's wife was unaware of this, and act
 vacation agent on their personal account. Because John forwarded his email, he did not set
 up a vacation daemon on his work machine. What happens when an email is received at
 Johns work email address?
-    - email is forwarded to the personal account
+    - when an email is received by the mail server attached to John's work email, it is forwarded to the
+      server of the couple's personal email address.  The forwarding could have been configured to retain the envelope
+      sender (plain message forwarding).  In this case, an automated vacation would be sent by the personal
+      email mail server back to the sending business.  If the forwarding was configured to rewrite the envelope
+      sender as John's work email, then John would receive a vacation auto-reply from the personal work email.
+    - end up in loop where mail is bouncing back and forth
 4. Consider a situation in which a cyberterrorist makes all the DNS servers in the world crash
 simultaneously. How does this change people's ability to use the Internet?
     - assuming this includes all DNS caches, this would drastically affect the
@@ -51,7 +58,8 @@ simultaneously. How does this change people's ability to use the Internet?
 for a hostname (for example, foo.com)? How does a DNS server distinguish these two types
 of mapping, namely, hostname-web server IP and hostname-mail server IP?
     - Yes: the DNS client requests the MX record from the resource record for a given
-  hostname to get the mail server, and requests the CNAME record for the web server
+      hostname to get the mail server, and recursively searches until and requests until it hits an A record with an IP for the web
+      Server
 6. DNS uses UDP instead of TCP. If a DNS packet is lost, there is no automatic recovery. Does
 this cause a problem, and if so, how is it solved?
     - DNS will attempt to repeat query, attempt a query to another name server, or

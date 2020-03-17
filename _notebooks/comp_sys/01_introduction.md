@@ -344,6 +344,11 @@ Readings
 
 ## IP Stack
 
+![ip_stack](img/ip_stack.png)
+
+Analogy of the IP stack
+![ip_stack_analogy](img/ip_stack_analogy.png)
+
 ### Application Layer
 
 - where network applications live e.g. HTTP (web), SMTP (email), FTP (file transfer), DNS

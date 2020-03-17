@@ -391,3 +391,215 @@ public <ClassName>(<ClassName> var) {
   in. And yet it leaves this one community of fairly important folks kind of
   totally shut out. It's a flavor of the tragedy of the commons problem._
 
+## Packages in Java
+
+- **package**: groups classes and interfaces into bundles, allowing them to be handled together
+  with an accepted naming convention
+  - allows _reuse_, rather than rewriting classes
+  - prevents _naming conflicts_
+  - allows _access control_
+  - another level of _encapsulation_
+
+### Package creation
+
+- to place a class in a package, first statement in Java class must be `package` statement:
+```java
+package <directory1>.<directory2>;
+```
+- e.g. 
+```java
+package utilities.shapes;
+
+public class Circle {
+    // Code for Circle goes here
+}
+```
+- `Circle.class` must be in directory `shapes`, a sub-directory of `utilities`
+
+### Using packages
+
+- use packages with the `import` statement, which has different forms:
+```java
+import <packageName>.*; // import all classes in the package
+import <packageName>.<className>; // import a particular class from the package
+```
+- parent directory where classes are placed must be in `CLASSPATH` environment variable
+
+e.g. 
+```java
+import utilities.shapes.Circle;
+public class CircleTest {
+    public static void main(String args[]) {
+        Circle my_circle = new Circle();
+    }
+}
+```
+- here parent directory of `utilities` must be in `CLASSPATH`
+
+### `default` package (Non-assessable)
+
+- all classes in current directory belong to an unnamed `default` package - no `package` statement
+  is needed
+- if current directory is part of `CLASSPATH` all classes in `default` package are automatically
+  available to a program
+- if `CLASSPATH` is set: current directory must be included as one of the alternatives listed, 
+  otherwise Java may not be able to `.class` files for the program itself.
+- if `CLASSPATH` is set: all class files for a program must be put in the current directory
+- further reading: [Packages in Java](https://www.geeksforgeeks.org/packages-in-java/)
+
+## Information Hiding
+
+- OO paradigm allows class attributes and methods to be grouped together (**encapsulation**)
+- **information hiding**: ability to hide details of a class from outside world
+    - also part of OO paradigm
+    - aka **visibility control**
+- **interface** to the class: actions on objects can be performed through visible methods of the 
+  class 
+- **access control**: preventing an outside class from _manipulating_ properties of another class
+  in _undesired_ ways
+- **visibility modifiers**: Java implementation to control **visibility/access** of variables and 
+  methods:
+  - safely seals data in capsule of class
+  - prevents programmers from relying on details of class implementation
+  - helps protect against accidental/wrong usage
+  - keeps code elegant, clean, making maintenance easier
+  - provides access to an object through a clean interface
+
+### Visibility modifiers
+
+Keywords applied to class, method, or attribute:
+- **public:** available/visible _everywhere_ (within/outside the class)
+  - anyone can use it
+- **private:** only visible _within_ a class
+  - methods/attributes
+  - not visible within subclasses
+  - not inherited
+- **protected:** only visible within class, subclasses, and all classes in the same package
+  - methods/attributes
+  - visible to subclasses in other packages
+- **default:** visibility modifier omitted
+
+|Modifier|Class|Package|Subclass|Outside|
+|:---:|:---:|:---:|
+|`public`|Y|Y|Y|Y|
+|`protected`|Y|Y|Y|N|
+|`default`|Y|Y|N|N|
+|`private`|Y|N|N|N|
+
+### `Circle` class with visibility modifiers
+
+- convention: attributes of class must be made **`private`** and accessed through getter/setter 
+  methods, which are `public`
+  - methods that other classes do not call must be defined as **`private`**
+
+```java
+public class Circle {
+    private double centreX, centreY, radius;
+
+    // methods to get/set instance variables
+    public double getX() { return centreX; }
+    public double getY() { return centreY; }
+    public double getR() { return radius; }
+    public double setX(double centreX) { this.centreX = centreX;}
+    public double setY(double centreY) { this.centreY = centreY;}
+    public double setR(double radius) { this.radius = radius;}
+    // other methods
+```
+
+## Mutability
+
+- **mutable class:** contains public mutator methods that can change the instance variables
+  - instances are **mutable objects**
+- **immutable class:** contains no methods (except constructors) that change instance variables
+  - instance objects are **immutable objects**
+
+e.g `Circle` class
+```java
+// Circle.java
+public class Circle {
+    private double centreX, centreY, radius;
+    private static int numCircles;
+
+    public Circle(double newCentreX, double newCentreY, double newRadius) {...};
+    public double getCentreX() {...};
+    public void setCentreX(double centreX) {...};
+    public double getCentreY() {...};
+    public void setCentreY(double centreY) {...};
+    public double getRadius() {...};
+    public void setRadius(double radius) {...};
+    public double computeCircumference() {...};
+    public double computeArea() {...};
+    public void resize(double factor) {...};
+    public static int getNumCircles() {...};
+}
+```
+- is this an immutable class? No, it has getters and setters that are public
+- how would you create an immutable class? Remove all the setters and resize methods.
+
+```java
+// ImmutableCircle.java
+public class ImmutableCircle {
+    private final double centreX, centreY, radius;  // <- note: these are now final
+    private static int numCircles;
+
+    public ImmutableCircle(double newCentreX, double newCentreY, double newRadius) {...};
+    // all setters have been removed
+    public double getCentreX() {...};
+    public double getCentreY() {...};
+    public double getRadius() {...};
+    public double computeCircumference() {...};
+    public double computeArea() {...};
+    public static int getNumCircles() {...};
+}
+```
+
+## Delegation through Association
+
+- class can **delegate** responsibilities to other classes
+- object can **invoke methods** in other objects through **containership**
+- this is an **Association** relationship between classes
+
+e.g. Association relationship and Delegation through a `Point` class contained within `Circle` class.
+Is there a better way to store information about the centre of the Circle?
+```java
+public class Circle {
+    private Point centre;
+    private double radius;
+
+    public Circle(Point centre, double radius) {
+        this.centre = centre;
+        this.radius = radius;
+    }
+
+    public double getX() {          // <- interface has not changed
+        return centre.getXCoord();
+    }
+
+    public double getY() {
+        return centre.getYCoord();
+    }
+    //other methods here
+}
+```
+- `Point` object is contained in `Circle` object: methods in `Circle` object can call methods in 
+  `Point` object using reference to the object, `centre`
+
+## Wrapper Classes
+
+- **primitive**: unit of information that contains only data, with no attributes or methods
+  - cannot perform actions e.g. parsing
+  - e.g. `int, double`
+- Java provides **wrapper classes** for primitives
+  - packages/boxes primitive data types into objects
+  - allows primitives to pretend they are classes
+  - provides extra functionality for primitives
+- e.g. `boolean` $\rightarrow$ `Boolean`
+- Java does automatic boxing/unboxing to convert primitive from/to wrapper class
+
+### Integer class
+
+- Reverse: `Integer.reverse(10)`
+- Rotate left: `Integer.rotateLeft(10, 2)`
+- Signum: `Integer.signum(-10)`
+- parsing: `Integer.parseInt("10");
+

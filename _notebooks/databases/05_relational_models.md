@@ -19,6 +19,9 @@ tags:
   - [Composite Attributes](#composite-attributes)
   - [Many-to-many relationships](#many-to-many-relationships)
   - [Ternary Relationships](#ternary-relationships)
+  - [Key constraints rule](#key-constraints-rule)
+  - [Participation constraints](#participation-constraints)
+  - [Translating weak entities](#translating-weak-entities)
 
 
 ## Definitions
@@ -103,3 +106,21 @@ tags:
 ### Ternary Relationships
 
 [TODO]
+
+### Key constraints rule
+
+- primary key from the _many_ side becomes a foreign key on the _one_ side
+  - ensures key constraint holds
+
+### Participation constraints
+
+- total participation is specified with key words `NOT NULL`, i.e. this field
+  cannot be empty
+- every time you specific an attribute you need to indicate whether `NULL` or `NOT NULL`
+
+### Translating weak entities
+
+- weak entity set and identifying relationship set are translated to a single table
+  - when owner is deleted, all owned weak entities must be deleted
+
+
