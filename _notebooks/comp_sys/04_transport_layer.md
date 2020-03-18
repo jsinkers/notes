@@ -27,7 +27,6 @@ tags:
   - [RPC](#rpc)
   - [RTP](#rtp)
 - [UDP Segment Structure](#udp-segment-structure)
-- [Reliable Data Transfer](#reliable-data-transfer)
 - [DDoS](#ddos)
 - [Multiplexing TCP](#multiplexing-tcp)
 - [TCP Service Primitives](#tcp-service-primitives)
@@ -43,6 +42,7 @@ tags:
 - [Retransmission](#retransmission)
 - [Closing TCP connection](#closing-tcp-connection)
 - [`SYN` flooding](#syn-flooding)
+- [Reliable Data Transfer](#reliable-data-transfer)
 
 
 ## Reading
@@ -362,14 +362,6 @@ RTP sits above UDP and below application
     IP packet)
   - UDP includes IPv4 **pseudoheader** in checksum to detect truncated IP packet
 
-## Reliable Data Transfer
-
-- reliable data transfer is fundamentally important problem in networking and
-  applies at transport layer, link layer, application layer
-- service abstraction provided to upper layers is a reliable channel through
-  which data can be transferred
-  - reliable channel: no data bits corrupted, all data delivered in order sent/
-
 ## DDoS
 
 - Distributed denial of service attack
@@ -616,3 +608,16 @@ b. simultaneous connection attempts: two attempts result in only one connection
   - typically only enabled when under attack
 
 
+## Reliable Data Transfer
+
+- reliable data transfer is fundamentally important problem in networking and
+  applies at transport layer, link layer, application layer
+- service abstraction provided to upper layers is a reliable channel through
+  which data can be transferred
+  - reliable channel: no data bits corrupted, all data delivered in order sent
+![reliable_data_transfer](img/reliable_data_transfer.png)
+_rdt: reliable data transfer; udt: unreliable data transfer_
+
+- **unidirectional data transfer** is the focus here, but **full duplex**, while
+  conceptually similar, is tediously detailed
+- 

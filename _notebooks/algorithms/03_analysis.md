@@ -22,6 +22,8 @@ tags:
 - [Efficiency Classes](#efficiency-classes)
 - [Process: Analysing time efficiency of non-recursive algorithms](#process-analysing-time-efficiency-of-non-recursive-algorithms)
   - [Basic rules](#basic-rules)
+- [Process: analysing time efficiency of recursive algorithms](#process-analysing-time-efficiency-of-recursive-algorithms)
+  - [Divide and Conquer](#divide-and-conquer)
 
 
 
@@ -170,9 +172,100 @@ $$n! \approx \sqrt{2\pi n}\frac{n}{e}^n$$
 
 ### Basic rules
 
+#### Scalar multiplication
+
 $$\sum_{i=l}^{u}{ca_i} = c\sum_{i=l}^{u}{a_i}$$
+
+#### Addition
+
 $$\sum_{i=l}^{u}{a_i+b_i} = \sum_{i=l}^{u}{a_i}+\sum_{i=l}^{u}{b_i}$$
+
 $$\sum_{i=l}^{u}1 = u-l+1$$
 In particular
 $$\sum_{i=1}^{n}{1} = n$$
-$$\sum_{i=l}^{u}{i} = \frac{n(n+1)}{2}$$
+
+#### Triangle numbers
+
+$$\sum_{i=l}^{n}{i} = \frac{n(n+1)}{2}$$
+
+#### Geometric series
+
+$$\sum_{i=1}^{n}{x^k} = \frac{1-x^{k+1}}{1-x}$$
+
+## Process: analysing time efficiency of recursive algorithms
+
+1. define parameter indicating _input size_
+2. identify _basic operation_
+3. check if number of times basic operation is executed is only a function of input size
+    - if not: worst case, average case to be considered separately
+4. set up _recurrence relation_ and _initial condition_ corresponding to number of
+   times basic operation is executed
+5. solve recurrence or ascertain order of growth of its solution
+
+- solution of recurrence relation can be by:
+  - **backwards substitution/telescoping method:** substitution of M(n-1), M(n-2), ...,
+    and identifying the pattern
+- can be helpful to build a tree of recursive calls, and count the number of nodes to get the total
+  number of calls
+
+### Divide and Conquer
+
+- **binary/n-ary recursion** is encountered when input is split into parts, e.g. binary search
+- you see the term $n/k$ in the recurrence relation
+- backwards substitution stumbles on values of $n$ that are not powers of $k$
+- to solve these, you assume $n=k^i$ and then use the smoothness rule, which implies that
+  order of growth for $n=k^i$ gives a correct answer about order of growth $\forall n$
+For the following definitions, $f(n)$ is a non-negative function defined for $n \in \N$
+
+#### DEFINITION: eventually non-decreasing
+
+- **eventually nondecreasing**: if $\exists n_0 \in \Z^+$ s.t. $f(n)$ is non-decreasing on $\[n_0, \infty\]$, i.e.
+$$f(n_1) \le f(n_2) ~~ \forall ~ n_2 > n_1 \ge n_0$$
+  - e.g. $f(n) = (n-100)^2$: eventually non-decreasing
+    - decreasing on interval $\[0, 100\]$
+    - most functions encountered in algorithms are eventually non-decreasing
+
+#### DEFINITION: smooth
+
+$f(n)$ is _smooth_ if:
+
+- eventually non-decreasing, AND
+- $f(2n) \in \Theta(f(n))$
+
+- e.g. $f(n) = n \log{n}$ is smooth because
+$$f(2n) = 2n \log{2n} = 2n(\log{2} + \log{n}) = 2 \log{2}n + 2n \log{n} \in \Theta(n\log{n})$$
+
+- fast growing functions e.g. $a^n$ where $a > 1$, $n!$ are not smooth
+- e.g. $f(n) = 2^n$
+$$f(2n) = 2^{2n} = 4^n \not\in\Theta(2^n)$$
+
+#### THEOREM:
+Let $f(n)$ be smooth.  For any fixed integer $b\ge 2$:
+$$f(bn)\in\Theta(f(n))$$
+i.e. $\exists c_b, d_b \in \R^+, n_0 \in \Z^+$ s.t.
+$$d_b f(n) \le f(bn) \le c_b f(n) \text{ for } n\ge n_0$$
+
+- corresponding assertion also holds for $O$ and $\Omega$
+
+#### THEOREM: Smoothness rule
+
+Let $T(n)$ be an eventually non-decreasing function
+Let $f(n)$ be a smooth function.  If $ T(n) \in \Theta(f(n)) $ for values of $n$ that are powers of $b$
+where $b\ge 2$, then:
+$$T(n) \in \Theta(f(n))$$
+
+- analogous results also holds for $O$ and $\Omega$
+- allows us to expand information about order of growth established for $T(n)$, based on convenient subset
+  of values (powers of $b$) to entire domain
+
+#### THEOREM: Master Theorem
+
+Let $T(n)$ be an eventually non-decreasing function that satisfies the recurrence
+$$T(n)=aT(n/b)+f(n) \text{ for } n= b^k, k = 1, 2, ...$$
+$$T(1) = c$$
+where $a\ge1,b\ge2,c>0$.  If $f(n)\in\Theta(n^d)$ where $d\ge0$, then
+$$T(n)\in\begin{cases}\Theta(n^d)\text{ if }a<b^d\\\ \Theta(n^d\log{n})\text{ if }a=b^d\\\ \Theta(n^{\log{a}_b)}\text{ if }a>b^d\end{cases}$$
+
+- analogous results also holds for $O$ and $\Omega$
+- helps with quick efficiency analysis of divide-and-conquer and decrease-by-constant-facotr algorithms
+
