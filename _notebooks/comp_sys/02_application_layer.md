@@ -38,6 +38,7 @@ tags:
   - [SMTP Commands](#smtp-commands)
   - [SMTP vs HTTP](#smtp-vs-http)
   - [Mail message header](#mail-message-header)
+  - [MIME - Multipurpose Internet Mail Extensions](#mime---multipurpose-internet-mail-extensions)
   - [Mail access protocols](#mail-access-protocols)
 - [DNS](#dns)
   - [DNS Components](#dns-components)
@@ -332,7 +333,7 @@ Consists of
 - replies: 3 digit numbers with optional message
   - `331 Username OK, password required`
   - `125 Data connection already open; transfer starting`
-  - `425 Can’t open data connection`
+  - `425 Can't open data connection`
   - `452 Error writing file`
 
 ## Email
@@ -389,12 +390,35 @@ Consists of
 ### Mail message header
 
 - distinct from SMTP handshake
+- headers are separated by `<CR><LF>`
+- header ends with a blank line i.e. `<CR><LF>`
 - mandatory header lines:
 ```
 From: abc@xyz.com
 To: ijk@bbb.com
 Subject: searching for the meaning of life
 ```
+- other header lines:
+```
+CC:
+Bcc:
+Message-Id:
+In-Reply-To: <- ID of message you are replying to
+Reply-To:
+...
+```
+
+### MIME - Multipurpose Internet Mail Extensions
+
+- originally email messages only used ASCII.  Mime introduced to support:
+  - other languages
+  - alternative message content types (audio, images)
+- 5 additional message headers:
+  - MIME-Version
+  - Content-Description: human readable description
+  - Content-Id
+  - Content-Transfer-Encoding: how body is wrapped for transmission
+  - Content-Type: type/format of content
 
 ### Mail access protocols
 

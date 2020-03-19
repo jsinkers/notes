@@ -219,10 +219,10 @@ For the following definitions, $f(n)$ is a non-negative function defined for $n 
 
 #### DEFINITION: eventually non-decreasing
 
-- **eventually nondecreasing**: if $\exists n_0 \in \Z^+$ s.t. $f(n)$ is non-decreasing on $\[n_0, \infty\]$, i.e.
+- **eventually nondecreasing**: if $\exists n_0 \in \Z^+$ s.t. $f(n)$ is non-decreasing on $[n_0, \infty]$, i.e.
 $$f(n_1) \le f(n_2) ~~ \forall ~ n_2 > n_1 \ge n_0$$
   - e.g. $f(n) = (n-100)^2$: eventually non-decreasing
-    - decreasing on interval $\[0, 100\]$
+    - decreasing on interval $[0, 100]$
     - most functions encountered in algorithms are eventually non-decreasing
 
 #### DEFINITION: smooth

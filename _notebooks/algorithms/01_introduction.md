@@ -1,12 +1,12 @@
 ---
-title: Subject introduction
+title: Algorithms
 notebook: Design of Algorithms
 layout: note
 date: 2020-03-03 13:06
 tags: 
 ...
 
-# Subject introduction
+# Algorithms
 
 [TOC]: #
 

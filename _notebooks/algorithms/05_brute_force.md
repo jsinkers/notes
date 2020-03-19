@@ -58,9 +58,7 @@ for i=0 to n-2 do
 ```
 
 - basic operation: key comparison
-- number of times executed depends only on array size $$C(n) =
-  \sum_{i=0}^{n-2}\sum_{j=i+1}^{n-1}1=\sum_{i=0}^{n-2}\[(n-1)-(i+1)+1\]\\\
-  =\sum_{i=0}^{n-2}(n-1-i)=\frac{n(n-1)}{2}\in\Theta(n^2)$$
+- number of times executed depends only on array size $$C(n) = \sum_{i=0}^{n-2}\sum_{j=i+1}^{n-1}1=\sum_{i=0}^{n-2}[(n-1)-(i+1)+1]\\\ =\sum_{i=0}^{n-2}(n-1-i)=\frac{n(n-1)}{2}\in\Theta(n^2)$$
 
 - selection sort is $\Theta(n^2)$ for all inputs
 - number of key swaps is only $\Theta(n)$ which makes it suitable for swapping
@@ -88,8 +86,7 @@ for i=0 to n-2 do
 - basic operation: key comparison
 - number of key comparisons same for all arrays
 
-$$C(n) = \sum_{i=0}^{n-2}\sum_{j=0}^{n-2}1=\sum_{i=0}^{n-2}\[(n-2)-0+1\]\\\
-=\sum_{i=0}^{n-2}(n-1-i)=\frac{n(n-1)}{2}\in\Theta(n^2)$$
+$$C(n) = \sum_{i=0}^{n-2}\sum_{j=0}^{n-2}1=\sum_{i=0}^{n-2}[(n-2)-0+1]\\\ =\sum_{i=0}^{n-2}(n-1-i)=\frac{n(n-1)}{2}\in\Theta(n^2)$$
 
 - number of key swaps is dependent on input
 - in worst case (decreasing array): same as the number of key comparisons
@@ -182,8 +179,7 @@ P = "aab"
   - begin with each element as separate cluster, merge into successively larger
     clusters by combining pairs of clusters
 - consider 2D closest-pair problem: points $(x, y)$
-  - distance between points $p_i(x_i,y_i), p_j(x_j,y_j)$ is: $$d(p_i,p_j) =
-    \sqrt{(x_i-x_j)^2+(y_i-y_j)^2}$$
+  - distance between points $p_i(x_i,y_i), p_j(x_j,y_j)$ is: $$d(p_i,p_j) = \sqrt{(x_i-x_j)^2+(y_i-y_j)^2}$$
 - brute force approach: compute distance between each pair of points and find a
   pair with the smallest distance
   - avoid repeating distance computation for pairs of points multiple times
@@ -232,9 +228,8 @@ $$C(n)=\sum_{i=1}^{n-1}\sum_{j=i+1}^{n}2=2\sum_{i=1}^{n-1}(n-i)=n(n-1)\in\Theta(
     circuit** of the graph
 - **Hamiltonian circuit:** cycle that passes through all vertices of graph
   exactly once
-  - can represent as sequence of n+1 adjacent vertices $v_{i_0}, v_{i_1}, ...,
-    v_{i_0}$
-    - $v_i_0$ is at the start and end
+  - can represent as sequence of n+1 adjacent vertices $v_{i_0}, v_{i_1}, ..., v_{i_0}$
+    - $v_{i_0}$ is at the start and end
     - each vertex is distinct
   - assume, without loss of generality, all circuits start and end at one
     particular vertex (as they are cycles)
@@ -265,12 +260,11 @@ $$C(n)=\sum_{i=1}^{n-1}\sum_{j=i+1}^{n}2=2\sum_{i=1}^{n-1}(n-i)=n(n-1)\in\Theta(
 - $n$ people who need to be assigned to execute $n$ jobs, one person per job
   - each person is assigned to exactly one job
   - each job is assigned to exactly one person
-- cost that would accrue if _i_th person is assigned to _j_th job is $C\[i,j\]$
-  for each pair $i, j\in\[1, ..., n\]$
+- cost that would accrue if _i_th person is assigned to _j_th job is $C[i,j]$
+  for each pair $i, j\in [1, ..., n]$
 - find an assignment with minimum total cost
 
-- feasible solutions can be described by $n$-tuples $\langle j_i, ..,
-  j_n\rangle$
+- feasible solutions can be described by $n$-tuples $\langle j_i, .., j_n\rangle$
 - $j_i$ indicates job number assigned to $i$th person
 - there is a one-to-one correspondence between feasible assignments and
   permutations of first $n$ integers

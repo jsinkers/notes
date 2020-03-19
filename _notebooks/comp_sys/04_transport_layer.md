@@ -403,7 +403,7 @@ RTP sits above UDP and below application
 |  RECEIVE   |      (none)       |      Block until DATA packet arrives       |
 | DISCONNECT | DISCONNECTION REQ | This side wants to release the connection  |
 
-![tcp_state_diagram](/_notebooks/comp_sys/img/tcp_state_diagram.png)
+![tcp_state_diagram](img/tcp_state_diagram.png)
 _Simplified TCP state diagram_
 
 ## Connection Establishment Complications
