@@ -43,6 +43,15 @@ tags:
 - [Closing TCP connection](#closing-tcp-connection)
 - [`SYN` flooding](#syn-flooding)
 - [Reliable Data Transfer](#reliable-data-transfer)
+- [Socket Programming](#socket-programming)
+  - [Berkeley Sockets](#berkeley-sockets)
+  - [Using sockets](#using-sockets)
+  - [Simple Connection Management](#simple-connection-management)
+  - [Socket Finite State Machine](#socket-finite-state-machine)
+- [Sockets in C](#sockets-in-c)
+  - [Multi-threaded web server](#multi-threaded-web-server)
+- [TCP Flow Control](#tcp-flow-control)
+  - [TCP Sliding window](#tcp-sliding-window)
 
 
 ## Reading
@@ -50,7 +59,8 @@ tags:
 - [x] K&R 3.1
 - [x] K&R 3.2
 - [x] K&R 3.3
-- [ ] K&R 3.4
+- [x] K&R 3.4
+  - [ ] add notes
 - [ ] K&R 3.5
 - [ ] K&R 3.6
 
@@ -422,6 +432,9 @@ _Simplified TCP state diagram_
   - TCP entity accepts user data streams, segmenting into pieces < 64kB and sends each piece
     as a separate IP datagram
     - typically 1460 bytes to fit IP and TCP headers in single Ethernet frame
+- Vinton Cerf/Robert Kahn invented TCP/IP, seeing the need for a networking protocol with
+  broad support for applications while allowing arbitrary hosts and link-layer protocols
+  to operate
 - recipient TCP entities reconstruct original byte streams from encapsulation
 
 ![tcp_service_model](img/tcp_service_model.png)
@@ -475,7 +488,9 @@ _Simplified TCP state diagram_
 ## TCP Connection features
 
 - **full duplex:** data in both directions simultaneously
-- **end to end:** exact pairs of senders and receivers
+- **end to end/point-to-point:** exact pairs of senders and receivers
+  - _multicasting_ from one sender to many receivers with a single send cannot
+    be conducted with TCP
 - **byte streams** not message streams: message boundaries are not preserved
 - **buffer capable:** TCP entity can choose to buffer prior to sending or not depending
   on context
@@ -620,4 +635,180 @@ _rdt: reliable data transfer; udt: unreliable data transfer_
 
 - **unidirectional data transfer** is the focus here, but **full duplex**, while
   conceptually similar, is tediously detailed
-- 
+- [TODO]
+
+## Socket Programming
+
+- sockets are a general interface, not specific to TCP
+- sockets make system calls to kernel
+- process sends/receives through a socket: _doorway_ leading in/out of the application
+![socket_layers](img/socket_layers.png)
+- kernel interacts with hardware via interrupts: mostly involved in receiver behaviour
+- **address**: 5-tuple; protocol, source-IP, source-port number, destination-IP, destination-port number
+  - `AF_INET`: address family for IPv4
+
+![socket_addresses](img/socket_addresses.png)
+
+- on receipt of packet, hardware interrupts the kernel and sends packet to port 80
+- Echo server i.e. ping
+
+### Berkeley Sockets
+
+- originally provided in Berkeley UNIX
+- eventually adopted by most operating systems
+- simplifies porting applications to different OSes
+- in UNIX, everything is like a file
+  - all input is like reading a file
+  - all output is like writing a file
+  - file is _addressed_ by integer file descriptor
+- API implemented as system calls:
+  - e.g. `connect(), read(), write(), close()`
+
+### Using sockets
+
+![using_sockets](img/using_sockets.png)
+- `read()` can be blocking or non-blocking
+
+**Socket Primitives**
+
+|   State   | Description                                                          |
+|:---------:|:---------------------------------------------------------------------|
+| `SOCKET`  | Creates a new communication endpoint (1/2 socket: no connection yet) |
+|  `BIND`   | Associate a local address with a socket                              |
+| `LISTEN`  | Announce willingness to accept connections; give queue size          |
+| `ACCEPT`  | Passively establish an incoming connection                           |
+| `CONNECT` | Actively attempt to establish a connection                           |
+|  `SEND`   | Send some data over a connection (`write()`)                         |
+| `RECEIVE` | Receive some data from the connection (`read()`)                     |
+|  `CLOSE`  | Release the connection                                               |
+
+### Simple Connection Management
+
+![state_diagram_connection_management](img/state_diagram_connection_management.png)
+
+### Socket Finite State Machine
+
+|     State     | Description                                    |
+|:-------------:|:-----------------------------------------------|
+|   `CLOSED`    | No connection active/pending                   |
+|   `LISTEN`    | Server waiting for incoming call               |
+|  `SYN RCVD`   | Connection request has arrived; wait for `ACK` |
+|  `SYN SENT`   | Application has started to open connection     |
+| `ESTABLISHED` | normal data transfer state                     |
+| `FIN WAIT 1`  | application has said it's finished             |
+| `FIN WAIT 2`  | other side has agreed to release               |
+|  `TIME WAIT`  | Wait for all packets to die off                |
+|   `CLOSING`   | Both sides have tried to close simultaneously  |
+| `CLOSE WAIT`  | Other side has initiated release               |
+|  `LAST ACK`   | wait or all packets to die off                 |
+
+![socket_fsm](img/socket_fsm.png)
+
+## Sockets in C
+
+```c
+// Headers
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>   
+
+// Variables
+int listenfd = 0; // listen file descriptor
+int connfd = 0;   // connection file descriptor
+char sendBuff[1025]; // send buffer
+struct sockaddr_in serv_addr; // server address
+
+// create socket
+listenfd = socket(AF_INET, SOCK_STREAM, 0); 
+// initialise server address (fill with zeros)
+memset(&serv_addr, '0', sizeof(serv_addr)); 
+// initialise send buffer with 0s
+memset(sendBuff, '0', sizeof(sendBuff));
+
+// IPv4 address
+serv_addr.sin_family = AF_INET; 
+// Listen on any IP address
+serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);  
+// listen on port 5000
+serv_addr.sin_port = htons(5000);
+
+// bind and listen
+bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+listen(listenfd, 10);   // maximum number of client connections to queue
+
+// Accept, send, close
+connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);  // -1 if no-one, else file descriptor
+snprintf(sendBuff, sizeof(sendBuff), "Hello World!");  // snprintf: print no more than n bytes
+write(connfd, sendBuff, strlen(sendBuff));
+
+close(connfd);
+```
+- NB `htonl()`: host to network (long); establishes standard byte order: most significant byte
+  first as some systems are big/little endian
+
+**client side**
+```c
+// connect
+connect(connfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+
+// receive: process data that's arrived so far; repeat while loop later if there is
+// more data
+while ((n = read(connfd, recvBuff, sizeof(recvBuff)-1)) > 0) {
+    // process received buffer
+}
+```
+
+### Multi-threaded web server
+
+- web servers need to be able to handle concurrent connections from multiple clients
+- can be achieved via a multi-threaded web server
+[Multi-threaded web server](img/multi_thread_web_server.png)
+
+**Dispatcher thread**
+```
+while (TRUE) {
+  get_next_request(&buf);
+  handoff_word(&buf);
+}
+```
+**Worker thread**
+```
+while (TRUE) {
+  wait_for_work(&buf);
+  look_for_page_in_cache(&buf, &page);
+  if (page_not_in_cache(&page)) {
+    read_page_from_disk(&buf, &page);
+  }
+  return_page(&page);
+}
+```
+
+## TCP Flow Control
+
+### TCP Sliding window
+
+- **sliding window**: controlled by receiver
+  - determine amount of data receiver is able to accept
+  - sender and receiver maintain buffers to send/receive data independently
+    of the application
+  - no guarantee data is immediately sent/read from respective buffers
+- when window is 0, sender shouldn't send data as the receiver's buffer is
+  full.  In particular circumstances, sender can still send data:
+  - _URGENT data_
+  - _zero window probe_: 0 byte segment; causes receiver to re-announce next
+    expected byte and window size
+    - intended to prevent deadlock: in case that sender never becomes notified that
+      buffer has free space
+- sender may delay sending data: e.g. instead of sending 2KB immediately, may
+  wait for further 2KB to fill 4KB receive window
+
+![tcp_sliding_window](img/tcp_sliding_window.png)
+
+- **send window:** _data_ sender is able to send; unacknowledged segments and unsent
+  data that will fit into receive window
+- **receive window:** _amount_ of data receiver is willing to receive; window size
+  in ACK
+- other windows are maintained for congestion control
+
+![tcp_sliding_window_eg](img/tcp_sliding_window_eg.png)
+
