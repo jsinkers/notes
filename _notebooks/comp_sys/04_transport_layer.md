@@ -43,6 +43,7 @@ tags:
 - [Closing TCP connection](#closing-tcp-connection)
 - [`SYN` flooding](#syn-flooding)
 - [Reliable Data Transfer](#reliable-data-transfer)
+  - [Mechanisms for reliable data transfer](#mechanisms-for-reliable-data-transfer)
 - [Socket Programming](#socket-programming)
   - [Berkeley Sockets](#berkeley-sockets)
   - [Using sockets](#using-sockets)
@@ -633,9 +634,34 @@ b. simultaneous connection attempts: two attempts result in only one connection
 ![reliable_data_transfer](img/reliable_data_transfer.png)
 _rdt: reliable data transfer; udt: unreliable data transfer_
 
-- **unidirectional data transfer** is the focus here, but **full duplex**, while
-  conceptually similar, is tediously detailed
-- [TODO]
+- **stop-and-wait protocol**: sends 1 packet at a time, waiting for an ACK before
+  sending the next packet.  Very poor throughput
+- **Go-back-N protocol**: allows sender to send multiple packets without acknowledgement,
+  to a maximum of _N_ unacknowledged packets
+  - N: window size; in place to impose a limit on sender + congestion control
+  - sliding window protocol
+  - _Go-back-N_ resends all packets previously sent but not yet acknowledged
+  - improved throughput compared to stop-and-wait, but introduces lots of retransmissions
+    that may have been correctly received
+- **selective repeat**: sender retransmits only those packets lost/corrupted at receiver
+  - receiver acknowledges correctly received packet whether it is out of order or not
+  - out of order packets are buffered until missing packets are received
+  - sender and receiver windows may not coincide
+  - window size $\le (# sequence numbers)/2
+
+### Mechanisms for reliable data transfer
+
+|        Mechanism         | Use, comments                                                                                                                   |
+|:------------------------:|:--------------------------------------------------------------------------------------------------------------------------------|
+|         Checksum         | Detect bit errors in transmitted packet                                                                                         |
+|          Timer           | Timeout/retransmit a packet.  Duplicate packets may be received                                                                 |
+|     Sequence number      | Allow detection of duplicate packets and lost packets                                                                           |
+|     Acknowledgement      | Indicates packet referenced by sequence number has been received correctly                                                      |
+| Negative Acknowledgement | Indicate packet referenced by sequence number was not received correctly                                                        |
+|    Window, pipelining    | Restrict sender to send only packets with sequence numbers in a given range.  Increased network utilisation over stop-and-wait. |
+|       Packet life        | Packet cannot live in network beyond time limit.  Ensures prevention of overlapping sequence numbers                            |
+
+![pipelined_data_transfer](img/pipelined_data_transfer.png)
 
 ## Socket Programming
 
