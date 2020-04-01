@@ -34,6 +34,17 @@ tags:
   - [`toString`](#tostring)
   - [`copy`](#copy)
 - [Operator Overloading](#operator-overloading)
+- [Packages in Java](#packages-in-java)
+  - [Package creation](#package-creation)
+  - [Using packages](#using-packages)
+  - [`default` package (Non-assessable)](#default-package-non-assessable)
+- [Information Hiding](#information-hiding)
+  - [Visibility modifiers](#visibility-modifiers)
+  - [`Circle` class with visibility modifiers](#circle-class-with-visibility-modifiers)
+- [Mutability](#mutability)
+- [Delegation through Association](#delegation-through-association)
+- [Wrapper Classes](#wrapper-classes)
+  - [Integer class](#integer-class)
 
 
 ## OOP overview
@@ -465,26 +476,30 @@ public class CircleTest {
   - keeps code elegant, clean, making maintenance easier
   - provides access to an object through a clean interface
 
+![encapsulation](img/encapsulation.png)
+
 ### Visibility modifiers
 
 Keywords applied to class, method, or attribute:
-- **public:** available/visible _everywhere_ (within/outside the class)
+- **`public`:** available/visible _everywhere_ (within/outside the class)
   - anyone can use it
-- **private:** only visible _within_ a class
+- **`private`:** only visible _within_ a class
   - methods/attributes
   - not visible within subclasses
   - not inherited
-- **protected:** only visible within class, subclasses, and all classes in the same package
+- **`protected`:** only visible within class, subclasses, and all classes in the same package
   - methods/attributes
   - visible to subclasses in other packages
-- **default:** visibility modifier omitted
+- **default:** visibility modifier omitted;
+  - can be accessed within other classes in the same package, but not from
+    outside the package
 
-|Modifier|Class|Package|Subclass|Outside|
-|:---:|:---:|:---:|
-|`public`|Y|Y|Y|Y|
-|`protected`|Y|Y|Y|N|
-|`default`|Y|Y|N|N|
-|`private`|Y|N|N|N|
+|  Modifier   | Class | Package | Subclass | Outside |
+|:-----------:|:-----:|:-------:|:--------:|:-------:|
+|  `public`   |   Y   |    Y    |    Y     |    Y    |
+| `protected` |   Y   |    Y    |    Y     |    N    |
+|  `default`  |   Y   |    Y    |    N     |    N    |
+|  `private`  |   Y   |    N    |    N     |    N    |
 
 ### `Circle` class with visibility modifiers
 

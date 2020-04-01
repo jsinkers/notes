@@ -38,6 +38,7 @@ tags:
 - [TCP Properties](#tcp-properties)
 - [TCP Header](#tcp-header)
 - [Three-way handshake](#three-way-handshake)
+- [TCP segments](#tcp-segments)
 - [Synchronisation](#synchronisation)
 - [Retransmission](#retransmission)
 - [Closing TCP connection](#closing-tcp-connection)
@@ -507,11 +508,19 @@ _Simplified TCP state diagram_
   - 20-60 byte header plus 0+ data bytes (e.g. acknowledgements of data receipt)
 - entities decide how large segments should be, constrained by:
   - IP payload < 65,515 bytes (~64kB)
-  - < **Maximum Transfer Unit (MTU)** (typically 1500 bytes)
+  - < **Maximum Transfer Unit (MTU)** (typically 1500 bytes e.g. Ethernet MTU)
+    - determined by largest link-layer frame that can be sent by local sending host
+    - **Maximum segment size (MSS)**: $MTU - (\text{header size})$; maximum
+      application-layer data in segment (typically ~ 1460 bytes)
 - **sliding window protocol**
   - initial use: reliable data delivery without overloading receiver
     - receiver has fixed buffer size, needs time to pass data to application
   - current use: tied to congestion control
+
+![tcp_buffers](img/tcp_buffers.png)
+___TCP send and receive buffers___
+
+- TCP connection: buffers, variables, socket connection at source and destination host
 
 ## TCP Header
 
@@ -519,22 +528,28 @@ _Simplified TCP state diagram_
 
 - [Wikipedia entry](https://en.m.wikipedia.org/wiki/Transmission_Control_Protocol) has good info
 - sequence number, acknowledgement number, window size used for sliding window protocol
-- sequence number:
-  - if SYN=1: initial sequence number
-  - if SYN=0: accumulated sequence number of the first data byte of this segment
+- **sequence number**: 32-bit
+  - if syn=1: initial sequence number
+  - if syn=0: accumulated sequence number of the first data byte of this segment
   - randomly seeded sequence number used
-- acknowledgement number: ACK=1: next sequence number sender of ACK is expecting
+- **acknowledgement number**: 32-bit
+  - ACK=1: next sequence number sender of ACK is expecting
 - urgent pointer: distinct from urgent flag, handles out-of-band case
-- flags: single bit flags
-  - SYN: synchronise
-  - FIN: final; end of packets sender will send; used in tear-down
-  - ACK: acknowledge; set-up
-  - RST: reset; this connection shouldn't exist
-  - PSH: push
+- **flags**: single bit flags; 6-bit
+  - **SYN**: synchronise; used in setup/teardown
+  - **FIN**: final; end of packets sender will send; used in tear-down
+  - **RST**: reset; this connection shouldn't exist; used in tear-down
+  - **ACK**: acknowledgement of a segment received; set-up
+  - **PSH**: push; receiver should pass data to upper layer immediately
+    - not used much in practice
+  - **URG**: data in this segment has been marked by upper-layer as urgent
+    - not used much in practice
 - data offset: size of TCP header (20-60 bytes)
 - TCP header length: needed because options has variable length (0 to 32-bit words)
-- window size: size of receive window; how much data sender of this segment is willing
+- **window size**: size of receive window; how much data sender of this segment is willing
   to receive
+- **options field**: optional, variable length
+  - used when sender/receiver negotiate maximum segment size
 
 ## Three-way handshake
 
@@ -554,22 +569,36 @@ b. simultaneous connection attempts: two attempts result in only one connection
   - may occur if e.g. connection is dropped and both ends try to reestablish connection
   - in the end, host 1 and host 2 have agreed on the respective sequence numbers: 1 connection
 
+## TCP segments
+
+- TCP views data as a byte stream
+- sequence numbe for a segment is the byte-stream number
+![tcp_byte_steam](img/tcp_byte_steam.png)
+
 ## Synchronisation
 
 - `SYN`: used for synchronisation during connection establishment
   - sending `SYN` or `FIN` causes sequence number to increment
-- Sequence number: first byte of segments payload
-  - offset by a random number i.e. initial value is arbitrary,
+- **Sequence number:** first byte of segments payload
+  - offset by a random number i.e. initial value is arbitrary; minimises
+    chance that a segment still present in network from an earlier, terminated
+    connection is mistaken for a valid segment in a later connection
   - offset will be reflected in both Sequence and Acknowledgement numbers
-- Acknowledgement number: next byte sender expects to receive
+- **Acknowledgement number:** next byte sender expects to receive from other host
   - Bytes received without gaps: missing segment will stop this incrementing, even
     if later segments have been received
-
+- **cumulative acknowledgements:** TCP only acknowledges bytes up to the first
+  missing byte in the stream
 - `SYN` bit is used to establish connection
   - connection request: `SYN=1, ACK=0`
   - connection reply: `SYN=1, ACK=1`
 - `SYN` is used in `CONNECTION_REQUEST` and `CONNECTION_ACCEPTED`
   - `ACK` distinguishes between the two
+- RFCs don't define behaviour of out-of-order segments, it is up to particular implementation
+  to handle.  Either
+  - receiver discards out-of-order segments; simplifies receiver
+  - receiver buffers out-of-order bytes and waits to fill in the gaps; more efficient re network
+    bandwidth; in practice this is the approach taken
 
 ## Retransmission
 
@@ -808,6 +837,35 @@ while (TRUE) {
   return_page(&page);
 }
 ```
+
+## Round-Trip Time estimation and Timeout
+
+- length of timeout intervals > round-trip time
+
+### Estimating round trip time
+
+- SampleRTT: amount of time between sending segment and acknolwedgement that segment was received
+- TCP typically only measures SampleRTT for one segment at any one time
+- TCP doesn't measure RTT for retransmissions
+- exponential weighted moving average: $EstimatedRTT = (1-\alpha) EstimatedRTT + \alpha Sample RTT$
+  - RFC 6298 recommends $\alpha = 1/8$
+  - Weights recent samples more heavily than older samples, as recent samples reflect current state of congestion in the network
+- exponential weighted moving average of deviation: $DevRTT = (1-\beta)DevRTT+\beta abs(SampleRTT-EstimatedRTT)
+  - recommended $\beta = 1/4$
+
+![sample_rtt_and_estimated_RTT](img/tcp_rtt_samples.png)
+ 
+### Timeout interval
+
+- Needs to be 
+    - > EstimatedRTT, otherwise unnecessary retransmissions sent
+    - Not >> EstimatedRTT, otherwise large transfer delays
+    - EstimatedRTT + some margin: large when there is lots of variability in SampleRTT, and small otherwise
+
+$$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
+
+- initial `TimeoutInterval` of 1s recommended by RFC6298
+- when a timeout occurs, `TimeoutInterval` is doubled to prevent premature timeouts for subsequent segments that will soon be acknowledged
 
 ## TCP Flow Control
 

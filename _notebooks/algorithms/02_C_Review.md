@@ -31,6 +31,18 @@ tags:
 - [Header Files](#header-files)
 - [Import guards](#import-guards)
 - [Makefiles](#makefiles)
+- [Linking with external libraries](#linking-with-external-libraries)
+  - [`-l<name>`](#-lname)
+  - [`-I/path/to/dir` and `-L/path/to/dir`](#-ipathtodir-and--lpathtodir)
+  - [Environment variables](#environment-variables)
+  - [Shared libraries](#shared-libraries)
+  - [Forced static linking](#forced-static-linking)
+- [Debug](#debug)
+- [Function pointers](#function-pointers)
+- [Polymorphism](#polymorphism)
+- [`static`](#static)
+- [`const`](#const)
+
 
 
 ## Data types
@@ -423,3 +435,196 @@ queue.o: queue.h list.h
 clean:
 	rm -f $(OBJ) $(EXE)
 ```
+
+## Linking with external libraries
+
+[Introduction to GCC](https://www.linuxtopia.org/online_books/an_introduction_to_gcc/index.html)
+
+e.g. to access math functions `sqrt, log` etc. in `math.h`, C source code:
+___calc.c___
+```c
+#include <math.h>
+```
+- static libraries: stored in archive files (`.a`)
+  - created with GNU archiver tool `ar`
+- **library search path:** where `gcc` looks for library files
+  - default: standard libraries found searched for in:
+    - `/usr/local/lib`
+    - `/usr/lib`
+  - search for file is from top to bottom, with first file found taking
+    precedence
+  - math library: `/usr/lib/libm.a`
+  - standard library: `/usr/lib/libc.a`
+- **include path:** where `gcc` looks for header files
+  - corresponding headers in `/usr/include`
+  - 
+  - math header: `/usr/include/math.h`
+
+### `-l<name>`
+Link the `math` library with full path:
+```console
+$ gcc -Wall calc.c /usr/lib/libm.a -o calc
+```
+More succinctly: compile with `-lm` flag to link math library
+```console
+$ gcc -Wall calc.c -lm -o calc
+```
+- linkers typically search for functions from left to right in libraries specified
+- if `data.c` uses library `libglpk.a` which uses `libm.a`, compile as:
+```console
+$ gcc -Wall data.c -lglpk -lm
+```
+
+### `-I/path/to/dir` and `-L/path/to/dir`
+
+- `-I`: specify include path
+  - 
+- `-L`: specify library path
+- e.g. `dbmain.c`: makes uses of header `gdbm.h` and library `libgdbm.a'
+```c
+#include <gdbm>
+```
+- GDBM v1.8.3 package installed under `/opt/gdbm-1.8.3':
+  - header file: `/opt/gdbm-1.8.3/include/gdbm.h`
+  - library: `/opt/gdbm-1.8.3/lib/libgdm.a`
+- compile and link `dbmain.c` with
+```console
+$ gcc -Wall -I/opt/gdbm-1.8.3/include -L/opt/gdbm-1.8.3/lib dbmain.c -lgdbm
+```
+
+### Environment variables
+
+- by specifying environment variables, this can be simplified:
+```console
+$ C_INCLUDE_PATH=/opt/gdbm-1.8.3/include
+$ export C_INCLUDE_PATH
+$ LIBRARY_PATH=/opt/gdbm-1.8.3/lib
+$ export LIBRARY_PATH
+$ gcc -Wall dbmain.c -lgdbm
+```
+
+- extended search paths: `DIR1:DIR2:DIR3:...`
+- e.g. include current directory and /opt/gdbm-1.8.3/include
+```console
+$ C_INCLUDE_PATH=.:/opt/gdbm-1.8.3/include
+```
+
+- compiler searches directories in order:
+1. command-line: -I, -L, left-to-right
+2. environment variables
+3. default system directories
+
+### Shared libraries
+
+- static library `.a`
+- shared libraries: `.so` (shared object)
+  - uses more advanced linking, reducing size of executable
+  - library can be updated without recompiling dependent programs
+- **dynamic linking:** before executable starts running, machine code for external functions
+  is copied from shared library file
+  - executable linked against shared library contains only a small table of functions it
+    needs, rather than complete machine code from object files for external functions
+  - reduces executable size: only one copy of a library needed for multiple programs
+  - most OSs provide virtual memory so that one copy of a shared library in physical memory
+    can be used by all running programs
+- `gcc` compiles to use shared libraries by default
+  - if `.so` file found in link path, this is used in preference to `.a` (static library)
+- when executable file is started, loader must find shared library to load into memory
+  - by default loader searches in default system directories `/usr/local/lib, /usr/lib`
+- to set load path:
+```console
+$ LD_LIBRARY_PATH=/opt/gdbm-1.8.3/lib
+$ export LD_LIBRARY_PATH
+$ ./a.out
+# runs successfully
+```
+- environment variables can be set in your bash/shell profile
+
+### Forced static linking
+
+- `-static` avoids use of shared libraries
+```console
+$ gcc -Wall -static -I/opt/gdbm-1.8.3/include/ -L/opt/gdbm-1.8.3/lib/ dbmain.c -lgdbm
+$ ./a.out
+# runs successfully
+``
+  
+## Warnings
+
+- `-Wall` shows a variety of warnings
+- To help find problems:
+```console
+$ gcc -ansi -pedantic -Wall -W -Wconversion -Wshadow -Wcast-qual -Wwrite-strings
+```
+
+## Debug
+
+- conditional compilation
+```c
+#define DEBUG
+
+#ifdef DEBUG
+    // stuff here only compiles when DEBUG is defined
+#endif
+```
+- `gcc` has built in debug support with the `-DDEBUG` flag, without you needing
+  to define `DEBUG`
+```console
+$ gcc -Wall -DDEBUG -o program program.c
+```
+
+## Function pointers
+
+- e.g. Moffatt 10.4
+```c
+double (*F) (double);
+F= sqrt("x=%.4f, F(x)=%.4f\n", x, F(x));
+// prints "x=2.0000, F(x)=1.4142"
+```
+- allow you to pass in an arbitrary function as an argument to another function
+
+## Polymorphism
+
+- polymorphic library: allows software modules to be abstracted and reused
+- additional design effort but much more versatile
+- make use of `void *` for generic data
+- implementation specific functions are passed by function pointer (e.g. to execute
+  comparison between instances)
+
+e.g. Moffatt 10.5
+```c
+// treeops.h
+typedef struct node node_t;
+
+struct node {
+    void *data;     // pointer to stored structure
+    node_t *left;   // left subtree of node
+    node_t *right;  // right subtree of node
+};
+
+typedef struct {
+    node_t *root;               // root node of tree
+    int (*cmp)(void*, void*);   // function pointer
+} tree_t;
+
+// create an empty tree, pass in a comparison function to be used subsequently
+tree_t *make_empty_tree(int func(void*, void*));
+int is_empty_tree(tree_t *tree);
+void *search_tree(tree_t *tree, void *key);
+tree_t *insert_in_order(tree_t, *tree, void *value);
+// traverse the tree, with pointer to action function to take
+void traverse_tree(tree_t *tree, void action(void*));
+void free_tree(tree_t *tree);
+```
+## `static`
+
+- `static` variable: allows functions to maintain state between calls
+  - variable cannot be accessed outside the function
+  - do not use with recursion
+- `static` function: cannot be accessed outside the source file in which it is
+  defined; way to ensure private routines are only accessible within a module
+
+## `const`
+
+- storage class `const` can be used to tag variables that do not change in the execution
+  of the program, allowing the compiler to handle more efficiently
