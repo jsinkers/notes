@@ -52,6 +52,9 @@ tags:
   - [Socket Finite State Machine](#socket-finite-state-machine)
 - [Sockets in C](#sockets-in-c)
   - [Multi-threaded web server](#multi-threaded-web-server)
+- [Round-Trip Time estimation and Timeout](#round-trip-time-estimation-and-timeout)
+  - [Estimating round trip time](#estimating-round-trip-time)
+  - [Timeout interval](#timeout-interval)
 - [TCP Flow Control](#tcp-flow-control)
   - [TCP Sliding window](#tcp-sliding-window)
 
@@ -572,7 +575,7 @@ b. simultaneous connection attempts: two attempts result in only one connection
 ## TCP segments
 
 - TCP views data as a byte stream
-- sequence numbe for a segment is the byte-stream number
+- sequence number for a segment is the byte-stream number
 ![tcp_byte_steam](img/tcp_byte_steam.png)
 
 ## Synchronisation
@@ -896,3 +899,35 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 
 ![tcp_sliding_window_eg](img/tcp_sliding_window_eg.png)
 
+## Congestion Control
+
+### Principles
+
+- typically packet loss results from overflowing router buffers as network becomes congested
+- packet retransmission treats the symptom, but is not the cure
+- there needs to be a way to throttle senders when the network is congested
+- consider a network link with capacity $R$, a router with an infinite buffer, and two hosts 
+  communicating with one hop via the router.  If each host transmits at a rate up to $R/2$, 
+  the throughput at the receiver will be the same rate.  Above this rate, however, the link 
+  cannot consistently deliver packets, and the throughput will remain constant, but the delay
+  will increase towards infinity, as the router will have to buffer the data that cannot be passed 
+  onto the link.
+- large queue delays will occur as the packet-arrival rate nears the link capacity
+- with a finite router buffer, packets will be dropped, and retransmission required
+- **offerred rate**: rate of transport layer sending data into the network, including original data
+  and retransmissions
+- unneeded retransmissions when large delays are experienced take up bandwidth on the link
+- end-to-end throughput goes to 0 in the limit of heavy traffic
+- when a packet is dropped along a path, the transmission capacity used at each upstream link to
+  forward that packet to the drop point is wasted
+
+### Approaches to congestion control
+
+- **end-to-end**: network layer doesn't explicitly support transport layer for congestion-control
+  - presence of congestion must be inferred by end systems based on network behaviour e.g. packet
+    loss, delay
+  - TCP takes this approach as IP layer is not required to provide this service
+- **network-assisted**: routers provide explicit feedback to sender/receiver regarding congestion
+  - can be implemeted with a single bit indicating congestion at a link
+  - information can be fed back directly to the sender via a choke packet, or more commonly
+    by marking a packet it is passing forward to receiver, and the receiver notifies the sender
