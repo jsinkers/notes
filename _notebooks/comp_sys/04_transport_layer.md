@@ -61,11 +61,11 @@ tags:
   - [TCP Sliding window](#tcp-sliding-window)
   - [Avoiding Deadlock](#avoiding-deadlock)
 - [Congestion Control](#congestion-control)
-  - [Principles](#principles)
+  - [Congestion Control Principles](#congestion-control-principles)
   - [Approaches to congestion control](#approaches-to-congestion-control)
 - [TCP Congestion control](#tcp-congestion-control)
   - [Original Approach](#original-approach)
-  - [Principles](#principles-1)
+  - [Principles](#principles)
   - [Slow Start](#slow-start)
   - [Congestion Avoidance](#congestion-avoidance)
   - [Fast recovery](#fast-recovery)
@@ -284,8 +284,8 @@ Some well-known ports
 - e.g. Internet phone (VoIP), video-conferencing may use UDP
 - applications react poorly to TCP's congestion control
 - tolerate some packet loss
-  - loss concealment: looks at previous audio data and tries to extrapolate
-    new data
+  - loss concealment: looks at previous audio data and tries to extrapolate new
+    data
 
 ### RPC
 
@@ -308,10 +308,11 @@ Some well-known ports
   - unmarshalling: convert stored/transmitted data into in-memory data structure
 - simple conceptually but many challenges
   - cannot pass pointers easily as address spaces different on server/client
-    - can marshal/unmarshal underlying value and create pointer in each address space,
-      but this won't work for complex data structures
+    - can marshal/unmarshal underlying value and create pointer in each address
+      space, but this won't work for complex data structures
   - weakly typed languages: e.g. C; unknown array sizes
-    - need to ensure you pass enough information so client knows e.g. how big allocation is
+    - need to ensure you pass enough information so client knows e.g. how big
+      allocation is
   - unable to deduce parameter types
   - global variables are not shares
 
@@ -321,7 +322,8 @@ Some well-known ports
   - requires additional scaffolding, not provided by UDP
     - resending after timeout if no reply
       - reply constitutes acknowledgement of request
-    - handling large parameter sizes that need to be split across multiple UDP segments
+    - handling large parameter sizes that need to be split across multiple UDP
+      segments
   - caution must be used if operation is not idempotent
     - e.g. incrementing bank balance and you start re-sending requests
 - TCP can then be used for non-idempotent operations
@@ -342,16 +344,18 @@ RTP sits above UDP and below application
 ![rtp_udp_example](img/rtp_udp_example.png)
 
 #### RTP Header
+
 ![rtp_header](img/rtp_header.png)
-- timestamp: source controlled relative to start of stream; indicates when e.g. content
-  should be displayed
+- timestamp: source controlled relative to start of stream; indicates when e.g.
+  content should be displayed
 - payload type: indicates encoding (e.g. MP3), can vary each time
 - sequence number: counter incremented for each packet
 
 #### RTCP: Real-time transport control protocol
 
 - control protocol for RTP
-- handles feedback, sync (e.g. different streams with different clocks), UI (e.g. naming who is on conference call)
+- handles feedback, sync (e.g. different streams with different clocks), UI
+  (e.g. naming who is on conference call)
 - feedback to source:
   - delay, jitter, bandwidth, congestion
   - used by encoder to adaptively encode to suit network conditions
@@ -424,7 +428,8 @@ RTP sits above UDP and below application
 
 ## TCP Service Primitives
 
-- primitives: core functions which allow interface with transport services (in particular TCP)
+- primitives: core functions which allow interface with transport services (in
+  particular TCP)
 
 | Primitive  |    Packet sent    |                  Meaning                   |
 |:----------:|:-----------------:|:------------------------------------------:|
@@ -434,8 +439,7 @@ RTP sits above UDP and below application
 |  RECEIVE   |      (none)       |      Block until DATA packet arrives       |
 | DISCONNECT | DISCONNECTION REQ | This side wants to release the connection  |
 
-![tcp_state_diagram](img/tcp_state_diagram.png)
-_Simplified TCP state diagram_
+![tcp_state_diagram](img/tcp_state_diagram.png) _Simplified TCP state diagram_
 
 ## Connection Establishment Complications
 
@@ -447,32 +451,33 @@ _Simplified TCP state diagram_
 
 ## TCP Service Model
 
-- Transmission Control Protocol: provides service to applications to reliably transmit IP
-  datagrams reliably within a connection-oriented framework
+- Transmission Control Protocol: provides service to applications to reliably
+  transmit IP datagrams reliably within a connection-oriented framework
   - TCP transport entity manages TCP streams, interfacing with IP layer
-  - TCP entity accepts user data streams, segmenting into pieces < 64kB and sends each piece
-    as a separate IP datagram
+  - TCP entity accepts user data streams, segmenting into pieces < 64kB and
+    sends each piece as a separate IP datagram
     - typically 1460 bytes to fit IP and TCP headers in single Ethernet frame
-- Vinton Cerf/Robert Kahn invented TCP/IP, seeing the need for a networking protocol with
-  broad support for applications while allowing arbitrary hosts and link-layer protocols
-  to operate
+- Vinton Cerf/Robert Kahn invented TCP/IP, seeing the need for a networking
+  protocol with broad support for applications while allowing arbitrary hosts
+  and link-layer protocols to operate
 - recipient TCP entities reconstruct original byte streams from encapsulation
 
 ![tcp_service_model](img/tcp_service_model.png)
-- TCP doesn't retain packet boundaries: this might be undesirable, and might mean
-  UDP is preferred
+- TCP doesn't retain packet boundaries: this might be undesirable, and might
+  mean UDP is preferred
 
 - both sender and receiver create sockets
   - **kernel:** part of OS that runs with more privileges than the rest
     - kernel interacts with hardware directly
     - if you are outside the kernel, everything is done with system calls
-  - **socket:** kernel data structure; can consider it a connection between kernel and
-    application
-    - named by 5-tuple of IP address+port number of sender and receiver, and protocol
+  - **socket:** kernel data structure; can consider it a connection between
+    kernel and application
+    - named by 5-tuple of IP address+port number of sender and receiver, and
+      protocol
     - there are also 3-tuple _half-sockets_ when listening for a connection
-  - for TCP service to be activated: connections must be explicitly established between
-    socket at sending host (src-host, src-port) and socket at receiving host (dest-host,
-    dest-port)
+  - for TCP service to be activated: connections must be explicitly established
+    between socket at sending host (src-host, src-port) and socket at receiving
+    host (dest-host, dest-port)
 
 ## Establishing a TCP connection
 
@@ -513,13 +518,15 @@ _Simplified TCP state diagram_
   - _multicasting_ from one sender to many receivers with a single send cannot
     be conducted with TCP
 - **byte streams** not message streams: message boundaries are not preserved
-- **buffer capable:** TCP entity can choose to buffer prior to sending or not depending
-  on context
-  - `PUSH` flag: transmission is not to be delayed, should interrupt receiving application
-  - `URGENT` flag: indicates transmission should be sent immediately (priority above data in
-    progress), and receiver should send it to application out-of-band
-    - e.g. for mechanical control system that has an error: send `URGENT` to prevent
-      system damage
+- **buffer capable:** TCP entity can choose to buffer prior to sending or not
+  depending on context
+  - `PUSH` flag: transmission is not to be delayed, should interrupt receiving
+    application
+  - `URGENT` flag: indicates transmission should be sent immediately (priority
+    above data in progress), and receiver should send it to application
+    out-of-band
+    - e.g. for mechanical control system that has an error: send `URGENT` to
+      prevent system damage
 
 ## TCP Properties
 
@@ -528,7 +535,8 @@ _Simplified TCP state diagram_
 - entities decide how large segments should be, constrained by:
   - IP payload < 65,515 bytes (~64kB)
   - < **Maximum Transfer Unit (MTU)** (typically 1500 bytes e.g. Ethernet MTU)
-    - determined by largest link-layer frame that can be sent by local sending host
+    - determined by largest link-layer frame that can be sent by local sending
+      host
     - **Maximum segment size (MSS)**: $MTU - (\text{header size})$; maximum
       application-layer data in segment (typically ~ 1460 bytes)
 - **sliding window protocol**
@@ -536,17 +544,19 @@ _Simplified TCP state diagram_
     - receiver has fixed buffer size, needs time to pass data to application
   - current use: tied to congestion control
 
-![tcp_buffers](img/tcp_buffers.png)
-___TCP send and receive buffers___
+![tcp_buffers](img/tcp_buffers.png) ___TCP send and receive buffers___
 
-- TCP connection: buffers, variables, socket connection at source and destination host
+- TCP connection: buffers, variables, socket connection at source and
+  destination host
 
 ## TCP Header
 
 ![tcp_header](img/tcp_header.png)
 
-- [Wikipedia entry](https://en.m.wikipedia.org/wiki/Transmission_Control_Protocol) has good info
-- sequence number, acknowledgement number, window size used for sliding window protocol
+- [Wikipedia entry](https://en.m.wikipedia.org/wiki/Transmission_Control_Protocol)
+  has good info
+- sequence number, acknowledgement number, window size used for sliding window
+  protocol
 - **sequence number**: 32-bit
   - if syn=1: initial sequence number
   - if syn=0: accumulated sequence number of the first data byte of this segment
@@ -564,48 +574,52 @@ ___TCP send and receive buffers___
   - **URG**: data in this segment has been marked by upper-layer as urgent
     - not used much in practice
 - data offset: size of TCP header (20-60 bytes)
-- TCP header length: needed because options has variable length (0 to 32-bit words)
-- **window size**: size of receive window; how much data sender of this segment is willing
-  to receive
+- TCP header length: needed because options has variable length (0 to 32-bit
+  words)
+- **window size**: size of receive window; how much data sender of this segment
+  is willing to receive
 - **options field**: optional, variable length
   - used when sender/receiver negotiate maximum segment size
 
 ## Three-way handshake
 
 - goals of reliable connection establishment:
-  - ensure one and only one connection is established, even if some setup packets are lost
+  - ensure one and only one connection is established, even if some setup
+    packets are lost
   - establish initial sequence numbers for sliding window
 - **three-way handshake**
-  - solution which avoids problems that can occur when both sides allocate same sequence numbers
-    by accident (e.g. after host/router crash)
-  - sender/receiver exchange information about which sequencing strategy each will use, and
-    agree before transmitting segments
-![three_way_handshake_2](img/three_way_handshake_2.png)
+  - solution which avoids problems that can occur when both sides allocate same
+    sequence numbers by accident (e.g. after host/router crash)
+  - sender/receiver exchange information about which sequencing strategy each
+    will use, and agree before transmitting segments
+    ![three_way_handshake_2](img/three_way_handshake_2.png)
 
-![three_way_handshake](img/three_way_handshake.png)
-a. normal operation
-b. simultaneous connection attempts: two attempts result in only one connection
-  - may occur if e.g. connection is dropped and both ends try to reestablish connection
-  - in the end, host 1 and host 2 have agreed on the respective sequence numbers: 1 connection
+![three_way_handshake](img/three_way_handshake.png) a. normal operation b.
+simultaneous connection attempts: two attempts result in only one connection
+- may occur if e.g. connection is dropped and both ends try to reestablish
+  connection
+- in the end, host 1 and host 2 have agreed on the respective sequence numbers:
+  1 connection
 
 ## TCP segments
 
 - TCP views data as a byte stream
 - sequence number for a segment is the byte-stream number
-![tcp_byte_steam](img/tcp_byte_steam.png)
+  ![tcp_byte_steam](img/tcp_byte_steam.png)
 
 ## Synchronisation
 
 - `SYN`: used for synchronisation during connection establishment
   - sending `SYN` or `FIN` causes sequence number to increment
 - **Sequence number:** first byte of segments payload
-  - offset by a random number i.e. initial value is arbitrary; minimises
-    chance that a segment still present in network from an earlier, terminated
+  - offset by a random number i.e. initial value is arbitrary; minimises chance
+    that a segment still present in network from an earlier, terminated
     connection is mistaken for a valid segment in a later connection
   - offset will be reflected in both Sequence and Acknowledgement numbers
-- **Acknowledgement number:** next byte sender expects to receive from other host
-  - Bytes received without gaps: missing segment will stop this incrementing, even
-    if later segments have been received
+- **Acknowledgement number:** next byte sender expects to receive from other
+  host
+  - Bytes received without gaps: missing segment will stop this incrementing,
+    even if later segments have been received
 - **cumulative acknowledgements:** TCP only acknowledges bytes up to the first
   missing byte in the stream
 - `SYN` bit is used to establish connection
@@ -613,11 +627,11 @@ b. simultaneous connection attempts: two attempts result in only one connection
   - connection reply: `SYN=1, ACK=1`
 - `SYN` is used in `CONNECTION_REQUEST` and `CONNECTION_ACCEPTED`
   - `ACK` distinguishes between the two
-- RFCs don't define behaviour of out-of-order segments, it is up to particular implementation
-  to handle.  Either
+- RFCs don't define behaviour of out-of-order segments, it is up to particular
+  implementation to handle. Either
   - receiver discards out-of-order segments; simplifies receiver
-  - receiver buffers out-of-order bytes and waits to fill in the gaps; more efficient re network
-    bandwidth; in practice this is the approach taken
+  - receiver buffers out-of-order bytes and waits to fill in the gaps; more
+    efficient re network bandwidth; in practice this is the approach taken
 
 ## Retransmission
 
@@ -626,21 +640,23 @@ b. simultaneous connection attempts: two attempts result in only one connection
     most recent non-acknowledged packet)
   - initialised with default value
   - updated based on network performance
-  - if timer expires before `ACK` received, segment has _timed out_ and is resent
+  - if timer expires before `ACK` received, segment has _timed out_ and is
+    resent
 - situation: segment has been lost
   - i.e. receiver receives segment with sequence number higher than expected
   - **DupACK (duplicate acknowledgement)**: receiver sends `ACK` with sequence
     number it was expecting (i.e. the sequence number of the first lost segment)
-  - **fast retransmission:** after receiving 3 `DupACK`s sender resends lost segment
+  - **fast retransmission:** after receiving 3 `DupACK`s sender resends lost
+    segment
     - fast because not waiting for timeout
 
 ## Closing TCP connection
 
 - `FIN` flag signifies request to close connection
-- each `FIN` is directional: once acknowledged no further data can be sent
-  from sender of `FIN` to receiver
-  - data can flow in other direction: e.g. client could send `FIN` after making request
-    but before receiving response
+- each `FIN` is directional: once acknowledged no further data can be sent from
+  sender of `FIN` to receiver
+  - data can flow in other direction: e.g. client could send `FIN` after making
+    request but before receiving response
   - sender of `FIN` will still retransmit unacknowledged segments
 - typically requires 4 segments to close: 1 `FIN` and 1 `ACK` for each direction
   - can be optimised:
@@ -653,22 +669,25 @@ b. simultaneous connection attempts: two attempts result in only one connection
 
 - **`RST`**: reset, hard close of a connection
   - sender is closing the connection and will not listen for further messages
-  - sent in reply to a packet sent to a 5-tuple with no open connection
-    e.g. invalid data being sent; crashed process that left a remote socket open
-    that OS is cleaning up
+  - sent in reply to a packet sent to a 5-tuple with no open connection e.g.
+    invalid data being sent; crashed process that left a remote socket open that
+    OS is cleaning up
   - can be used to close a connection but `FIN` is the orderly shutdown
 
 ## `SYN` flooding
 
 - popular attack in 90s for DoS of a server
 - arbitrary initial random sequence number:
-  - server needs to remember initial sequence number for each receive `SYN` request
+  - server needs to remember initial sequence number for each receive `SYN`
+    request
   - attacker would make initial `SYN` requests then not send appropriate `ACK`
-  - server gradually fills up queue with sequence numbers for now defunct connections
+  - server gradually fills up queue with sequence numbers for now defunct
+    connections
 - one solution: `SYN` cookies
-  - rather than store sequence number, derive it from connection information and a timer
-    that creates a stateless `SYN` queue with cryptographic hashing
-  - performance cost to validate `SYN` cookies, but preferable to being unresponsive
+  - rather than store sequence number, derive it from connection information and
+    a timer that creates a stateless `SYN` queue with cryptographic hashing
+  - performance cost to validate `SYN` cookies, but preferable to being
+    unresponsive
   - typically only enabled when under attack
 
 
@@ -679,21 +698,23 @@ b. simultaneous connection attempts: two attempts result in only one connection
 - service abstraction provided to upper layers is a reliable channel through
   which data can be transferred
   - reliable channel: no data bits corrupted, all data delivered in order sent
-![reliable_data_transfer](img/reliable_data_transfer.png)
-_rdt: reliable data transfer; udt: unreliable data transfer_
+    ![reliable_data_transfer](img/reliable_data_transfer.png) _rdt: reliable
+    data transfer; udt: unreliable data transfer_
 
-- **stop-and-wait protocol**: sends 1 packet at a time, waiting for an ACK before
-  sending the next packet.  Very poor throughput
-- **Go-back-N protocol**: allows sender to send multiple packets without acknowledgement,
-  to a maximum of _N_ unacknowledged packets
+- **stop-and-wait protocol**: sends 1 packet at a time, waiting for an ACK
+  before sending the next packet. Very poor throughput
+- **Go-back-N protocol**: allows sender to send multiple packets without
+  acknowledgement, to a maximum of _N_ unacknowledged packets
   - N: window size; in place to impose a limit on sender + congestion control
   - sliding window protocol
   - _Go-back-N_ resends all packets previously sent but not yet acknowledged
-  - improved throughput compared to stop-and-wait, but introduces lots of retransmissions
-    that may have been correctly received
+  - improved throughput compared to stop-and-wait, but introduces lots of
+    retransmissions that may have been correctly received
   - receiver doesn't need to store/reorder packets
-- **selective repeat**: sender retransmits only those packets lost/corrupted at receiver
-  - receiver acknowledges correctly received packet whether it is out of order or not
+- **selective repeat**: sender retransmits only those packets lost/corrupted at
+  receiver
+  - receiver acknowledges correctly received packet whether it is out of order
+    or not
   - out of order packets are buffered until missing packets are received
   - sender and receiver windows may not coincide
   - window size $\le (# sequence numbers)/2
@@ -717,15 +738,19 @@ _rdt: reliable data transfer; udt: unreliable data transfer_
 
 - sockets are a general interface, not specific to TCP
 - sockets make system calls to kernel
-- process sends/receives through a socket: _doorway_ leading in/out of the application
-![socket_layers](img/socket_layers.png)
-- kernel interacts with hardware via interrupts: mostly involved in receiver behaviour
-- **address**: 5-tuple; protocol, source-IP, source-port number, destination-IP, destination-port number
+- process sends/receives through a socket: _doorway_ leading in/out of the
+  application
+  ![socket_layers](img/socket_layers.png)
+- kernel interacts with hardware via interrupts: mostly involved in receiver
+  behaviour
+- **address**: 5-tuple; protocol, source-IP, source-port number, destination-IP,
+  destination-port number
   - `AF_INET`: address family for IPv4
 
 ![socket_addresses](img/socket_addresses.png)
 
-- on receipt of packet, hardware interrupts the kernel and sends packet to port 80
+- on receipt of packet, hardware interrupts the kernel and sends packet to port
+  80
 - Echo server i.e. ping
 
 ### Berkeley Sockets
@@ -819,10 +844,12 @@ write(connfd, sendBuff, strlen(sendBuff));
 
 close(connfd);
 ```
-- NB `htonl()`: host to network (long); establishes standard byte order: most significant byte
-  first as some systems are big/little endian
+
+- NB `htonl()`: host to network (long); establishes standard byte order: most
+  significant byte first as some systems are big/little endian
 
 **client side**
+
 ```c
 // connect
 connect(connfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
@@ -836,18 +863,23 @@ while ((n = read(connfd, recvBuff, sizeof(recvBuff)-1)) > 0) {
 
 ### Multi-threaded web server
 
-- web servers need to be able to handle concurrent connections from multiple clients
+- web servers need to be able to handle concurrent connections from multiple
+  clients
 - can be achieved via a multi-threaded web server
-[Multi-threaded web server](img/multi_thread_web_server.png)
+
+  [Multi-threaded web server](img/multi_thread_web_server.png)
 
 **Dispatcher thread**
+
 ```
 while (TRUE) {
   get_next_request(&buf);
   handoff_word(&buf);
 }
 ```
+
 **Worker thread**
+
 ```
 while (TRUE) {
   wait_for_work(&buf);
@@ -865,52 +897,59 @@ while (TRUE) {
 
 ### Estimating round trip time
 
-- SampleRTT: amount of time between sending segment and acknolwedgement that segment was received
+- SampleRTT: amount of time between sending segment and acknowledgement that
+  segment was received
 - TCP typically only measures SampleRTT for one segment at any one time
 - TCP doesn't measure RTT for retransmissions
-- exponential weighted moving average: $EstimatedRTT = (1-\alpha) EstimatedRTT + \alpha Sample RTT$
+- exponential weighted moving average: $EstimatedRTT = (1-\alpha) EstimatedRTT +
+  \alpha Sample RTT$
   - RFC 6298 recommends $\alpha = 1/8$
-  - Weights recent samples more heavily than older samples, as recent samples reflect current state of congestion in the network
-- exponential weighted moving average of deviation: $DevRTT = (1-\beta)DevRTT+\beta abs(SampleRTT-EstimatedRTT)
+  - Weights recent samples more heavily than older samples, as recent samples
+    reflect current state of congestion in the network
+- exponential weighted moving average of deviation: $DevRTT =
+  (1-\beta)DevRTT+\beta abs(SampleRTT-EstimatedRTT)
   - recommended $\beta = 1/4$
 
 ![sample_rtt_and_estimated_RTT](img/tcp_rtt_samples.png)
- 
+
 ### Timeout interval
 
-- Needs to be 
-    - > EstimatedRTT, otherwise unnecessary retransmissions sent
-    - Not >> EstimatedRTT, otherwise large transfer delays
-    - EstimatedRTT + some margin: large when there is lots of variability in SampleRTT, and small otherwise
+- Needs to be
+  - > EstimatedRTT, otherwise unnecessary retransmissions sent
+  - Not >> EstimatedRTT, otherwise large transfer delays
+  - EstimatedRTT + some margin: large when there is lots of variability in
+    SampleRTT, and small otherwise
 
 $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 
 - initial `TimeoutInterval` of 1s recommended by RFC6298
-- when a timeout occurs, `TimeoutInterval` is doubled to prevent premature timeouts for subsequent segments that will soon be acknowledged
+- when a timeout occurs, `TimeoutInterval` is doubled to prevent premature
+  timeouts for subsequent segments that will soon be acknowledged
 
 ## TCP Reliable data transfer
 
 - TCP sender major events
   - data received from application: TCP encapsulates data in segment and passes
-    to TCP, including a sequence number.  TCP starts timer if not running with
+    to TCP, including a sequence number. TCP starts timer if not running with
     `TimeoutInterval` determined based on `EstimatedRTT` and `DevRTT`
   - timer timeout: retransmit segment that caused the timeout, restart the timer
-  - ACK received: TCP sender compares ACK value `y` with `SendBase`, the sequence
-    number of the oldest unacknowledged byte.  If `y > SendBase`, update `SendBase`
-    and restart the timer for any unacknowledged segments
+  - ACK received: TCP sender compares ACK value `y` with `SendBase`, the
+    sequence number of the oldest unacknowledged byte. If `y > SendBase`, update
+    `SendBase` and restart the timer for any unacknowledged segments
 
 ### Fast retransmit
 
-- when a segment is los, the long timeout period forces the sender to delay resending,
-  increasing end-to-end delay.
-- sender can often detect packet loss well before time event via **duplicate ACKs**
-- **duplicate ACK**: ACK that reacknowledges a segment for which sender has already
-  received an acknowledgement
-- if receiver detects a gap in the data stream (missing segment), it immediately sends
-  a duplicate ACK for last in-order data received
-- if sender receives 3 duplicate ACKs for the same data (ACK, dup ACK 1, dup ACK 2, dup ACK 3),
-  this is an indication the segment was lost, so the sender performs a **fast retransmit**
-  of the missing segment prior to a timeout
+- when a segment is los, the long timeout period forces the sender to delay
+  resending, increasing end-to-end delay.
+- sender can often detect packet loss well before time event via **duplicate
+  ACKs**
+- **duplicate ACK**: ACK that re-acknowledges a segment for which sender has
+  already received an acknowledgement
+- if receiver detects a gap in the data stream (missing segment), it immediately
+  sends a duplicate ACK for last in-order data received
+- if sender receives 3 duplicate ACKs for the same data (ACK, dup ACK 1, dup ACK
+  2, dup ACK 3), this is an indication the segment was lost, so the sender
+  performs a **fast retransmit** of the missing segment prior to a timeout
 
 ![tcp_fast_retransmit](img/tcp_fast_retransmit.png)
 
@@ -918,8 +957,8 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 
 - TCP provides **flow-control service** to prevent overflowing receiver's buffer
 - speed matching service: matches send rate to rate at which receiver is reading
-- implemented by sender maintaining **receive window** updated by the receiver on
-  every segment it sends to sender
+- implemented by sender maintaining **receive window** updated by the receiver
+  on every segment it sends to sender
 
 ![tcp_receive_window](img/tcp_receive_window.png)
 
@@ -927,18 +966,18 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 
 - **sliding window**: controlled by receiver
   - determine amount of data receiver is able to accept
-  - sender and receiver maintain buffers to send/receive data independently
-    of the application
+  - sender and receiver maintain buffers to send/receive data independently of
+    the application
   - no guarantee data is immediately sent/read from respective buffers
 - sender may delay sending data: e.g. instead of sending 2KB immediately, may
   wait for further 2KB to fill 4KB receive window
 
 ![tcp_sliding_window](img/tcp_sliding_window.png)
 
-- **send window:** _data_ sender is able to send; unacknowledged segments and unsent
-  data that will fit into receive window
-- **receive window:** _amount_ of data receiver is willing to receive; window size
-  provided by receiver in every ACK
+- **send window:** _data_ sender is able to send; unacknowledged segments and
+  unsent data that will fit into receive window
+- **receive window:** _amount_ of data receiver is willing to receive; window
+  size provided by receiver in every ACK
 - congestion windows also maintained for congestion control
 
 ![tcp_sliding_window_eg](img/tcp_sliding_window_eg.png)
@@ -946,8 +985,8 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 ### Avoiding Deadlock
 
 - deadlock can be resolved by either sender or receiver
-- when window is 0, sender shouldn't send data as the receiver's buffer is
-  full.  Sender can still send data:
+- when window is 0, sender shouldn't send data as the receiver's buffer is full.
+  Sender can still send data:
   - _URGENT data_
   - _zero window probe_: 0 byte segment; causes receiver to re-announce next
     expected byte and window size
@@ -959,80 +998,92 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 
 ## Congestion Control
 
-### Principles
+### Congestion Control Principles
 
-- typically packet loss results from overflowing router buffers as network becomes congested
+- typically packet loss results from overflowing router buffers as network
+  becomes congested
 - packet retransmission treats the symptom, but is not the cure
 - there needs to be a way to throttle senders when the network is congested
-- consider a network link with capacity $R$, a router with an infinite buffer, and two hosts 
-  communicating with one hop via the router.  If each host transmits at a rate up to $R/2$, 
-  the throughput at the receiver will be the same rate.  Above this rate, however, the link 
-  cannot consistently deliver packets, and the throughput will remain constant, but the delay
-  will increase towards infinity, as the router will have to buffer the data that cannot be passed 
-  onto the link.
-- large queue delays will occur as the packet-arrival rate nears the link capacity
-- with a finite router buffer, packets will be dropped, and retransmission required
-- **offerred rate**: rate of transport layer sending data into the network, including original data
-  and retransmissions
-- unneeded retransmissions when large delays are experienced take up bandwidth on the link
+- consider a network link with capacity $R$, a router with an infinite buffer,
+  and two hosts communicating with one hop via the router. If each host
+  transmits at a rate up to $R/2$, the throughput at the receiver will be the
+  same rate. Above this rate, however, the link cannot consistently deliver
+  packets, and the throughput will remain constant, but the delay will increase
+  towards infinity, as the router will have to buffer the data that cannot be
+  passed onto the link.
+- large queue delays will occur as the packet-arrival rate nears the link
+  capacity
+- with a finite router buffer, packets will be dropped, and retransmission
+  required
+- **offerred rate**: rate of transport layer sending data into the network,
+  including original data and retransmissions
+- unneeded retransmissions when large delays are experienced take up bandwidth
+  on the link
 - end-to-end throughput goes to 0 in the limit of heavy traffic
-- when a packet is dropped along a path, the transmission capacity used at each upstream link to
-  forward that packet to the drop point is wasted
+- when a packet is dropped along a path, the transmission capacity used at each
+  upstream link to forward that packet to the drop point is wasted
 
 ### Approaches to congestion control
 
-- **end-to-end**: network layer doesn't explicitly support transport layer for congestion-control
-  - presence of congestion must be inferred by end systems based on network behaviour e.g. packet
-    loss, delay
+- **end-to-end**: network layer doesn't explicitly support transport layer for
+  congestion-control
+  - presence of congestion must be inferred by end systems based on network
+    behaviour e.g. packet loss, delay
   - TCP takes this approach as IP layer is not required to provide this service
-- **network-assisted**: routers provide explicit feedback to sender/receiver regarding congestion
+- **network-assisted**: routers provide explicit feedback to sender/receiver
+  regarding congestion
   - can be implemented with a single bit indicating congestion at a link
-  - information can be fed back directly to the sender via a choke packet, or more commonly
-    by marking a packet it is passing forward to receiver, and the receiver notifies the sender
+  - information can be fed back directly to the sender via a choke packet, or
+    more commonly by marking a packet it is passing forward to receiver, and the
+    receiver notifies the sender
 
 ## TCP Congestion control
 
 - approach: sender limits send rate into connection as a function of perceived
   network congestion
 - **congestion window (`cwnd`):** constrains senders transmission rate in terms
-  of the maximum unacknowledged data, maintained by sender in response to `ACK`s 
+  of the maximum unacknowledged data, maintained by sender in response to `ACK`s
   received
 
 ```
 LastByteSent - LastByteAcked <= min(cwnd, rwnd)
 ```
 
-- sender can send up to `cwnd` bytes per RTT: send rate is ~ `cwnd/RTT` bytes/sec
-- **loss event:** at sender is taken to be indicative of network congestion, and results from either:
+- sender can send up to `cwnd` bytes per RTT: send rate is ~ `cwnd/RTT`
+  bytes/sec
+- **loss event:** at sender is taken to be indicative of network congestion, and
+  results from either:
   - timeout
   - duplicate ACK (fast retransmit)
-- if there is excessive congestion, a router buffer along the path overflows, causing
-  a datagram containing a TCP segment to be dropped.  This results in a loss event
-  at the sender
+- if there is excessive congestion, a router buffer along the path overflows,
+  causing a datagram containing a TCP segment to be dropped. This results in a
+  loss event at the sender
 - arrival of ACKs for previously unacknowledged segments indicate all is well,
   and TCP increases send rate by increasing congestion window size
-- TCP is **self-clocking**: rate of arrival of acknowledgements will affect rate of increase
-  of congestion window
-- link/network layers also attempt to lessen congestion, but TCP affects congestion
-  most significantly, as it offers methods to transparently reduce the data rate,
-  thus reducing congestion
+- TCP is **self-clocking**: rate of arrival of acknowledgements will affect rate
+  of increase of congestion window
+- link/network layers also attempt to lessen congestion, but TCP affects
+  congestion most significantly, as it offers methods to transparently reduce
+  the data rate, thus reducing congestion
 
 ### Original Approach
 
 - flow and loss control existed for single point-to-point links
-- TCP originally used experience for link layer, using a _Go-back-N_ style flow control
-  - this ignored that packets get lost not only on bit-flips but also when buffers
-    of intermediate routers overflow
-- TCP congestion control was developed in response to congestion collapse observed
-  under early versions of TCP in late 1980s
+- TCP originally used experience for link layer, using a _Go-back-N_ style flow
+  control
+  - this ignored that packets get lost not only on bit-flips but also when
+    buffers of intermediate routers overflow
+- TCP congestion control was developed in response to congestion collapse
+  observed under early versions of TCP in late 1980s
   - tens of minutes to send packet to next building
-  - _Go-back-N_ approach meant every packet lost introduced N more packets to enter
-    the system
+  - _Go-back-N_ approach meant every packet lost introduced N more packets to
+    enter the system
   - problem diagnosed and solution formulated by Van Jacobson
   - use selective repeat via fast retransmit
-  - _packet conservation principle_: only put a new packet into the network when an
-    old packet leaves
-  - Jacobson approach required no changes to packet formats to send an additional field
+  - _packet conservation principle_: only put a new packet into the network when
+    an old packet leaves
+  - Jacobson approach required no changes to packet formats to send an
+    additional field
 
 ![tcp_history](img/tcp_history.png)
 [Source](https://courses.cs.washington.edu/courses/cse461/17au/lectures/04-2-congestionControl.pdf)
@@ -1041,11 +1092,11 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
 
 ### Principles
 
-- lost segment implies congestion.  Decrease TCP sender rate
-- acknowledged segment indicates network is delivering sender's segments.  Increase
-  sender rate
-- probe bandwidth: increase send rate in response to arriving ACKs until a loss event
-  occurs, then decrease transmission rate
+- lost segment implies congestion. Decrease TCP sender rate
+- acknowledged segment indicates network is delivering sender's segments.
+  Increase sender rate
+- probe bandwidth: increase send rate in response to arriving ACKs until a loss
+  event occurs, then decrease transmission rate
 
 ![tcp_congestion_fsm](img/tcp_congestion_fsm.png)
 
@@ -1057,9 +1108,9 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
 - increase `cwnd` by 1 MSS for every segment acknowledged
 - sending rate doubles every RTT
 - exponential growth in `cwnd` per RTT
-- if `cwnd` reaches `ssthresh`,  enter congestion avoidance mode
-  - `ssthresh` is set in response to previous loss events, and so exponential rate
-    increases are too aggressive, a more conservative approach needed
+- if `cwnd` reaches `ssthresh`, enter congestion avoidance mode
+  - `ssthresh` is set in response to previous loss events, and so exponential
+    rate increases are too aggressive, a more conservative approach needed
 - if there is a timeout loss event
   - set `ssthresh` (slow start threshold) to `cwnd/2`
   - `cwnd` reset to 1 MSS
@@ -1075,7 +1126,8 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
   - update `ssthresh` to `cwnd/2`
   - reset `cwnd` to 1 MSS
 - if duplicate ACK loss event
-  - network is continuing to deliver segments, as we just received triple duplicate ACK
+  - network is continuing to deliver segments, as we just received triple
+    duplicate ACK
   - take less extreme action:
     - set `ssthresh` to `cwnd/2`
     - set `cwnd` to `cwnd/2 + 3 MSS`
@@ -1085,15 +1137,15 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
 
 - `cwnd` increased by 1 MSS for every duplicate ACK received for missing segment
   that caused TCP to enter fast-recovery state
-- when ACK arrives for missing segment, TCP enters congestion avoidance state after
-  deflating `cwnd`
+- when ACK arrives for missing segment, TCP enters congestion avoidance state
+  after deflating `cwnd`
 - if a timeout loss event occurs
   - set `ssthresh` to `cwnd/2`
   - set `cwnd` to 1 MSS
   - move to slow start state
 - fast recovery is recommended but not required part of TCP
-  - TCP Tahoe unconditionally cut congestion window to 1 MSS and entered slow-start
-    phase after a timeout/duplicate-ACK loss event
+  - TCP Tahoe unconditionally cut congestion window to 1 MSS and entered
+    slow-start phase after a timeout/duplicate-ACK loss event
   - newer TCP Reno incorporated fast recovery
 
 ![tcp_congestion_window_reno_tahoe](img/tcp_congestion_window_reno_tahoe.png)
@@ -1103,25 +1155,25 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
 - except for the slow start state, which doesn't last long, TCP increases send
   rate linearly (adding 1 MSS per RTT), while on a loss event, TCP drops rate to
   a fraction of its rate when the loss was experienced
-- TCP congestion control is therefore considered **additive-increase, multiplicative
-  decrease**, resulting in saw-tooth behaviour
-- has been shown that this algorithm serves as ditributed asynchronous-optimisation
-  algorithm
+- TCP congestion control is therefore considered **additive-increase,
+  multiplicative decrease**, resulting in saw-tooth behaviour
+- has been shown that this algorithm serves as ditributed
+  asynchronous-optimisation algorithm
 
 ![tcp_congestion_aimd](img/tcp_congestion_aimd.png)
 
 ### Further Optimisations to TCP
 
-- **Selective Acknowledgements (SACK)**: greater ability to track segments in-flight
-  by allowing up to 3 ranges of bytes received to be specified
+- **Selective Acknowledgements (SACK)**: greater ability to track segments
+  in-flight by allowing up to 3 ranges of bytes received to be specified
   - e.g. I'm missing 2 and 5, but have received 3-4, and 6
   - provided by TCP header option
   - typically used if you have lots of packets in-flight
 
 ![tcp_selective_ack](img/tcp_selective_ack.png)
 
-- **explicit congestion notification (ECN)**: allows IP layer to indicate congestion
-  without dropping the segment by setting an ECN flag
+- **explicit congestion notification (ECN)**: allows IP layer to indicate
+  congestion without dropping the segment by setting an ECN flag
   - receiver indicates this back to sender via ECE (ECN Echo) flag
   - sender acknowledges this by setting Congestion Window Reduced flag (CWR),
     reacting as if a segment was lost
@@ -1131,32 +1183,38 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
 - window size $W$ increases once per RTT, with $W$ bytes transmitted
 - approximately increases $1/W$ for each packet that arrives
 - a loss event occurs with probability $p$, resulting in the window being halved
-- then the average increase in window size:
-$$(\text{window increase on arrival})(\text{prob. of arrival}) + (\text{window decrease on loss})(\text{prob. of loss})$$
-$$\frac{1}{W}(1-p)+\frac{W}{2}p$$
-For steady-state, average increase is 0, yielding:
-$$W \approx \sqrt{\frac{2}{p}}$$
-Implies:
+- then the average increase in window size: $$(\text{window increase on
+  arrival})(\text{prob. of arrival}) + (\text{window decrease on
+  loss})(\text{prob. of loss})$$ $$\frac{1}{W}(1-p)+\frac{W}{2}p$$ For
+  steady-state, average increase is 0, yielding: $$W \approx
+  \sqrt{\frac{2}{p}}$$ Implies:
 - small probability of loss: large congestion window
 - large probability of packet loss: small congestion window
 
 ### Fairness
 
-- for $K$ TCP connections passing through a bottleneck link with transmission rate
-  $R$ bps, congestion control is **fair** if average transmission rate is $R/K$,
-  such that each connection gets an equal share of the bandwidth
-- TCP congestion control converges to provide equal share of bottleneck links bandwidth
+- for $K$ TCP connections passing through a bottleneck link with transmission
+  rate $R$ bps, congestion control is **fair** if average transmission rate is
+  $R/K$, such that each connection gets an equal share of the bandwidth
+- TCP congestion control converges to provide equal share of bottleneck links
+  bandwidth
 - consider two TCP connections as shown below
+
 ![tcp_congestion_fairness](img/tcp_congestion_fairness.png)
+
 - the throughput will adjust as shown below
+
 ![tcp_congestion_throughput](img/tcp_congestion_throughput.png)
 
-- doesn't solve issue of multiple parallel connections
-- as TCP decreases transmission rate in face of increasing congestion, UDP does not
-- this makes it possible for UDP to crowd out TCP traffic
 
+- doesn't solve issue of multiple parallel connections
+- as TCP decreases transmission rate in face of increasing congestion, UDP does
+  not
+- this makes it possible for UDP to crowd out TCP traffic
 - Window is sent once per RTT, implying:
-$$\frac{W}{RTT} \approx \frac{1}{RTT}\sqrt{\frac{2}{p}$$
+
+$$\frac{W}{RTT}\approx\frac{1}{RTT}\sqrt{\frac{2}{p}}$$
 
 - implies for a given packet loss rate long RTT gets less rate
 - for a small RTT, TCP forces a large packet loss rate
+
