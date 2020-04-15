@@ -81,9 +81,9 @@ tags:
 - [x] K&R 3.2
 - [x] K&R 3.3
 - [x] K&R 3.4
-  - [ ] add notes
-- [ ] K&R 3.5
-- [ ] K&R 3.6
+- [x] K&R 3.5
+- [x] K&R 3.6
+- [x] K&R 3.7
 
 ## Presentation Layer
 
