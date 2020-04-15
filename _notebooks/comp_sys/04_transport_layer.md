@@ -55,8 +55,24 @@ tags:
 - [Round-Trip Time estimation and Timeout](#round-trip-time-estimation-and-timeout)
   - [Estimating round trip time](#estimating-round-trip-time)
   - [Timeout interval](#timeout-interval)
+- [TCP Reliable data transfer](#tcp-reliable-data-transfer)
+  - [Fast retransmit](#fast-retransmit)
 - [TCP Flow Control](#tcp-flow-control)
   - [TCP Sliding window](#tcp-sliding-window)
+  - [Avoiding Deadlock](#avoiding-deadlock)
+- [Congestion Control](#congestion-control)
+  - [Principles](#principles)
+  - [Approaches to congestion control](#approaches-to-congestion-control)
+- [TCP Congestion control](#tcp-congestion-control)
+  - [Original Approach](#original-approach)
+  - [Principles](#principles-1)
+  - [Slow Start](#slow-start)
+  - [Congestion Avoidance](#congestion-avoidance)
+  - [Fast recovery](#fast-recovery)
+  - [Additive Increase, Multiplicative Decrease](#additive-increase-multiplicative-decrease)
+  - [Further Optimisations to TCP](#further-optimisations-to-tcp)
+  - [Estimating the size of the congestion window](#estimating-the-size-of-the-congestion-window)
+  - [Fairness](#fairness)
 
 
 ## Reading
@@ -675,11 +691,13 @@ _rdt: reliable data transfer; udt: unreliable data transfer_
   - _Go-back-N_ resends all packets previously sent but not yet acknowledged
   - improved throughput compared to stop-and-wait, but introduces lots of retransmissions
     that may have been correctly received
+  - receiver doesn't need to store/reorder packets
 - **selective repeat**: sender retransmits only those packets lost/corrupted at receiver
   - receiver acknowledges correctly received packet whether it is out of order or not
   - out of order packets are buffered until missing packets are received
   - sender and receiver windows may not coincide
   - window size $\le (# sequence numbers)/2
+  - more complex than Go-back-N, but only helps is loss is common
 
 ### Mechanisms for reliable data transfer
 
@@ -870,7 +888,40 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 - initial `TimeoutInterval` of 1s recommended by RFC6298
 - when a timeout occurs, `TimeoutInterval` is doubled to prevent premature timeouts for subsequent segments that will soon be acknowledged
 
+## TCP Reliable data transfer
+
+- TCP sender major events
+  - data received from application: TCP encapsulates data in segment and passes
+    to TCP, including a sequence number.  TCP starts timer if not running with
+    `TimeoutInterval` determined based on `EstimatedRTT` and `DevRTT`
+  - timer timeout: retransmit segment that caused the timeout, restart the timer
+  - ACK received: TCP sender compares ACK value `y` with `SendBase`, the sequence
+    number of the oldest unacknowledged byte.  If `y > SendBase`, update `SendBase`
+    and restart the timer for any unacknowledged segments
+
+### Fast retransmit
+
+- when a segment is los, the long timeout period forces the sender to delay resending,
+  increasing end-to-end delay.
+- sender can often detect packet loss well before time event via **duplicate ACKs**
+- **duplicate ACK**: ACK that reacknowledges a segment for which sender has already
+  received an acknowledgement
+- if receiver detects a gap in the data stream (missing segment), it immediately sends
+  a duplicate ACK for last in-order data received
+- if sender receives 3 duplicate ACKs for the same data (ACK, dup ACK 1, dup ACK 2, dup ACK 3),
+  this is an indication the segment was lost, so the sender performs a **fast retransmit**
+  of the missing segment prior to a timeout
+
+![tcp_fast_retransmit](img/tcp_fast_retransmit.png)
+
 ## TCP Flow Control
+
+- TCP provides **flow-control service** to prevent overflowing receiver's buffer
+- speed matching service: matches send rate to rate at which receiver is reading
+- implemented by sender maintaining **receive window** updated by the receiver on
+  every segment it sends to sender
+
+![tcp_receive_window](img/tcp_receive_window.png)
 
 ### TCP Sliding window
 
@@ -879,13 +930,6 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
   - sender and receiver maintain buffers to send/receive data independently
     of the application
   - no guarantee data is immediately sent/read from respective buffers
-- when window is 0, sender shouldn't send data as the receiver's buffer is
-  full.  In particular circumstances, sender can still send data:
-  - _URGENT data_
-  - _zero window probe_: 0 byte segment; causes receiver to re-announce next
-    expected byte and window size
-    - intended to prevent deadlock: in case that sender never becomes notified that
-      buffer has free space
 - sender may delay sending data: e.g. instead of sending 2KB immediately, may
   wait for further 2KB to fill 4KB receive window
 
@@ -894,10 +938,24 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 - **send window:** _data_ sender is able to send; unacknowledged segments and unsent
   data that will fit into receive window
 - **receive window:** _amount_ of data receiver is willing to receive; window size
-  in ACK
-- other windows are maintained for congestion control
+  provided by receiver in every ACK
+- congestion windows also maintained for congestion control
 
 ![tcp_sliding_window_eg](img/tcp_sliding_window_eg.png)
+
+### Avoiding Deadlock
+
+- deadlock can be resolved by either sender or receiver
+- when window is 0, sender shouldn't send data as the receiver's buffer is
+  full.  Sender can still send data:
+  - _URGENT data_
+  - _zero window probe_: 0 byte segment; causes receiver to re-announce next
+    expected byte and window size
+    - in case that sender never becomes notified that buffer has free space
+- receiver can initiate an update by sending a _Window Update_ (not a flag), can
+  occur any time window moves forward.
+  - not considered a duplicate ACK if ACK is identical but window has changed
+  - [Stackoverflow: what is a tcp window update?](https://stackoverflow.com/questions/1466307/what-is-a-tcp-window-update)
 
 ## Congestion Control
 
@@ -928,6 +986,177 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
     loss, delay
   - TCP takes this approach as IP layer is not required to provide this service
 - **network-assisted**: routers provide explicit feedback to sender/receiver regarding congestion
-  - can be implemeted with a single bit indicating congestion at a link
+  - can be implemented with a single bit indicating congestion at a link
   - information can be fed back directly to the sender via a choke packet, or more commonly
     by marking a packet it is passing forward to receiver, and the receiver notifies the sender
+
+## TCP Congestion control
+
+- approach: sender limits send rate into connection as a function of perceived
+  network congestion
+- **congestion window (`cwnd`):** constrains senders transmission rate in terms
+  of the maximum unacknowledged data, maintained by sender in response to `ACK`s 
+  received
+
+```
+LastByteSent - LastByteAcked <= min(cwnd, rwnd)
+```
+
+- sender can send up to `cwnd` bytes per RTT: send rate is ~ `cwnd/RTT` bytes/sec
+- **loss event:** at sender is taken to be indicative of network congestion, and results from either:
+  - timeout
+  - duplicate ACK (fast retransmit)
+- if there is excessive congestion, a router buffer along the path overflows, causing
+  a datagram containing a TCP segment to be dropped.  This results in a loss event
+  at the sender
+- arrival of ACKs for previously unacknowledged segments indicate all is well,
+  and TCP increases send rate by increasing congestion window size
+- TCP is **self-clocking**: rate of arrival of acknowledgements will affect rate of increase
+  of congestion window
+- link/network layers also attempt to lessen congestion, but TCP affects congestion
+  most significantly, as it offers methods to transparently reduce the data rate,
+  thus reducing congestion
+
+### Original Approach
+
+- flow and loss control existed for single point-to-point links
+- TCP originally used experience for link layer, using a _Go-back-N_ style flow control
+  - this ignored that packets get lost not only on bit-flips but also when buffers
+    of intermediate routers overflow
+- TCP congestion control was developed in response to congestion collapse observed
+  under early versions of TCP in late 1980s
+  - tens of minutes to send packet to next building
+  - _Go-back-N_ approach meant every packet lost introduced N more packets to enter
+    the system
+  - problem diagnosed and solution formulated by Van Jacobson
+  - use selective repeat via fast retransmit
+  - _packet conservation principle_: only put a new packet into the network when an
+    old packet leaves
+  - Jacobson approach required no changes to packet formats to send an additional field
+
+![tcp_history](img/tcp_history.png)
+[Source](https://courses.cs.washington.edu/courses/cse461/17au/lectures/04-2-congestionControl.pdf)
+
+- [Jacobson original article](https://dl.acm.org/doi/abs/10.1145/52324.52356)
+
+### Principles
+
+- lost segment implies congestion.  Decrease TCP sender rate
+- acknowledged segment indicates network is delivering sender's segments.  Increase
+  sender rate
+- probe bandwidth: increase send rate in response to arriving ACKs until a loss event
+  occurs, then decrease transmission rate
+
+![tcp_congestion_fsm](img/tcp_congestion_fsm.png)
+
+![tcp_behaviour](img/tcp_behaviour.png)
+
+### Slow Start
+
+- `cwnd` starts at 1 MSS
+- increase `cwnd` by 1 MSS for every segment acknowledged
+- sending rate doubles every RTT
+- exponential growth in `cwnd` per RTT
+- if `cwnd` reaches `ssthresh`,  enter congestion avoidance mode
+  - `ssthresh` is set in response to previous loss events, and so exponential rate
+    increases are too aggressive, a more conservative approach needed
+- if there is a timeout loss event
+  - set `ssthresh` (slow start threshold) to `cwnd/2`
+  - `cwnd` reset to 1 MSS
+  - restart slow start
+- if duplicate ACK loss event
+  - move to fast recovery mode and perform a fast retransmit
+
+### Congestion Avoidance
+
+- increase `cwnd` by 1 MSS per RTT
+- linear increase
+- if timeout loss event occurs
+  - update `ssthresh` to `cwnd/2`
+  - reset `cwnd` to 1 MSS
+- if duplicate ACK loss event
+  - network is continuing to deliver segments, as we just received triple duplicate ACK
+  - take less extreme action:
+    - set `ssthresh` to `cwnd/2`
+    - set `cwnd` to `cwnd/2 + 3 MSS`
+  - move to fast recovery state
+
+### Fast recovery
+
+- `cwnd` increased by 1 MSS for every duplicate ACK received for missing segment
+  that caused TCP to enter fast-recovery state
+- when ACK arrives for missing segment, TCP enters congestion avoidance state after
+  deflating `cwnd`
+- if a timeout loss event occurs
+  - set `ssthresh` to `cwnd/2`
+  - set `cwnd` to 1 MSS
+  - move to slow start state
+- fast recovery is recommended but not required part of TCP
+  - TCP Tahoe unconditionally cut congestion window to 1 MSS and entered slow-start
+    phase after a timeout/duplicate-ACK loss event
+  - newer TCP Reno incorporated fast recovery
+
+![tcp_congestion_window_reno_tahoe](img/tcp_congestion_window_reno_tahoe.png)
+
+### Additive Increase, Multiplicative Decrease
+
+- except for the slow start state, which doesn't last long, TCP increases send
+  rate linearly (adding 1 MSS per RTT), while on a loss event, TCP drops rate to
+  a fraction of its rate when the loss was experienced
+- TCP congestion control is therefore considered **additive-increase, multiplicative
+  decrease**, resulting in saw-tooth behaviour
+- has been shown that this algorithm serves as ditributed asynchronous-optimisation
+  algorithm
+
+![tcp_congestion_aimd](img/tcp_congestion_aimd.png)
+
+### Further Optimisations to TCP
+
+- **Selective Acknowledgements (SACK)**: greater ability to track segments in-flight
+  by allowing up to 3 ranges of bytes received to be specified
+  - e.g. I'm missing 2 and 5, but have received 3-4, and 6
+  - provided by TCP header option
+  - typically used if you have lots of packets in-flight
+
+![tcp_selective_ack](img/tcp_selective_ack.png)
+
+- **explicit congestion notification (ECN)**: allows IP layer to indicate congestion
+  without dropping the segment by setting an ECN flag
+  - receiver indicates this back to sender via ECE (ECN Echo) flag
+  - sender acknowledges this by setting Congestion Window Reduced flag (CWR),
+    reacting as if a segment was lost
+
+### Estimating the size of the congestion window
+
+- window size $W$ increases once per RTT, with $W$ bytes transmitted
+- approximately increases $1/W$ for each packet that arrives
+- a loss event occurs with probability $p$, resulting in the window being halved
+- then the average increase in window size:
+$$(\text{window increase on arrival})(\text{prob. of arrival}) + (\text{window decrease on loss})(\text{prob. of loss})$$
+$$\frac{1}{W}(1-p)+\frac{W}{2}p$$
+For steady-state, average increase is 0, yielding:
+$$W \approx \sqrt{\frac{2}{p}}$$
+Implies:
+- small probability of loss: large congestion window
+- large probability of packet loss: small congestion window
+
+### Fairness
+
+- for $K$ TCP connections passing through a bottleneck link with transmission rate
+  $R$ bps, congestion control is **fair** if average transmission rate is $R/K$,
+  such that each connection gets an equal share of the bandwidth
+- TCP congestion control converges to provide equal share of bottleneck links bandwidth
+- consider two TCP connections as shown below
+![tcp_congestion_fairness](img/tcp_congestion_fairness.png)
+- the throughput will adjust as shown below
+![tcp_congestion_throughput](img/tcp_congestion_throughput.png)
+
+- doesn't solve issue of multiple parallel connections
+- as TCP decreases transmission rate in face of increasing congestion, UDP does not
+- this makes it possible for UDP to crowd out TCP traffic
+
+- Window is sent once per RTT, implying:
+$$\frac{W}{RTT} \approx \frac{1}{RTT}\sqrt{\frac{2}{p}$$
+
+- implies for a given packet loss rate long RTT gets less rate
+- for a small RTT, TCP forces a large packet loss rate
