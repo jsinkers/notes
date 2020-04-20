@@ -17,6 +17,9 @@ tags:
   - [Height](#height)
 - [Tree traversals](#tree-traversals)
 - [Closest Pair](#closest-pair)
+- [Topological Sorting](#topological-sorting)
+  - [DFS topological sort](#dfs-topological-sort)
+
 
 
 ## Overview
@@ -183,4 +186,39 @@ else:
     
     return sqrt(dminsq)
 ```
+
+## Topological Sorting
+
+- digraph traversal can be performed with DFS and BFS, but the structure of the
+  forests this yields can be much more complex than for an undirected graph
+- DFS forest for a digraph can have (referring to digraph below)
+  - tree edges: $(ab, bc, de)$
+  - back edges: $(ba)$
+  - forward edges: $(ac)$
+  - cross edges: $(dc)$
+
+![digraph_traversal](img/digraph_traversal.png)
+___(a) Digraph (b) DFS forest of digraph for DFS traversal started at $a$___
+
+- **directed cycle**: sequence of 3+ vertices which are connected as ordered,
+  starting and ending on the same vertex
+- presence of back-edge on DFS forest $\Rightarrow$ digraph has directed cycle
+- **dag/directed acyclic graph**: digraph with no directed cycles
+- **topological sort**: find an order of vertices such that for every edge in the graph,
+  the start vertex is listed before the end vertex
+  - solution exists $\iff$ graph is a dag
+
+### DFS topological sort
+
+- perform DFS traversal
+- note the order in which vertices become dead ends, such that they are popped off
+  the traversal stack
+- the reverse order of this is a solution to the topological sort
+- if a back edge is encountered, the graph is not a dag, so a topological sort is
+  impossible
+- to understand why this works: when a vertex $v$ is popped off the DFS stack, no
+  vertex $u$ with an edge $(u,v)$ can be among the vertices popped off before $v$.
+  If there was such a vertex, $(u, v)$ would be a back edge.  This implies $u$
+  will be listed after $v$ in the popped-off order list, and before $v$ in the reversed
+  list
 
