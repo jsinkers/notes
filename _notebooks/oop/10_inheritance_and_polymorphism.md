@@ -1,6 +1,6 @@
 ---
 title: Inheritance and Polymorphism
-notebook: Object oriented programming
+notebook: Object Oriented Programming
 layout: note
 date: 2020-04-21 11:41
 tags: 
@@ -10,8 +10,6 @@ tags:
 
 [TOC]: #
 
-## Table of Contents
--
 
 
 ##
