@@ -1,6 +1,6 @@
 ---
 title: Workshop 3
-notebook: Obect Oriented Programming
+notebook: Object Oriented Programming
 layout: note
 date: 2020-03-25 10:16
 tags: 
