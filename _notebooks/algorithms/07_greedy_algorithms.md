@@ -10,6 +10,12 @@ tags:
 
 [TOC]: #
 
+## Table of Contents
+- [Overview](#overview)
+- [Minimum Spanning Tree Problem](#minimum-spanning-tree-problem)
+- [Prim's Algorithm](#prims-algorithm)
+- [Dijkstra's Algorithm](#dijkstras-algorithm)
+
 
 
 - Levitin Ch 9
@@ -92,3 +98,9 @@ return E_T
   - name: $\infty$
   - label: _null_
 
+## Dijkstra's Algorithm
+
+```python
+
+
+```

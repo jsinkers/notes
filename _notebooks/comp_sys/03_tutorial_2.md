@@ -65,7 +65,7 @@ protocols that they use. (Search beyond the lecture notes.)
 of its customers. Describe how this can be done with cookies.
 - user makes HTTP GET request to website a.com
 - a.com responds with HTTP response with Set-Cookie: field
-- 
+ 
 7. Consider the following string of ASCII characters that were captured by
 Wireshark when the browser sent an HTTP GET message (i.e., this is the
 actual content of an HTTP GET message). The characters $\langle cr\rangle\langle lf\rangle$ are

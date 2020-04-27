@@ -29,6 +29,8 @@ listens on port 80, and then spawns a new socket with a different port number
 Typically the web server will have a single process with a thread for each connection socket, or could
 use separate processes with individual sockets.
 
+[StackOverflow: How multiple clients connect to port 80](https://stackoverflow.com/a/27182584/9940194)
+
 ![http_tcp_connection](img/http_tcp_connection.png)
 
 _3. A negative acknowledgement tells the sender that a particular packet has
