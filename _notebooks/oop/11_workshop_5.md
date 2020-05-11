@@ -20,11 +20,13 @@ tags:
 
 - What is inheritance?
   - the ability of a child class to inherit attributes/methods of parent class
+  - build on top of an existing classes
 - What advantages does it give us as programmers?
   - useful abstraction, represent generalisation of similar objects, implementing
     only particulars in child class while sharing common attributes/methods
   - minimise code repetition, maximise code reuse
   - improve code maintainability
+  - polymorphism
 - What relationship does inheritance represent?
   - "is a"
 - What is the super keyword? Where do we typically use it?
@@ -44,6 +46,15 @@ tags:
 
 ## Abstract Classes
 
+```java
+public abstract class Shape {
+  // ...
+  public abstract double getArea();  // every child must override getArea()
+}
+```
+- it's possible to define an abstract class with no abstract methods
+- it not possible to define an abstract method that is not in an abstract class
+
 1. If you label a class or method as abstract, what does it do?
   - class cannot be instantiated
   - indicates implementation is not complete
@@ -58,12 +69,15 @@ tags:
 ## Polymorphism
 
 1. Define polymorphism.
+    - objects/methods may have different meaning in different contexts
     - literally "many forms"
     - ability to use objects/methods in many ways
 2. In what ways does Java allow polymorphism?
-    - overloading: same method with various forms depending on *signature*
-    - overriding: same method with various forms depending on *class*
-    - substitution: using subclasses in place of superclasses
+    - **overloading**: same method with various forms depending on *signature*
+      - classic example: `println`
+    - **overriding**: same method with various forms depending on *class*
+    - **substitution**: using subclasses in place of superclasses
+    - **generics**: class parametrised by type
 3. What is upcasting, and why is it useful to be able to write code like:
 ```Piece[] pieces = new Piece[]{new Rook(), new King(), new Queen()}```
     - *upcasting* is the process of assigning a reference to a subclass to a variable

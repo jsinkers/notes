@@ -80,5 +80,110 @@ tags:
 - if every non-leaf node has $n$ children, tree of height $h$ has $n^h$ leaf pages
 - typically each non has on average 100 children, so with height 4: 100 million leaf pages
 - search a file with 100 million leaf pages and retrieve page you want in 4 IOs, vs. binary search
-  taking $\log_{2}{10^8} \approx 25$$ IOs
+  taking $\log_{2}{10^8} \approx 25$ IOs
 - good for range selections
+
+## Query evaluation
+
+- SQL queries are translated into extended form of relational algebra
+- Query evaluation plans are represented as trees of relational operators
+- relational operators are building blocks for query evaluation
+- implementation of relational operator is optimised for performance
+
+## Operator evaluation techniques
+
+- there are several algorithms for implementing each relational operator
+- choice will depend on e.g. size of tables, existing indexes, sort order
+- common techniques:
+  - **indexing**: selection/join, use index to examine only the tuples satisfying the condition
+  - **iteration**: iteratively examine all tuples in an input table
+    - if only a few fields required, and a corresponding index with these fields exists, you can scan all index data entries instead
+  - **partitioning**: e.g. sorting, hasing. Partition tuples on a sort key to decompose operation to a less expensive collection 
+    of operations on partitions
+
+## Access paths
+
+- **access path**: way of retrieving tuples from a table.  Consists of either:
+  - file scan
+  - index + matching selection condition
+- every relational operator acceps 1+ tables as input, and access methods to retrieve tuples contribute
+  significantly to cost of operator
+- consider selection of form `attr op value`.  An index **matches** the selection condition if the index can be 
+  used to retrieve only the tuples that satisfy the condition
+- **hash index** matches selection if there is a term of the form `attribute=value` in the selection for 
+  each attribute in the index search key
+- **tree ndex** matches selection if there is a term of form `attr op value` for each attribute in a **prefix**
+  of the index's search key
+  - e.g. $\Langle a\Rangle, \Langle a, b\Range$ are prefixes of $\Langle a, b, c\Rangle$; $\Langle a, c\Rangle, \Langle b, c\Rangle$ are not
+- an index can match a subset of conditions in a selection condition, even if it does not match the entire condition
+- **primary conjunct**: conditions an index matches
+- **selectivity**: number of pages retrieved (index pages + data pages) if we use this access path to retrieve all desired tuples
+  - table containing an index matching a given selection: at least two access paths, namely the index and a scan of the data file
+  - sometimes you can scan the index itself
+- **most selective access path**: retrieves fewest pages, minimising cost of data retrieval
+- **reduction factor**: fraction of tuples in a table satisfying a given condition
+  - with several primary conjuncts, the fraction of tuples satisfying all of them is approximately the product of their reduction factors
+
+## External Sorting
+
+- sorting records on a search key (1+ attributes) is very useful, e.g.:
+  - user wants answer in some order
+  - useful for eliminating duplicates (e.g. projection)
+  - joins require sorting
+- **external sort**: used when data to be sorted won't fit in main memory
+  - aims to minimise cost of disk accesses 
+  - typically generates runs, and then merges the runs
+- **run**: sorted subfiles as intermediate result of external sort
+
+## External Merge Sort
+
+- $B$ buffer pages available in memory
+- need to sort file with $N$ pages
+
+```python
+ExternalSort(file)
+    # given a file on disk, sort it using three buffer pages
+    # produce runs B pages long: Pass 0
+    Read B pages into memory
+    Sort them
+    Write out a run
+    # Merge (B-1) runs at a time to produce longer runs, until only
+    # one run (containing all input records) remains
+    while number of runs at end of previous pass > 1:
+      # pass i = 1, 2, ...
+      while there are runs to be merged from previous pass:
+          choose next (B-1) runs from previous pass
+          read each run into an input buffer (page by page)
+          merge runs and write to output buffer
+          write output buffer to disk page by page
+end ExternalSort
+```
+
+- pass 0: read in $B$ pages at a time, sort internally to produce $\ceil{N/B}$ runs of $B$ pages each
+- in passes 1, 2, ...: use $B-1$ buffer pages for input, use remaining page for output: i.e. a $(B-1)$-way merge
+  in each pass
+- number of passes: $\ceil{\log_{B-1}{N}+1$
+
+## Overview of relational operator algorithms
+
+### Selection
+
+- selection: $\sigma_{R.attr op value}(R)$
+- if there is no index on $R.attr$, we have to scan $R$
+- if 1+ indexes on R match selection: use index to retrieve matching tuples, then apply any remaining conditions to restrict 
+  the result set
+- rule of thumb: cheaper to scan entire table instead of using unclustered index if > 5% of tuples are to be retrieved
+
+### Projection
+
+- drop certain fields
+- expensive part is dropping duplicates (i.e. `DISTINCT` keyword used)
+- to retrieve subset of fields
+  - iterate over table
+  - iterate over index whose key contains required fields.  Irrelevant if clustered, as the values needed are in
+    the data entries of index itself
+- to eliminate duplicate, sort subset of fields, then remove adjacent duplicates
+
+## Evaluating Relational Operators
+
+

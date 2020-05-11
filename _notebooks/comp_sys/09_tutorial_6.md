@@ -1,9 +1,13 @@
-
-School of Computing and Information Systems
-COMP30023: Computer Systems
-Tutorial Week 6
+---
+title: "Tutorial: TCP Flow control and Congestion Control"
+notebook: Computer Systems
+layout: note
+date: 2020-04-27
+tags: 
+...
 
 ## Flow Control, Congestion Control
+
 1. What is the difference between congestion control and flow control? What
 methods (as discussed in the lectures) are used in TCP to provide each
 functionality?
@@ -89,6 +93,3 @@ be m + 1.
 size.
     - True.  Window size field refers to receive window size
 
-2
-
-

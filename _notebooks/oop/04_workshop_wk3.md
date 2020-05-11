@@ -10,6 +10,10 @@ tags:
 
 [TOC]: #
 
+## Table of Contents
+- [Design a chair class](#design-a-chair-class)
+- [Complex number](#complex-number)
+
 
 1. Describe the difference between the terms _class_ and _objects_.
     - **class**: this is a abstract data type with attributes and methods 
@@ -172,3 +176,5 @@ public class ComplexNumber {
 }
 ```
 
+Can a class have multiple parent classes?
+- Java says no, diamond problem (see [wiki](https://en.wikipedia.org/wiki/Multiple_inheritance)

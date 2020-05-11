@@ -1,3 +1,13 @@
+---
+title: "Tutorial: Network Layer"
+notebook: Computer Systems
+layout: note
+date: 2020-04-27
+tags: 
+...
+
+See OneNote for worked answers
+
 School of Computing and Information Systems
 COMP30023: Computer Systems
 Tutorial Week 7
@@ -24,9 +34,8 @@ first IP address assigned, the last IP address assigned, and the mask in
 the w.x.y.z/s notation.
 6. A router has the following (CIDR) entries in its routing table:
 
-1
 
-Address/mask
+Address/mask
 135.46.56.0/22
 135.46.60.0/22
 192.53.40.0/23
@@ -53,6 +62,3 @@ owner of that IP address.
 each router along the path. Why is the time-to-live field necessary?
 9. Bonus for fun: IPv6 uses 16-byte addresses. If a block of 1 million addresses is allocated every picosecond, how long will the addresses last?
 
-2
-
-
