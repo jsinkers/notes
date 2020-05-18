@@ -10,16 +10,16 @@ tags:
 ## IP control protocols
 
 1. Explain how a forwarding table for multicast would differ from a forwarding table for unicast.
-    - a forwarding table for unicast would have a series of networks and subnets, not particular to a host, but particular to a network?
-    - a forwarding table for multicast would have a long list of specific hosts associated with a multicast group
+    - a forwarding table for unicast would have a series of networks and subnets, not particular to a host, but particular to a network
+      i.e. you would have a 2-tuple between hosts
+    - a forwarding table for multicast would have an n-tuple long list of specific hosts associated with a multicast group
 2. Finding an optimal multicast routing tree is NP-hard.
 (a) Does that mean that multicast requires a lot of processing per packet? Why or why
 not?
-    - no, once the tree is established it shouldn't require large amounts of processing unless there is
-      substantial change in network conditions
+    - multicast tree is just ARP-table.  No notion of routing at link layer, just routing between adjacent hosts
 (b) Does that mean that computing a multicast tree requires a lot of processing? Why or
 why not?
-    - yes
+    - no: every adjacent node maintain its own ARP table
 3. Why is an ARP query sent within a broadcast frame? Why is an ARP response sent within
 a frame with a specific destination MAC address?
     - An ARP query is sent within a broadcast frame because you don't know in advance the MAC address
@@ -89,7 +89,10 @@ What do you say to him?
 are the changes conceptual or technical?
     - IPv6 may technically allow for each device to have an globally unique IP address, thus
       making the MAC address redundant and arguably less useful (due to the flat structure of MAC addresses)
-      however backward support
+      however backward support with IPv4 would make it basically impossible to eliminate, and devices having 
+      globally unique MAC addresses also means they aren't tied to upper layer protocols.
+    - from a technical standpoint there still needs to be a way to map between MAC addresses and IP addresses.
+      There is need for technical changes in terms of ensuring it can handle the extra bits associated with IP addresses
 7. How is ICMP used? Give examples from the lecture slides, plus any you find on the web.
     - Internet Control Message Protocol: used by hosts/routers to communicate network-layer info between
       each other.  Typical use: error reporting e.g. "Destination network unreachable".  ICMP messages are 
