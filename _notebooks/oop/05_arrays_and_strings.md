@@ -28,28 +28,38 @@ tags:
 
 - [Array documentation](https://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html)
 - Declaration: Brackets can be attached to the _type_ or the _variable_name_
+
 ```java
 int[] nums;
 int nums[];
 ```
-- Allocation: declaring an array doesn't initialise it, so you first need to allocate it
-  - can use the `new` operator, declare an array of `<type>` values, storing up to `<size>`
-    elements
+
+- Allocation: declaring an array doesn't initialise it, so you first need to
+  allocate it
+  - can use the `new` operator, declare an array of `<type>` values, storing up
+    to `<size>` elements
   - primitives are initialised to "zero" (`int`: 0, `double`: 0.0, ...)
   - objects: initialised to `null`
+
 ```java
 <type>[] var = new <type>[<size>];
 ```
+
 - can also specify initial values
+
 ```java
 <type>[] var = new <type>[]{element1, element2, ..., elementn};
 ```
+
 - can use an already declared array to initialise a second,
-- second array is an **alias** for the first array; they both refer to same values
+- second array is an **alias** for the first array; they both refer to same
+  values
+
 ```java
 <type>[] var = new <type>[<size>];
 <type>[] var2 = var;
 ```
+
 - any variable that stores a **non-primitive** value is a **pointer/reference**
 
 ### Array Methods and Tools
@@ -62,6 +72,7 @@ int length = nums.length;   // array length is public instance variable (NB not 
 ```
 
 - `Arrays` library
+
 ```java
 import java.util.Arrays;
 ...
@@ -70,7 +81,9 @@ int[] nums = Arrays.copyOf(nums, nums.length);  // create distinct copy of an ar
 Arrays.sort(nums)                               // in-place sort
 Arrays.equal(nums, nums2);                      // equality: same length + holds same values
 ```
+
 - Resizing
+
 ```java
 int[] intArray = new int[5];
 intArray = new int[intArray.length + 3];
@@ -78,8 +91,9 @@ intArray = new int[intArray.length + 3];
 
 ### Array Iteration
 
-- **`for each` loop:** can use to access each element of an iterable e.g. array when you
-  are not modifying it
+- **`for each` loop:** can use to access each element of an iterable e.g. array
+  when you are not modifying it
+
 ```java
 for (<type> var : <iterable>) {
     // code block
@@ -89,19 +103,23 @@ for (<type> var : <iterable>) {
 ### Multi-dimensional arrays
 
 - treated as arrays of arrays
-![multi_dim_array](img/multi_dim_array.png)
+  ![multi_dim_array](img/multi_dim_array.png)
 
 - declaration and initialisation: rectangular 2D array
+
 ```java
 int[][] nums = new int[100][10]; // array with 100 rows and 10 columns, each cell initialised to 0
 ```
+
 - irregular array (e.g. triangular)
+
 ```java
 int[][] nums = new int[10][];
 for (int i = 0; i < nums.length; i++) {
     nums[i] = new int[<length of subarray>];
 }
 ```
+
 ```java
 import java.util.Arrays;
 
@@ -123,8 +141,8 @@ public class Program {
 ```
 
 - Write a Java static method `computeDoublePowers` that accepts an integer `n`
-  and returns an array of `double`s of that size.  Your method should then
-  fill that array with increasing powers of 2 (starting from 1.0)
+  and returns an array of `double`s of that size. Your method should then fill
+  that array with increasing powers of 2 (starting from 1.0)
 
 ```java
 import java.lang.Math;
@@ -139,7 +157,7 @@ public static double[] computeDoublePowers(int n) {
 ```
 
 - Write a program that can generate the following 2D array:
-![triangle_array](img/triangle_array.png)
+  ![triangle_array](img/triangle_array.png)
 
 ```java
 public class IrregularArray {
@@ -175,10 +193,12 @@ class CircleArray {
 
 ## Strings
 
-- [`String`s](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html) are a class imported by default in Java
+- [`String`s](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)
+  are a class imported by default in Java
 - cannot use single quotes for Java `String`s
 
 ### Basic string operations
+
 ```java
 String s = "Hello";
 s.length();             // returns length of s (5)
@@ -186,7 +206,9 @@ s.toUpperCase();        // returns "HELLO"
 s.toLowerCase();        // returns "hello"
 s.split(" ");           // split by space character
 ```
+
 e.g. What does this output?
+
 ```java
 String s = "Hello World";
 s.toUpperCase();    // "HELLO WORLD"
@@ -195,16 +217,20 @@ s.substring(0,2);   // "He"
 s += " FIVE";       // s = "Hello World FIVE"
 System.out.println(s);  // "Hello World FIVE"
 ```
+
 ### Substrings
+
 ```java
 String substr = "el";
 s.contains(substr);         // indicates if substr found in s
 s.indexOf(substr);          // indicates index of first instance of substring; else -1
 s.substring(arg1, arg2);    // slice of string with indices [arg1, arg2 - 1]
 ```
+
 ### String concatenation
 
 - Java has `+` operator overloaded for string concatenation
+
 ```java
 System.out.println("1 + 1 = " + 1 + 1);
 // "1 + 1 = 11"
@@ -236,11 +262,12 @@ public class Program {
     }
 }
 ```
+
 - Java is built on **references** which act like pointers
 - when you explicitly write a `String` (e.g. "Hello") it is effectively treated
   as a constant (string literal*) and stored separate to dynamic memory
-  - this constant is only created once, in e.g. 1-3, the string is the same, irrespective
-    of which variable it is in
+  - this constant is only created once, in e.g. 1-3, the string is the same,
+    irrespective of which variable it is in
 - e.g. 4 creates a `new String`, which Java puts on the _heap_ (dynamic memory)
   - `s3` is now pointing at different address than `s4`
 - `==` applied to objects is actually comparing _address_ of reference
@@ -250,3 +277,4 @@ public class Program {
 
 - strings are **immutable**: once created they cannot be modified
 - all string methods return a string which you can then assign to a variable
+
