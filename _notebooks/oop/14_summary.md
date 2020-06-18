@@ -1,6 +1,6 @@
 ---
 title: Summary
-notebook: oop
+notebook: Object Oriented Programming
 layout: note
 date: 2020-06-16 13:56
 tags: 
