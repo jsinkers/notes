@@ -43,6 +43,7 @@ tags:
   - [Common operations](#common-operations-1)
   - [Hierarchy](#hierarchy-1)
   - [Use of `HashMap`](#use-of-hashmap)
+  - [Sorting with `Map`s](#sorting-with-maps)
 - [Exceptions](#exceptions)
   - [Errors](#errors)
   - [Protecting against runtime errors](#protecting-against-runtime-errors)
@@ -626,6 +627,42 @@ public static void main(String[] args) {
         System.out.println(b);
     }
 }
+```
+
+### Sorting with `Map`s
+
+Here's an example of sorting a `HashMap` by value, in reverse order, and printing
+the result:
+
+```java
+public class Program {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("orange", 1);
+        map.put("potato", 2);
+        map.put("banana", 5);
+        map.put("pineapple", 4);
+        map.put("apple", 3);
+        map.put("blueberry", 6);
+
+        map.entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .forEach(System.out::println);
+
+    }
+}
+```
+
+Output:
+
+```
+blueberry=6
+banana=5
+pineapple=4
+apple=3
+potato=2
+orange=1
 ```
 
 ## Exceptions
