@@ -665,6 +665,26 @@ potato=2
 orange=1
 ```
 
+Here's another example of taking a `HashMap`, sorting by value, then converting
+to a `List`:
+
+```java
+Map<Integer, String> map = new HashMap<>();
+map.put(624642, "Zelda");
+map.put(4556, "Legend");
+map.put(24624, "Of");
+List<Map.Entry<Integer, String>> sortedEntries = map.entrySet().stream()
+    .sorted((e1, e2) -> e1.getValue().compareTo(e2.getValue()))
+    .collect(Collectors.toList());
+System.out.println(sortedEntries);
+```
+
+This outputs:
+
+```
+[4556=Legend, 24624=Of, 624642=Zelda]
+```
+
 ## Exceptions
 
 ### Errors
