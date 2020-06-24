@@ -123,6 +123,21 @@ tags:
   - [Embedded Hierarchies](#embedded-hierarchies)
   - [Snowflake schema](#snowflake-schema)
   - [Denormalisation](#denormalisation)
+- [Distributed Databases](#distributed-databases)
+  - [Advantages](#advantages)
+  - [Disadvantages](#disadvantages)
+  - [Objectives and Trade-offs](#objectives-and-trade-offs)
+- [Distribution Options](#distribution-options)
+  - [Data Replication](#data-replication)
+  - [Synchronous Update](#synchronous-update)
+  - [Asynchronous Update](#asynchronous-update)
+  - [Horizontal Paritioning](#horizontal-paritioning)
+  - [Vertical partitioning](#vertical-partitioning)
+- [Comparing configurations](#comparing-configurations)
+- [Functions of a distributed DBMS](#functions-of-a-distributed-dbms)
+- [Date's 12 Commandments for Distributed Databases](#dates-12-commandments-for-distributed-databases)
+  - [Independence](#independence)
+  - [Transparency](#transparency)
 
 
 # 1. Databases
@@ -1588,5 +1603,193 @@ _promotions_, compared to estimates and to the previous product version
   unnormalised DB
 
 # 19. Distributed Databases
+
+## Distributed Databases
+
+- **distributed database**: single logical database physically spread across multiple
+  computers in multiple locations, all connected via data communications link
+  - appears to user to be a single database
+  - focus here
+- **decentralised database**: collection of independent databases which are not
+  networked together as one logical database
+  - users see many databases
+
+![distributed-database](img/distributed-database.png)
+
+- physical servers have their own internal memory structures
+
+![cluster-manager](img/cluster-manager.png)
+
+- **cluster manager**: coordinates communication between physical servers
+
+### Advantages
+
+- good fit for geographically distributed organisations/users
+- data can be located near sites with greatest demand: e.g. store sport info
+  near the point of interest: AFL - Melbourne, NFL - New York, etc.
+- faster data access (for local data)
+- faster data processing: workload shared between physical servers
+
+![workload-distributed](img/workload-distributed.png)
+
+- modular growth: add new servers as load increases
+- increased reliability/availability: less likely to have single point of failure
+- supports database recovery: data is replicated across sites
+
+### Disadvantages
+
+- **complexity** of management and control
+  - who/where is current version of record?
+  - who is waiting to update information?
+  - how does this get displayed to user?
+- **data integrity**: additional exposure to improper updating
+  - simultaneous updates from different locations: which should be chosen?
+  - solutions:
+    - transaction manager
+    - master-slave design: master allowed to write, slaves read only
+- **security**: many server sites means higher risk of breach
+  - protection needed from cyber and physical attacks
+- **lack of standards**: different RDDBMS vendors use different protocols
+- **training/maintenance costs**: more complex IT infrastructure
+  - increased disk storage ($)
+  - fast intra/inter network infrastructure ($$$)
+  - clustering software ($$$$)
+  - network speed ($$$$$)
+- **increased storage requirements**: replication
+
+### Objectives and Trade-offs
+
+- **location transparency**: user doesn't need to know where data are stored
+  - requests to retrieve/update data from any site are forwarded by the system to theX
+    relevant site for processing
+  - all data in the network appears as a single logical database stored at a single site
+    as far as the user can tell
+  - a single query could join data from tables in multiple sites
+- **local autonomy**: node can continue to function for local users if connectivity lost
+  - users can administer local database: local data, security, log transactions, recovery
+- **trade-offs**:
+  - availability vs consistency: DB may be unavailable while updating, but more consistent
+  - synchronous vs asynchronous update
+    - e.g. banking: synchronous; social networks: asynchronous
+
+## Distribution Options
+
+- some combination of below options is also typical
+
+### Data Replication
+
+- **data replication**: data copied across sites
+- advantages
+  - currently popular approach for high availability global systems: implemented by most SQL and NoSQL DBs
+  - high reliability: redundant copies of data
+  - fast access at location where most accessed
+  - can avoid complicated distributed integrity routines, with replicated data being
+    refreshed at specified intervals
+  - if a node goes down availability is largely unaffected
+  - reduced network traffic at prime time if updates can be delayed
+  - need more storage space: each server stores a copy of each tuple
+- disadvantages
+  - may need to be tolerant of out-of-date data
+  - updates could cause performance problems for busy nodes
+  - takes time for update operations
+  - updates place heavy demand on networks, and high speed networks are expensive
+
+### Synchronous Update
+
+- e.g. for banking
+- data continuously kept up to date: users anywhere can access data and get the same answer
+- if any copy of a data item is updated, the same update is applied immediately to
+  all other copies, otherwise it is aborted
+- ensures data integrity
+- minimises complexity of knowing where more recent copy of data is
+- slow response time, high network usage: time taken to check update accurately
+  and completely propagated
+
+### Asynchronous Update
+
+- e.g. for social network
+- delay in propagating data updates to remote databases
+- application able to tolerate some degree of temporary inconsistency
+- acceptable response time: updates happen locally; replicas are synchronised
+  in batches and predetermined intervals
+- more complex to plan/design: need to get right level of data integrity/consistency
+- suits some systems more than others
+
+### Horizontal Paritioning
+
+- **horizontal partitioning**: table rows distributed across sites
+- advantages:
+  - data stored close to where its used
+  - local access optimisation: better performance
+  - only relevant data stored locally: good for security
+  - combining data: unions across partitions c.f. joins for vertical partitioning: unions are less expensive
+- disadvantages
+  - accessing data across partitions: inconsistent access speed
+  - no data replication: backup vulnerability
+    - in practice: typically have partial replication across sites
+
+### Vertical partitioning
+
+- **vertical partitioning**: table columns distributed across sites
+- advantages/disadvantages mostly the same as for horizontal partitioning
+- disadvantage:
+  - combining data: joins across partitions, more expensive c.f. horizontal partitions
+
+## Comparing configurations
+
+- Centralised DB, distributed access:
+  - DB at one location accessed from everywhere
+- Replication with periodic asynchronous snapshot update
+  - DB at many locations, with each copy updated periodically
+- replication with near real-time synchronisation of updates
+  - DB at many locations, each copy updated in nreal real-time
+- partitioned, integrated, one logical database
+  - DB partitioned across many sites within a logical DB and single DBMS
+- partitioned, independent, non-integrated segments (decentralised)
+  - data partitioned across many sites
+  - independent, non-integrated segmented
+  - multiple DBMS
+
+![comparing-distributed-db-configurations](img/comparing-distributed-db-configurations.png)
+
+## Functions of a distributed DBMS
+
+- locate data with distributed catalog (statistics + metadata)
+- determine location from which to retrieve data and process query components
+- translate between nodes with different local DBMS
+- data consistency
+- global primary key control
+- provide scalability, security, concurrency, query optimisation, failure recovery
+
+![distributed-dbms-architecture](img/distributed-dbms-architecture.png)
+
+## Date's 12 Commandments for Distributed Databases
+
+- represent a target for DDBMS, while most don't satisfy all principles
+
+### Independence
+
+1. **Local site independence**: each local site can act as an independent, autonomous,
+ DBMS.  Each site is responsible for security, concurrency, control, backup, recovery.
+2. **Central site independence**: no site in the network relies on a central site, or on
+  any other site.  Each site has the same capabilities.
+3. **Failure independence**: system is not affected by node failures.  The system is in continuous
+  operation, even in the case of a node failure, or expansion of the network.
+4. **Hardware independence**
+5. **Operating System independence**
+6. **Network independence**
+7. **Database independence**
+
+### Transparency
+
+8. **Location transparency**: user doesn't need to know location of data to retrieve it
+9. **Fragmentation transparency**: data fragmentation is transparent to the user, who
+  sees only one logical database.
+10. **Replication transparency**: user sees only one logical database.  DDBMS transparently
+  selects database fragments to access.
+11. **Distributed query processing**: query may be executed at several different sites.
+  Query optimisation is performed transparently by DDBMS.
+12. **Distributed transaction processing**: transaction may update data at several
+  sites, and transaction is executed transparently.
 
 # 20. NoSQL
