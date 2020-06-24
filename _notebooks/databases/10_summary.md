@@ -88,6 +88,18 @@ tags:
   - [Armstrong's Axioms](#armstrongs-axioms)
 - [Steps in Normalisation](#steps-in-normalisation)
 - [Normalisation vs Denormalisation](#normalisation-vs-denormalisation)
+- [Capacity Planning](#capacity-planning)
+  - [Transaction load](#transaction-load)
+  - [Storage requirements](#storage-requirements)
+- [Backup and Recovery](#backup-and-recovery)
+  - [Motivation](#motivation)
+  - [Failure](#failure)
+- [Backup Taxonomy](#backup-taxonomy)
+  - [Physical vs Logical](#physical-vs-logical)
+  - [Online vs Offline Backup](#online-vs-offline-backup)
+  - [Full vs Incremental Backup](#full-vs-incremental-backup)
+  - [Onsite vs Offsite Backup](#onsite-vs-offsite-backup)
+- [Backup Policy](#backup-policy)
 
 
 # 1. Databases
@@ -1147,7 +1159,128 @@ Consider **A(X PK, Y PK, Z, D)**:
 
 # 16. Database Administration
 
-- 
+- capacity planning: estimating disk space, transaction load
+- backup and recovery: failures, responses, backups
+
+## Capacity Planning
+
+- **capacity planning**: predicting when future loads will saturate the system
+  - determining cost-effective way of delaying saturation as much as possible
+- database implementation: need to consider, both at go-live and through-life
+  - disk space requirements
+  - transaction throughput (transaction/unit time)
+  - will be a consideration at system design phase, and system maintenance phase
+- many vendors sell capacity planning tools, which all function in a similar manner
+
+### Transaction load
+
+- how often will each business transaction run?
+  - what SQL statements run for each transaction?
+
+### Storage requirements
+
+- treat DB size as sum of all table sizes
+  - `table size = number of rows * avg row width`
+  - [MySQL data type sizes](https://dev.mysql.com/doc/refman/8.0/en/storage-requirements.html)
+- estimate table growth rate
+  - use system analysis to determine growth rate of tables over time
+- project total storage requirements over time
+- note this is a rough estimate.  Haven't accounted for size of indexes, ...
+
+## Backup and Recovery
+
+### Motivation
+
+- **backup**: copy of data
+  - data can become corrupted, deleted, held to ransom
+  - backup allows restoration
+- **backup and recovery strategy** needed
+  - how to back up data
+  - how to recover data
+- backups protect from:
+  - human error: accidental deletion
+  - hardware/software malfunction: bugs, hard drive failure, memory failure
+  - malicious activity: security compromise
+  - disasters: flood, terrorist attack
+  - government regulation: historical archiving, privacy
+
+### Failure
+
+Some failure categories include:
+
+- **statement failure**: syntactically incorrect
+  - no backup required
+- **user process failure**: process doing the work fails.  Restart the application.
+  - no backup required
+  - transactions should handle issues with atomic operations
+- **network**: connection lost etc.
+  - no backup required, re-establish connection
+- **user error**: accidental drop table
+  - backup required
+- **memory failure**: primary memory fails, becomes corrupt
+  - backup may be required
+- **media failure**: disk failure, corruption, deletion
+  - backup required
+
+## Backup Taxonomy
+
+### Physical vs Logical
+
+- **physical**: raw copies of files and directories, including logs
+  - suitable for *large databases* needing *fast recovery*
+  - DB preferably offline (cold backup) when backup occurs
+  - only portable to machines with similar configuration
+  - to restore:
+    - shut down DBMS
+    - copy backup over current structure on disk
+    - restart DBMS
+- **logical**: backup completed through SQL queries
+  - slower than physical backup: SQL select vs OS copy
+  - output larger than physical
+  - doesn't include log/config files: this may be important! e.g. for a bank
+  - portable: machine independent
+  - server available during backup
+  - creating backup with mySQL: `mysqldump`, `SELECT ... INTO OUTFILE`
+  - restore process: `mysqlimport`, `LOAD DATA INFILE`
+
+### Online vs Offline Backup
+
+- **online, hot**: backup occurs when DB is live
+  - clients unaware backup in progress
+  - needs appropriate locking to ensure data integrity
+- **offline, cold**: DB is stopped for backup
+  - to prevent disrupting availability, backup could be taken from a replication server
+    while other servers remain live
+  - simpler to perform
+  - preferable, but not always possible (e.g. when downtime cannot be tolerated)
+
+### Full vs Incremental Backup
+
+- **full**: complete DB is backed up, whether physical/logical, online/offline
+  - includes everything needed to get DB operational in event of a failure
+- **incremental** only changes since last backup are backed up
+  - for most DBs this means backup log files
+  - to restore:
+    - stop DB, copy backup up log files to disk
+    - start DB and tell it to redo the log files
+
+### Onsite vs Offsite Backup
+
+- **offsite**: store copy of backup offsite
+  - enables disaster recovery, as backup is not physically near disaster site
+  - e.g. backup tapes stored in vault, backup to cloud, remote mirror databases maintained
+    via replication
+
+## Backup Policy
+
+- strategy: usually combination of full and incremental backups
+- e.g. weekly full backup, weekday incremental backup
+- conduct backups when load is low
+- if using replication: use mirror DB for backups to negate performance concerns with primary DB
+- test backup and restore process before it is needed
+
+![backup-policy](img/backup-policy.png)
+
 # 17. Transactions
 
 # 18. Data Warehousing
