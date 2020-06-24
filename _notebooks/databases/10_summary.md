@@ -100,6 +100,29 @@ tags:
   - [Full vs Incremental Backup](#full-vs-incremental-backup)
   - [Onsite vs Offsite Backup](#onsite-vs-offsite-backup)
 - [Backup Policy](#backup-policy)
+- [Transactions](#transactions)
+  - [Defining a unit of work](#defining-a-unit-of-work)
+  - [ACID: Transaction properties](#acid-transaction-properties)
+- [Concurrent Access](#concurrent-access)
+  - [Serialisability](#serialisability)
+  - [Concurrency Control Methods](#concurrency-control-methods)
+  - [Locking](#locking)
+  - [Lock Granularity](#lock-granularity)
+  - [Lock types](#lock-types)
+  - [Deadlock](#deadlock)
+  - [Timestamping](#timestamping)
+  - [Optimistic](#optimistic)
+- [Transaction Log](#transaction-log)
+- [Data Warehousing](#data-warehousing)
+  - [Motivation](#motivation-1)
+  - [Analytical Queries](#analytical-queries)
+  - [DW Characteristics](#dw-characteristics)
+- [Dimensional Modelling](#dimensional-modelling)
+  - [Dimensional model](#dimensional-model)
+  - [Designing a dimensional model](#designing-a-dimensional-model)
+  - [Embedded Hierarchies](#embedded-hierarchies)
+  - [Snowflake schema](#snowflake-schema)
+  - [Denormalisation](#denormalisation)
 
 
 # 1. Databases
@@ -1283,7 +1306,286 @@ Some failure categories include:
 
 # 17. Transactions
 
+## Transactions
+
+**transaction**: logical unit of work
+  - **indivisible/atomic**: must be either fully completed or else aborted
+  - DML statements are atomic
+  - successful transaction changes database from one consistent state to another,
+    i.e. all data integrity constraints are satisfied
+- DBMS provides **user-defined transactions**: sequence of DML statements
+- solve 2 problems:
+  - need to define unit of work
+  - concurrent access
+
+### Defining a unit of work
+
+- users need method to define unit of work
+- transaction: multiple SQL statements embedded within larger application
+  - needs to be indivisible
+- in case of error:
+  - SQL statements already completed need to be reversed
+  - pass error to user
+  - when ready, user can retry transaction
+- e.g. withdrawal from a bank:
+  - `SELECT`: get starting account balance
+  - `INSERT`: insert detailed representation of the withdrawal
+  - `UPDATE`: update account balance
+- MySQL implementation: `BEGIN, COMMIT, ROLLBACK`
+
+```mysql
+START TRANSACTION;  # also BEGIN
+  # <SQL statements>
+COMMIT;          # commit whole transaction
+ROLLBACK;       # undoes everything
+```
+
+### ACID: Transaction properties
+
+- **atomicity**: transaction is a single, indivisible, logical unit of work
+  - all operations within the transaction must be completed, otherwise the transaction
+    must be wholly aborted
+- **consistency**: constraints holding before transaction also need to hold after it
+  - multiple users accessing same data see same value
+- **isolation**: changes during execution cannot be seen by other transaction until
+  completed
+  - as the change could be rolled back, this prevents others acting on invalid data
+- **durability**: once complete, changes made by a transaction are permanent and
+  recoverable if system fails
+
+## Concurrent Access
+
+- multiple users accessing database at same time, can produce
+- **lost updates**: Alice and Bob read account balance near simultaneously, then
+  withdraw money.  Alice and Bob are both unaware of the other person's withdrawal.
+  Whoever submits the update to account balance first will have the value overwritten
+  by the other persons update, and the account balance won't have the expected value
+
+![lost-update-problem](img/lost-update-problem.png)
+
+- **uncommitted data**: two transactions execute concurrently.  The first is
+  rolled back after the second has already accessed it.
+
+![uncommitted-data-problem](img/uncommitted-data-problem.png)
+
+- **inconsistent retrieval**: one transaction calculates aggregate over set of data,
+  during which time other transactions update the data.  Some data may be read
+  before the change, others after the change, producing inconsistent results
+
+### Serialisability
+
+- ideally transactions can be serialised, such that multiple concurrent transactions
+  appear as if they execute one after the other
+  - this ensures consistency
+  - very expensive: lots of time because blocking unnecessarily
+ ![serilisable](img/serilisable.png)
+
+### Concurrency Control Methods
+
+- DBMS creates schedule of read/write operations for concurrent transactions
+- interleave execution of operations with concurrency control algorithms
+- methods:
+  - locking: primary method
+  - timestamping
+  - optimistic
+
+### Locking
+
+- **lock**: guarantee exclusive use of data item to current transaction
+  - prevents another transaction from reading inconsistent data
+  - T1 acquires lock prior to data access
+  - lock released once transaction complete
+  - T2 cannot access data until lock us available
+- **lock manager**: responsible for assigning, policing locks
+
+### Lock Granularity
+
+- **database-level**: entire database locked
+  - good for batch processing
+  - unsuitable for multi-user DBMS
+  - T1, T2 cannot access same DB concurrently, even if they are accessing different tables
+  - SQLite, Access
+- **table-level**: entire table locked
+  - similar to above, but not as bad
+  - T1, T2 can access same DB concurrently as long as they are working on different
+    tables
+  - bottlenecks still exist if transactions want to access different parts of the table
+    and wouldn't interfere with one another
+  - not suitable for highly multi-user DBMS
+- **page-level**: lock set of tuples on a disk page
+  - not commonly used
+- **row-level**: allow concurrent transaction to access different rows of same
+  table, even if located on same page
+  - good availability
+  - high overhead: each row has a lock that must be read and written to
+  - most popular approach: MySQL , Oracle
+- **field-level**: concurrent access to same row as long as accessing different attributes
+  - most flexible
+  - extremely high overhead
+  - not commonly used
+
+### Lock types
+
+- **binary lock**: locked (1), unlocked(0)
+  - handles lost update problem: lock not released until statement completed
+  - too restrictive to yield optimal concurrency: locks even for 2 `READ`s
+- **exclusive and shared lock**
+  - **exclusive**: access reserved for transaction that locked it
+    - must be used for transaction intending to `WRITE`
+    - granted iff no other locks (exclusive or shared) held on the data item
+    - MySQL: `SELECT ... FOR UPDATE`
+  - **shared**: grant `READ` access
+    - transaction wants to `READ` data, and no exclusive lock is held on the item
+    - multiple transactions can have shared lock on same data if they are all just
+      reading it
+    - MySQL: `SELECT ... FOR SHARE`
+
+### Deadlock
+
+- **deadlock**: when 2 transactions wait for each other to unlock data
+  - T1 locks X, wants Y
+  - T2 locks Y, wants X
+  - could wait forever if not dealt with
+  - only happens with exclusive locks
+- handle by:
+  - prevention
+  - detection
+
+### Timestamping
+
+- **timestamp**: assign globally unique timestamp  to each transaction
+  - each data item accessed by the transaction gets the timestamp
+  - thus for every data item, the DBMS knows which transaction performed last read/write
+  - when transaction wants to read/write, DBMS compares timestamp with timestamp
+    already attacked to item and decides whether to allow access
+
+### Optimistic
+
+- based on assumption that majority of DB operations do not conflict
+- transaction executed without restrictions/checking
+- when ready to commit: DBMS checks whether it/any of data it read has been altered
+  - if so, rollback
+
+## Transaction Log
+
+- allows restoration of database to previous consistent state
+- DBMS tracks all updates to data in **transaction log**:
+  - record for beginning of transaction
+  - for each SQL statement:
+    - operation (update, delete, insert)
+    - objects affected
+    - before/after values
+    - pointers to previous/next transaction log entries
+    - commit/ending of transaction
+- also allows restoration of corrupted database
+
 # 18. Data Warehousing
+
+## Data Warehousing
+
+### Motivation
+
+- relational databases used to run day-to-day business operations
+  - automation of routine business processes: accounting, inventory, sales, ...
+- problems:
+  - too many of them: each department has multiple, often of different types
+  - produces many of the problems databases are meant to solve:
+    - duplicated, inaccessible, inconsistent data
+- managers want data for analysis and decision making
+- need means to get integrate all organisational data: **informational database**,
+  rather than **transactional database**
+  - allows all of organisation's data to be stored in manner that supports organisational
+    decision processes
+  - end user is not writing to it, just reading from it
+- **data warehouse**: single repository of organisational data
+  - integrates data from multiple sources
+  - extracts data from source systems, transforms, loads into warehouse
+  - makes data available to managers to support analysis and decision making
+  - large data store ~ TB-PB
+
+### Analytical Queries
+
+- **operational questions**: e.g. Customer service: help I forgot my membership card
+  - typically references small number of tables
+- **analytical questions**: e.g. campaign management: how many customers purchased $x of products in Melbourne stores?
+  - typically references large number of tables
+- data warehousing supports analytical queries
+  - numerical aggregations: how many? average? total cost?
+  - attempting to understand relative to dimensions: sales by state by customer type
+
+### DW Characteristics
+
+- **subject oriented**: organised around subjects (customers, products, sales)
+- **validated, integrated data**:
+  - data from different systems converted to common format allowing comparison and consolidation
+  - data is validated
+- **time variant**: stores historical data
+  - trend analysis
+  - data is a series of time-stamped snapshots
+- **non-volatile**
+  - users have read only access
+  - updating done automatically by Extract/Transform/Load process, periodically by DBA
+
+![data-warehouse-architecture](img/data-warehouse-architecture.png)
+
+- allow you to:
+  - build Business Intelligence dashboard
+  - perform advanced analysis
+
+## Dimensional Modelling
+
+e.g. How much _revenue_ did _product G_ generate in the _last 3 months_, broken down
+by month for south easter sales _region_, by individual _stores, broken down by
+_promotions_, compared to estimates and to the previous product version
+
+- dimensional analysis: supports business analyst view
+
+- Revenue per product per customer per location
+- fact: revenue
+- dimensions: product, customer, location
+
+### Dimensional model
+
+- **dimensional model**: simple, restricted ER model
+- **fact table**: contains business measures/facts, with FKs pointing to dimensions
+  - these are the values the manager is interested in
+  - granularity: level of detail; e.g. time period months/days
+
+![fact-table](img/fact-table.png)
+
+- **dimensional tables**: captures factor by which fact can be described/classified
+  - sometimes hierarchies in dimensions
+
+- **star schema**
+
+![star-schema](img/star-schema.png)
+
+### Designing a dimensional model
+
+1. choose a business process (subject)
+2. choose measured facts (usually numeric, additive quantities)
+3. choose granularity of fact table
+4. choose dimensions
+5. complete dimension tables
+
+### Embedded Hierarchies
+
+![embedded-hierarchy](img/embedded-hierarchy.png)
+
+### Snowflake schema
+
+![snowflake-schema](img/snowflake-schema.png)
+
+### Denormalisation
+
+- DW is typically denormalised
+- denormalised produces:
+  - fewer tables
+  - fewer joins
+  - faster queries
+  - design tuned for end-user analysis
+- data is read only and consistent from ETL process, so no risk of anomalies from
+  unnormalised DB
 
 # 19. Distributed Databases
 
