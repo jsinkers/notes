@@ -138,6 +138,19 @@ tags:
 - [Date's 12 Commandments for Distributed Databases](#dates-12-commandments-for-distributed-databases)
   - [Independence](#independence)
   - [Transparency](#transparency)
+- [Motivation for NoSQL](#motivation-for-nosql)
+- [NoSQL Goals](#nosql-goals)
+- [Object-relational impedance mismatch](#object-relational-impedance-mismatch)
+- [3Vs of Big Data](#3vs-of-big-data)
+- [Big Data Characterisitics](#big-data-characterisitics)
+- [NoSQL Features](#nosql-features)
+- [NoSQL Variants - Aggregate oriented](#nosql-variants---aggregate-oriented)
+  - [Key-value stores](#key-value-stores)
+  - [Document database](#document-database)
+  - [Column family](#column-family)
+- [NoSQL Variants - Graph databases](#nosql-variants---graph-databases)
+- [CAP Theorem](#cap-theorem)
+- [ACID vs BASE](#acid-vs-base)
 
 
 # 1. Databases
@@ -1793,3 +1806,166 @@ _promotions_, compared to estimates and to the previous product version
   sites, and transaction is executed transparently.
 
 # 20. NoSQL
+
+## Motivation for NoSQL
+
+- relational databases, have a number of **pros**, which explain their dominance:
+  - simple, can capture most business use case
+  - integrate multiple applications with shared data store
+  - SQL, standard interface language
+  - ad hoc queries
+  - fast, reliable, concurrent, consistent
+- relational databases, also have their **cons**:
+  - **object-relational impedance mismatch**
+  - poor with big data
+  - poor with clustered/replicated servers (when you get > $10^6$ nodes)
+
+- NoSQL has arisen due to these cons, but relational still relevant
+  - often only need eventual consistency
+
+## NoSQL Goals
+
+- reduce impedance mismatch: improve developer productivity
+- big data: handle larger data volumes and throughput
+
+## Object-relational impedance mismatch
+
+![normalised-invoice-eg](img/normalised-invoice-eg.png)
+
+- example: invoice with a header of customer details, and a list of objects
+  - relational model: data stored in separate tables for order + customer + ...
+    - cannot model real-world object directly
+    - lots of work to disassemble and reassemble aggregate
+  - object oriented model: class with composition and inheritance.  All data in
+    one place
+
+[Wiki](https://en.m.wikipedia.org/wiki/Object-relational_impedance_mismatch)
+
+- Difficulty of integrating OOP with relational databases
+- Objects reference one another, forming a graph (e.g. with cycles)
+- Relational schema is tabular, defining linked heterogeneous tuples
+
+Various types of mismatch, e.g.
+
+- encapsulation: object-relational mappers necessarily expose underlying content, violating encapsulation
+- accessibility: in OOP public/private is absolute characteristic of data's state, while
+  in relational model it is relative to need
+- classes, inheritance, polymorphism: not supported by relational DB
+- type system mismatch: relational model prohibits pointers.  Scalar types may
+  be vastly different.
+- structural mismatch: objects composed of objects, objects specialise from a
+  more general definition.  Difficult to map onto relational schema.
+- integrity mismatch: OOP doesn't declare constraints, exception raising protection
+  logic.  Relational database requires declarative constraints.
+- transactional differences: unit of work in relational DB is much larger than that in OOP
+- manipulative differences: SQL vs custom OOP querying
+
+## 3Vs of Big Data
+
+- **volume**: much larger quantity than typical for relational DB
+- **variety**: many different data types, formats
+- **velocity**: data comes at high rate
+
+## Big Data Characterisitics
+
+- **schema on read**: data model determined later, as dictated by use case (XML, JSON)
+  - c.f. **schema on write**: pre-existing data model, approach of relational DB
+  - capture and store data, worry about how you want to use it later
+- **data lake**: large integrated repository for data without a predefined schema
+  - capture everything
+  - dive in anywhere
+  - flexible access
+
+![schema-on-read](img/schema-on-read.png)
+
+## NoSQL Features
+
+- doesn't use relational model or SQL
+- runs well on distributed servers
+- often open source
+- build for modern web
+- schema-less (often has an implicit schema)
+- supports schema on read
+- not ACID compliant
+- eventually consistent
+
+## NoSQL Variants - Aggregate oriented
+
+![nosql-variants](img/nosql-variants.png)
+
+- **aggregate-oriented** databases store business objects in entirety
+- pros
+  - entire data stored together.  Eliminates need for transactions
+  - efficient storage on clusters/distributed DBs
+- cons
+  - harder to analyse across subfields of aggregates
+  - e.g. sum over products instead of over orders
+
+### Key-value stores
+
+- simple pair of key and associated collection of values
+- database has no knowledge of structure/meaning of values
+- key: primary key, usually a string
+- value: anything (number, array, image, JSON)
+  - up to application to interpret
+- operations: put, get, update
+- example: Redis, DynamoDB
+
+![key-value-store](img/key-value-store.png)
+
+### Document database
+
+- similar to KV store, but document is structured, allow manipulation of specific elements separately
+- document examinable by database:
+  - content can be queried
+  - parts of document can be updated
+- document: JSON file (typically)
+- e.g. MongoDb
+- more structure than key-value store, easier to parse and query
+
+![document-database](img/document-database.png)
+
+### Column family
+
+- columns stored together on disk, rather than rows, primarily for efficiency
+- analysis becomes faster as less data is fetched
+- automatic vertical partitioning
+- related columns grouped into families
+- e.g. Cassandra, BigTable
+
+![column-family](img/column-family.png)
+
+## NoSQL Variants - Graph databases
+
+- maintain information regarding relationships between data items
+- nodes with properties
+- e.g. friendship graph
+- graphs are difficult to program in relational DB
+- graph DB stores entities and their relationships
+- graph queries deduce knowledge from the graph
+- e.g. Neo4J
+
+## CAP Theorem
+
+- CAP Theorem: you can only have 2 of consistency, partition tolerance, availability
+
+![cap-theorem](img/cap-theroem.png)
+
+- Fowler's version: if you have a distributed database, when a partition occurs,
+  then choose between consistency OR availability
+
+![cap-theorem-2](img/cap-theorem-2.png)
+
+## ACID vs BASE
+
+- ACID: Atomic, consistent, Isolated, Durable
+- BASE: Basically available, Soft State, Eventual consistency
+
+- **basically available**: requests will receive a response, but it may be inconsistent
+  or changing
+- **soft state**: state can change over time, even when there is no input there may
+  be changes due to eventual consistency
+- **eventual consistency**: system will eventually become consistent once it stops
+  receiving input
+  - data will propagate everywhere eventually but system continues to receive input
+    and isn't checking consistency of every transaction before proceeding
