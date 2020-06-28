@@ -114,7 +114,7 @@ tags:
   each attribute in the index search key
 - **tree ndex** matches selection if there is a term of form `attr op value` for each attribute in a **prefix**
   of the index's search key
-  - e.g. $\Langle a\Rangle, \Langle a, b\Range$ are prefixes of $\Langle a, b, c\Rangle$; $\Langle a, c\Rangle, \Langle b, c\Rangle$ are not
+  - e.g. $\langle a\rangle, \langle a, b\rangle$ are prefixes of $\langle a, b, c\rangle$; $\langle a, c\rangle, \langle b, c\rangle$ are not
 - an index can match a subset of conditions in a selection condition, even if it does not match the entire condition
 - **primary conjunct**: conditions an index matches
 - **selectivity**: number of pages retrieved (index pages + data pages) if we use this access path to retrieve all desired tuples
@@ -159,10 +159,10 @@ ExternalSort(file)
 end ExternalSort
 ```
 
-- pass 0: read in $B$ pages at a time, sort internally to produce $\ceil{N/B}$ runs of $B$ pages each
+- pass 0: read in $B$ pages at a time, sort internally to produce $\lceil N/B \rceil$ runs of $B$ pages each
 - in passes 1, 2, ...: use $B-1$ buffer pages for input, use remaining page for output: i.e. a $(B-1)$-way merge
   in each pass
-- number of passes: $\ceil{\log_{B-1}{N}+1$
+- number of passes: $\lceil\log_{B-1}{N}\rceil+1$
 
 ## Overview of relational operator algorithms
 
