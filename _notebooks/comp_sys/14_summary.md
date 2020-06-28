@@ -11,6 +11,15 @@ tags:
 [TOC]: #
 
 ## Table of Contents
+- [Network Layer](#network-layer)
+  - [Connectionless](#connectionless)
+  - [Connection oriented](#connection-oriented)
+  - [Comparison: Virtual Circuit vs Datagram Networks](#comparison-virtual-circuit-vs-datagram-networks)
+  - [Quality of Service](#quality-of-service)
+  - [Internet protocol](#internet-protocol)
+  - [Types of Address](#types-of-address)
+  - [IPv4 Address Classes and CIDR](#ipv4-address-classes-and-cidr)
+  - [IPv6](#ipv6)
 - [Subnets](#subnets)
 - [Network Address Translation (NAT)](#network-address-translation-nat)
   - [NAT Criticisms](#nat-criticisms)
@@ -18,8 +27,28 @@ tags:
   - [Downsides](#downsides)
   - [Path MTU Discovery](#path-mtu-discovery)
   - [IPv4 vs IPv6 fragmentation](#ipv4-vs-ipv6-fragmentation)
-- [IPv6](#ipv6)
-  - [IPv6 Addresses](#ipv6-addresses)
+- [Routing](#routing)
+  - [Routing tables](#routing-tables)
+  - [Properties of a good routing algorithm](#properties-of-a-good-routing-algorithm)
+  - [Adaptive vs Non-adaptive](#adaptive-vs-non-adaptive)
+  - [Flooding](#flooding)
+  - [Optimality Principle](#optimality-principle)
+  - [Shortest Path](#shortest-path)
+  - [Link-State Routing](#link-state-routing)
+  - [Distance-Vector Routing](#distance-vector-routing)
+  - [Border Gateway Protocol](#border-gateway-protocol)
+- [IP Multicasting](#ip-multicasting)
+  - [Membership](#membership)
+  - [Observations](#observations)
+- [Congestion Control](#congestion-control)
+  - [Congestion Control Solutions](#congestion-control-solutions)
+  - [Explicit Congestion Control](#explicit-congestion-control)
+- [Internet Control Protocols](#internet-control-protocols)
+  - [ICMP Internet Control Message Protocol](#icmp-internet-control-message-protocol)
+  - [DHCP Dynamic Host Configuration Protocol](#dhcp-dynamic-host-configuration-protocol)
+  - [MAC (Medium Access Control) Addresses](#mac-medium-access-control-addresses)
+  - [ARP Address Resolution Protocol](#arp-address-resolution-protocol)
+- [Layer 2](#layer-2)
 - [Operating Systems Fundamentals](#operating-systems-fundamentals)
   - [Modes of operation](#modes-of-operation)
 - [Processes](#processes)
@@ -102,6 +131,169 @@ tags:
 
 # Networks 
 
+## Network Layer
+
+- role: get data from source to destination
+  - route traffic efficiently
+  - nodes must be given addresses
+- internet: network of network
+  - internet layer: sublayer atop network layer
+  - source and destination may be in different network
+  - hop is a whole network
+- runs on routers
+- **store-and-forward packet switching**: packets are stored in routers until it has
+  fully arrived and the checksum has been checked, before forwarding it on to the
+  next router
+
+### Connectionless
+
+- packets are injected into network individually and routed independently of each other
+- no advance setup needed
+- packet switching: IP
+- minimum required service: send packet
+- datagram network
+- forwarding table: pair of destination and outgoing line to use for that destination
+- each packet carries a destination IP address used by routers to individually
+  forward each packet
+
+![connectionless-network](img/connectionless-network.png)
+
+### Connection oriented
+
+- path from source router to destination must be established before packets can be sent
+- virtual circuit switching, analogous to physical circuit switching of telephones
+- idea: avoid having to choose a new route for every packet sent:
+  route from source to destination is chosen as part of connection setup and stored
+  in router tables.  This route is used for all traffic flowing over the connection.
+  Once connection is released, virtual circuit is terminated
+- each packet carries an identifier of the virtual circuit
+- **MPLS: MultiProtocol Label Switching**: used within ISP networks in the Internet
+  with IP packets wrapped in MPLS header, 20-bit connection identifier
+  - network layer below internet sublayer
+  - often hidden from customers
+  - ISP establishes long-term connections for large amounts of traffic
+  - used when QoS is important:
+    - prioritise traffic
+    - service level agreements for network performance
+    - reliable connectivity with known parameters
+  - expensive: 20-100x per Mbps than standard connection
+- act as single link of IP network
+- forwarding table has mapping between:
+  - Incoming: (source host, connection ID)
+  - Outgoing: (destination host, connection ID)
+
+![connection-oriented-network](img/connection-oriented-network.png)
+
+### Comparison: Virtual Circuit vs Datagram Networks
+
+|          Issue           | Datagram Network                                | Virtual-circuit network                                   |
+|:------------------------:|:------------------------------------------------|:----------------------------------------------------------|
+|      Circuit setup       | Not needed                                      | Required                                                  |
+|        Addressing        | Each packet contains full source/dest address   | Each packet contains short VC number                      |
+|    State information     | Routers don't hold state info about connections | Each VC requires router table space per connection        |
+|         Routing          | Packets routed independently                    | Route chosen when VC set-up, all packets follow it        |
+| Effect of router failure | None, except packets lost during crash          | All VCs through the failed route are terminated           |
+| QoS / Congestion control | Difficult                                       | Easy if resources can be allocated in advance for each VC |
+
+- datagram network has no overhead with connection setup but each packet has more overhead with addressing
+- for long-running uses e.g. VPN between corporate offices, permanent VCs may be useful
+
+### Quality of Service
+
+- some services are important or aren't robust to network delay
+  - VoIP vs file downloads
+  - VPN connections vs web browsing
+- within network or autonomous system, services can be prioritised
+  - explicit: can be done if you own the network using Differentiated Services Header
+    to define class of traffic
+  - implicit: used on shared network, ISP traffic shaping
+
+### Internet protocol
+
+- guiding principles
+  - working OK is better than ideal standard in progress
+  - keep it simple
+  - be strict when sending, tolerant when receiving
+  - make clear choices
+  - negotiate options at runtime
+  - consider scalability
+- **best effort** not guaranteed performance
+- responsible for moving packets through various networks from source to destination host
+- IP address reflects **interfaces**, not hosts: multiple network cards means multiple
+  IP addresses
+
+### Types of Address
+
+- **unicast**: one destination, normal address
+- **broadcast**: send to everyone
+- **multicast**: send to a particular set of nodes; e.g. live streaming
+- **anycast**: send to any one of a set of addresses; e.g. used for DNS, NTP
+- **geocast**: send to all users in geographic area; e.g. emergency warning
+
+### IPv4 Address Classes and CIDR
+
+- original IP addresses were based on classes to simplify routing by examining only
+  the prefix
+  - wasteful: networks often much larger than needed
+- **Classless InterDomain Routing**: each interface/route explicitly specifies which bits
+  are the network field
+  - network in top bits, host in bottom bits
+  - network corresponds to contiguous block of IP address space, a prefix
+  - `Network = network mask & IP address`
+  - efficient routing: intermediate routers only maintain routes for prefixes, not
+    every individual host
+  - only when packet arrives at destination network does host portion need to be read
+- **route aggregation**: performed automatically, greatly reducing size of routing table
+  - in case of overlapping prefixes, choose the longest matching prefix (most specific)
+
+### IPv6
+
+- designed to address exhaustion of IPv4 address space
+- additional changes
+  - simplify header: faster processing
+  - improve security: has been back-ported to IPv4
+  - more QoS support
+
+#### IPv6 Address
+
+- IPv6 address: 128 bits
+- 8 hextets (4 hexadecimal digits) separated by `:`
+- 128 bits (16 bytes)
+- abbreviation:
+  - leading 0s from any group is removed (all/none)
+  - consecutive hextets of 0s replaced with `::`.  Can only be used once in an
+    address, otherwise would be indeterminate
+- backwards compatible with IPv4: `::ffff:192.31.2.46`
+
+Consider `2001:0db8:0000:0000:0000:ff00:0042:8329`
+Removing leading zeros: `2001:db8:0:0:0:ff00:42:8329`
+Use double colon: `2001:db8::ff00:42:8329`
+
+#### IPv6 Header
+
+![ipv6-header](img/ipv6-header.png)
+
+- Version: 6 for IPv6
+- Differentiated services: QoS
+- Flow label: provides way for source/dest to mark groups of packets having the same
+  requirements, such that they should be treated the same way by the network
+  - **pseudoconnection**
+  - attempt to have flexibility of datagram network with guarantees of virtual-circuits
+- Payload length: NB data only, c.f. IPv4 Total length (inclusive of header)
+- Next header: indicates which (if any) optional extension header follows
+  - if this is the last IP header this field is used for transport protocol (TCP, UDP)
+- Hop limit: prevent packets living forever, same as TTL in IPv4
+
+#### IPv4 header
+
+![ipv4-header](img/ipv4-header.png)
+
+- header is variable length: Options
+- total length: includes header + data. Maximum = 65535 bytes
+- checksum: add up 16-bit halfwords of header with one's complement arithmetic, then
+  one's complement the result. detect errors as packet travels through the network
+  - must be recomputed at each hop as at least one field always changes (TTL)
+
 ## Subnets
 
 - **subnetting**: splitting up network into several parts internally within an organisation
@@ -127,7 +319,6 @@ tags:
   outgoing connection established.  Shields from attack
 - holes need to be poked in NAT to allow, say external access to a web server behind
   NAT box
-
 
 ![nat-operation](img/nat-operation.png)
 
@@ -185,26 +376,391 @@ Private address ranges used:
 
 - packets are sent with DF bit set: if a router cannot handle the packet it sends ICMP
   to sender telling it to fragment packets at smaller size
-  
+
+![path-mtu-discovery](img/path-mtu-discovery.png)
+
 ### IPv4 vs IPv6 fragmentation
 
 - IPv4: either non-transparent fragmentation or path MTU discovery
+  - minimum accept size: 576 bytes
 - IPv6: routers will not perform fragmentation.  Hosts expected to discover optimal
   path MTU
-## IPv6
+  - minimum accept size: 1280 bytes
+- ICMP messages are sometimes disallowed, causing MTU path discovery to fail
 
-### IPv6 Addresses
+## Routing
 
-- 8 hextets (4 hexadecimal digits) separated by `:`
-- 128 bits (16 bytes)
-- abbreviation:
-  - leading 0s from any group is removed (all/none)
-  - consecutive hextets of 0s replaced with `::`.  Can only be used once in an 
-    address, otherwise would be indeterminate
+- **forwarding table**: maps destination addresses to outgoing interfaces
+  - every router has one
+- on receiving a packet, router:
+  - inspects destination IP address in header
+  - indexes table
+  - determines outgoing interface
+  - forwards packet out that interface
+- repeated by all routers along route to destination
+- **routing**: applying a routing algorithm to populate forwarding table
+- **forwarding**: using forwarding table to determine which link to place an outbound
+  packet on
+- **routing algorithm**: decides which output line incoming packets should be transmitted on.
+  Consists of:
+  - algorithm local to each router
+  - protocol to gather network information needed by the algorithm
 
-Consider `2001:0db8:0000:0000:0000:ff00:0042:8329`
-Removing leading zeros: `2001:db8:0:0:0:ff00:42:8329`
-Use double colon: `2001:db8::ff00:42:8329`
+### Routing tables
+
+- usually based around triple:
+  - input: destination IP address (base)
+  - input: subnet mask
+  - output: outgoing line (physical/virtual)
+
+e.g. `203.32.8.0 255.255.255.0 Eth0`
+
+### Properties of a good routing algorithm
+
+There are many goals, often in tension:
+
+- **correctness**: finds a valid route between all pairs of nodes
+- **simplicity**
+- **robustness**: a router crash shouldn't require a network reboot
+- **stability**: reach equilibrium and stay there
+- **fairness**
+- **efficiency**
+- **flexibility** to implement policies
+
+- fairness vs efficiency: if there is enough traffic from $A\rightarrow A', B\rightarrow B', C\rightarrow C'$
+  to saturate the horizontal link, what is the most efficient course of action for handling traffic $X\rightarrow Y$?
+  - 3x data with $A\rightarrow A', B\rightarrow B', C\rightarrow C'$ transmitting compared to $X\rightarrow Y$
+  - optimal efficiency leaves $X\rightarrow Y$ unconnected: unfair
+  - need to balance the two
+
+![fairness-vs-efficiency-routing](img/fairness-vs-efficiency-routing.png)
+
+- delay vs bandwidth: path with low delay may have narrow bandwidth
+- what are you optimising: mean packet delay? max network throughput?
+- simple approach:
+  - **minimise number of hops** a packet has to make: tends to reduce per packet bandwidth
+    and improve delay
+  - may also reduce distance travelled but not guaranteed
+- real-world implementations assign costs to each link, and look for minimum cost path
+  - more flexible
+  - still unable to express all routing preferences
+
+### Adaptive vs Non-adaptive
+
+- **non-adaptive/static routing**
+  - doesn't adapt to the network topology: if network changes, routing tables don't
+    update
+  - calculated offline and uploaded to the router at boot (e.g. from ISP)
+  - doesn't respond to failure
+  - reasonable when there is a clear choice, e.g. home router: a static route out
+    of your network is reasonable as it's the only choice
+- **adaptive routing**
+  - dynamic, adapts to changes in topology
+  - may adapt to traffic levels: if route depends too heavily on traffic levels it may
+    be unstable, rarely implemented
+  - more susceptible to routing loops/oscillation
+  - optimises some property: distance, hops, ...
+  - get information from adjacent routers or all routers in the network
+
+### Flooding
+
+- simplest adaptive routing approach
+- very aggressive: send out to everyone you can
+- guarantees shortest distance and minimal delay
+- useful benchmark for speed: i.e. an algorithm 1.5x slower than flooding but 100x more efficient
+- robust: if there is a path, it will find it
+- highly inefficient: generates huge number of duplicate packets, uses lots of bandwidth
+  and wastes router memory
+- need way to discard packets (TTL)
+  - if unknown, set to diameter of network: shortest path between 2 most distance nodes
+- each node must keep track of packets it has forwarded
+
+### Optimality Principle
+
+- if router $J$ is on **optimal path** from router $I$ to $K$, then optimal path
+  from $J$ to $K$ also falls along the same route
+  - only valid when cost/quality of route is scalar (this assumption breaks in BGP)
+  - implies set of optimal routes from all sources form a tree rooted at destination
+
+![sink-tree](img/sink-tree.png)
+
+### Shortest Path
+
+- e.g. Dijkstra's: node can be in one of three states
+  - unseen
+  - open: visited neighbour of it, we know a path
+  - closed: have visited it
+  - algorithm moves unseen-open-closed
+  - algorithm we can apply to graph but we need a protocol to get this information
+
+### Link-State Routing
+
+- replaced distance vector routing that had problems converging quickly
+- variants of LS are basis of all common protocols
+- in LS routing, network topology and all link costs are known
+- each node needs to broadcast link-state packets to all other nodes in the network
+- could run on Dijkstra's
+- "tell the world about your neighbours"
+- centralised algorithm, distributed information sharing
+
+#### Steps
+
+Steps each router performs: share information, then run centralised algorithm
+
+1. Discover neighbours and learn network addresses
+2. Set distance/cost metric to each neighbour, building graph
+3. Construct packet containing what it has learned
+4. Send packet to/receive packets from all other routers
+5. Compute shortest path to every other router (e.g. with Dijkstra's)
+
+#### Neighbour discovery
+
+- router on boot sends out `HELLO` packet on each interface.  Router on the other
+  end must reply with unique ID
+- costs can be set automatically/manually
+  - often use inverse of bandwidth: 1Gbps = 1, 100Mbps = 10
+  - could also use delay calculated with an `ECHO` packet
+  - many networks manually choose preferred routes and look for link costs to make them
+    the shortest: **traffic engineering**
+
+#### Advertisement
+
+- link state packet: ID, sequence number, age, list of neighbours, costs
+  - sequence number: increases each time node makes a new version of message
+- easy to build packets, decided when is hard
+  - intervals? when changes occur?
+
+![link-state-packet](img/link-state-packet.png)
+
+- to send packets to all other routers, flooding is used
+  - **reliable flooding**: uses acknowledgements to guarantee every other router
+    receives packet
+  - **sequence number**: if sequence number is not larger than one previously received, it discards it
+    and doesn't forward on the flood.  Prevents forwarding out of date info
+  - issue: router crashes, sequence number restarts from 0.  Looks like new info
+    is out of date
+    - solution: age field.  Reduced by 1 each second.  When it reaches 0, information
+      is discarded
+
+### Distance-Vector Routing
+
+- distributes topology, everyone then performs centralised routing
+- true distributed algorithm: nodes announce distance from themselves to each destination
+  - c.f. announcing topology in link-state
+- elegant, problems with implementation
+- **iterative**: process continues until no more information is exchanged between neighbours
+- **asynchronous**: does not require all nodes to operate in lockstep
+- **distributed**: each node receives information from 1+ of directly attached neighbours,
+  updates its state, then informs immediate neigbours
+- uses **Bellman-Ford** equation
+
+### Border Gateway Protocol
+
+- internet is constructed by internetworking independently administered networks
+- **autonomous system AS**: collection of routers under the same administrative control
+  - intra-AS routing protocol: usually based on link-state, up to administrator
+    - e.g. **OSPF: Open Shortest Path First**
+  - inter-AS routing protocol: must be same for all ASes, BGP
+- BGP is the protocol that **glues** the thousands of ISPs in the Internet together
+  - decentralised, asynchronous
+  - similar to DV
+  - application layer
+  - runs over TCP port 179 with connections between pairs of routers to exchange information
+- BGP uses CIDRized prefixes representing subnets
+  - forwarding table entry _(CIDR prefix, interface number)_
+- BGP provides means for each router to
+  - obtain prefix reachability info from neighbour AS: each subnet says "I exist and I am here"
+  - determine best routes to prefixes
+- BGP needs to consider politics
+  - companies not willing to have network used by others
+  - ISPs not wanting to carry other ISP's traffic
+  - not carrying commercial traffic on academic networks
+  - use one provider over another because cheaper
+  - don't send traffic through certain companies/countries: security/regulation/...
+- not always clear that one route is better than another: may be better in some regards, worse in others
+  - Bellman's optimality principle doesn't always apply (cost is non-scalar)
+
+- based on: customer/provider: I pay you for transit of traffic I send/receive
+- peering arrangements: we carry each others' traffic without charge
+- provider advertises routes for entire internet
+- customer only advertises routes for their network to avoid transiting other traffic
+- e.g. AS2 and AS3 would want to establish peering agreement so that they don't
+  get charged to route via AS1.  But AS2 doesn't advertise that it can reach
+  AS1 because it doesn't want to end up getting charged to handle AS3's traffic
+- as a result, traffic travels on **valley-free routes**, travelling up the hierarchy
+  before descending
+- e.g. AS2 to AS4 goes via AS1 instead of via AS3
+
+![valley-free-routes](img/valley-free-routes.png)
+
+- BGP attack: malicious AS can advertise routes for networks at very low cost, such
+  that traffic is re-routed through it
+  - 2017: Russian AS advertised routes for Google, Apple, Facebook, ...
+  - effective way to divert traffic for monitoring or disruption
+
+## IP Multicasting
+
+- one-to-many communication
+- applications: stream live content, video conference, send update to group of machines
+- class D addresses reserved for multicast
+- whole group identified by single multicast IP
+- to send multicast packet it is sent ot multicast IP address
+- `224.0.0.0/24` reserved on local networks (stays in LAN)
+  - `224.0.0.1`: all systems on a LAN
+  - `225.0.0.2`: all routers on a LAN
+
+### Membership
+
+- process asks host to join/leave particular multicast IP address, host
+  records this
+- host can have multiple processes that are a part of the same group
+- once no processes remain that are interested in the group, the host is no longer a member
+- ~ every minute, multicast router broadcasts packet asking all hosts which multicast addresses
+  they are members of (using `224.0.0.1`)
+- messages governed by **Internet Group Management Protocol**
+
+### Observations
+
+- special multicast routing algorithms used to construct routing trees to deliver
+  messages from one sender to all receivers
+  - very slow, scale poorly (NP-Complete)
+  - not suited for huge audiences if you want optimal routing time
+  - huge audiences are supported, but routing will be sub-optimal
+- **amplification attacks**: security isk
+  - send one ICMP echo message to multicast address
+  - sends lots of ICMP reply messages
+  - if you spoof source address you can flood spoofed address with ICMP replies
+- widely deployed in organisational networks:
+  - Hotel TV
+  - Company video conferencing
+  - financial markets: stock tickers, data feeds
+  - universities: campus wide video
+- generally not available to average consumer
+  - adds complexity to network equipment
+  - not proven to scale to internet size (i.e. millions of users paying for it)
+  - person benefiting is not the person paying for the capability
+
+## Congestion Control
+
+- all networks have finite capacity
+- too many packets on a network causes delay and ultimately packet loss, leading
+  to **congestion collapse**, when performance plummets
+  - packets are delayed, so they get resent, leading to more traffic
+
+![congestion-control-network](img/congestion-control-network.png)
+
+- **congestion control**: network problem; avoid overflowing network
+- **flow control**: between hosts; avoid overloading receiver
+- solution: slow sending rate
+
+### Congestion Control Solutions
+
+Many approaches operating at different time scales
+
+![congestion-control-network-2](img/congestion-control-network-2.png)
+
+- **network provisioning**: build more networks
+  - ultimate solution: add more capacity, slow and expensive ~ months/years
+- **traffic-aware routing**: change routing; this link is congested, so let's bypass it
+  - temporary solution: eventually all routes become saturated
+  - works well for daily traffic patterns  ~ day
+  - e.g. morning East to West coast, evening West to East coast
+- **admission control**: deny access; provide engaged signal ~ mins/hrs
+  - used on virtual circuits to control who can place traffic onto the route
+  - used by MPLS
+- **traffic throttling**: similar to TCP congestion control ~ seconds
+  - reduce sending rate: effective, reasonably fair
+- **load shedding**: drop packets ~ ms/$\mu$s
+  - effective at solving congestion
+  - bad for utility of network
+
+### Explicit Congestion Control
+
+- **traffic throttling**
+  - aim: congestion avoidance
+  - prevent reaching point of congestion collapse
+- **issues**
+  - determining onset of congestion: monitor queueing delay at router
+  - determining which sender is causing it: need to ensure notification doesn't create
+    further congestion
+- two least significant bits in _Differentiated Services_ header field used for
+  ECN:
+  - `00`: not ECN capable
+  - `10` or `01`: ECN capablej
+  - `11`: congestion experienced
+
+![explicit-congestion-control](img/explicit-congestion-control.png)
+
+- when receiver receives IP packet marked as experiencing congestion it echoes to the sender a TCP
+  segment with _ECE bit_ set (Explicit Congestion Experienced)
+- sender reduces transmission rate and sets _CWR_ (congestion window reduced) bit
+  to acknowledge the ECE
+- this only happens once per RTT, i.e. receiver sends all packets since it received
+  ECN with the ECE bit set until it receives CWR from sender, unless CE flag is
+  set in IP packet
+- ECN closely linked to TCP: runs between Internet and Transport layers
+  - demonstrates blurred lines between layers in TCP/IP: tight coupling
+  - UDP could theoretically use ECN, but doesn't implement it
+
+## Internet Control Protocols
+
+- used at internet layer to manage functionality
+- **ICMP**: internet control message protocol
+- **DHCP**: dynamic host configuration protocol
+- **ARP**: address resolution protocol
+
+### ICMP Internet Control Message Protocol
+
+- `ping`: sends ICMP echo messages
+- `traceroute`: exploits ICMP _time exceeded_ message
+  - sends out packets to target destination each with incremented TTL (starting from 1)
+  - TTL hits zero at successive routers along the route, causing it to return _time exceeded_ message,
+    revealing IP address of router on route
+  - sender can now determine path and timings of route a packet will take
+
+### DHCP Dynamic Host Configuration Protocol
+
+- DHCP server automatically allocates IP addresses
+- security concerns: any device that connects will be issued an IP address
+
+- Host sends `DHCP Discover`
+- DHCP Server receives the request and responds with `DHCP Offer` containing available
+  IP address, as well as network info: subnet mask, default gateway, DNS server, time servers
+  - IP addresses issued on a **lease**
+
+### MAC (Medium Access Control) Addresses
+
+- layer 2: Wired ethernet, WiFi, Bluetooth
+- globally unique identifier for the interface assigned by the manufacturer
+- 48 to 64 bits long
+- addressing used at host-to-network/data link layer
+  - physical address
+
+### ARP Address Resolution Protocol
+
+- ARP maps IP address to MAC address
+  - translates addresses between internet layer and physical network layer
+
+1. Broadcasts Ethernet packet asking who owns target IP address on broadcast
+   address `FF:FF:FF:FF:FF:FF`
+2. Broadcast arrives at every host on the network.  The owner responds with its MAC address
+
+- simple, not efficient
+- security nightmare:
+  - no authentication
+  - caching of responses
+  - ARP spoofing is gateway for most MITM attacks
+  - way of intercepting and spoofing ARP messages to associate attacker's MAC with
+    another hosts IP address
+
+## Layer 2
+
+- what IP runs over
+- modern ethernet is like IP, but routers are called switches
+- old ethernet like WiFi:
+  - shared medium: cannot choose between output ports
+  - broadcast a packet, it may collide, in which can you both retransmit
+  - mechanisms to reduce collisions: medium access control
 
 # Operating Systems
 
@@ -492,7 +1048,6 @@ Methods for avoiding race conditions include:
 - test and set lock
 - sleep and wake-up
 - semaphores, monitors, message passing
-
 
 ### Strict alternation with busy waiting
 
@@ -1802,7 +2357,6 @@ m = Dec(SK, c)
   - to include Alexa there is some configuration and a single JS function, you can
     implement an Alexa skill
   - delivered with no configuration of server/installation of software library
-- security implications: <!--TODO-->
 
 #### System Administrator
 
