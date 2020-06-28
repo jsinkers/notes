@@ -62,6 +62,8 @@ tags:
   - [Translation lookaside buffer](#translation-lookaside-buffer)
   - [Multilevel page tables](#multilevel-page-tables)
   - [Memory Replacement Algorithms](#memory-replacement-algorithms)
+- [Goal](#goal)
+  - [Symmetric cryptography](#symmetric-cryptography)
 - [AES: Advanced Encryption Standard](#aes-advanced-encryption-standard)
   - [ECB: Electronic Code Book mode](#ecb-electronic-code-book-mode)
   - [CBC: Cipher Block Chaining mode](#cbc-cipher-block-chaining-mode)
@@ -71,11 +73,29 @@ tags:
   - [Public key approach](#public-key-approach)
   - [Message Digests](#message-digests)
   - [SHA-1](#sha-1)
-  - [MAC Message Authentication Code](#mac-message-authentication-code)
 - [Management of Public Keys](#management-of-public-keys)
   - [Certificates](#certificates)
   - [X.509](#x509)
   - [Public key infrastructure](#public-key-infrastructure)
+  - [Certificate issuance](#certificate-issuance)
+  - [Certificate Validation](#certificate-validation)
+  - [PGP](#pgp)
+- [Secure Communication](#secure-communication)
+  - [MAC Message Authentication Code](#mac-message-authentication-code)
+  - [HMAC](#hmac)
+  - [Authenticated Encryption](#authenticated-encryption)
+  - [Diffie-Hellman Key Exchange](#diffie-hellman-key-exchange)
+  - [SSL/TLS history](#ssltls-history)
+  - [TLS Basics](#tls-basics)
+  - [QUIC](#quic)
+- [System Security](#system-security)
+  - [Goal](#goal-1)
+  - [Trusted Computing Base](#trusted-computing-base)
+  - [Protection Domains](#protection-domains)
+  - [Access Control Lists](#access-control-lists)
+  - [Capabilities](#capabilities)
+  - [Code Signing - Specialised hardware](#code-signing---specialised-hardware)
+  - [Covert Channels](#covert-channels)
 - [Future Computer Systems](#future-computer-systems)
   - [Trends](#trends)
   - [Cloud Services](#cloud-services)
@@ -1018,9 +1038,41 @@ Simple dynamic relocation approach that used to be common, hardware support with
 
 # Security
 
+## Goal
+
+- secure communication
+- authentication
+- confidentiality
+
+- **encryption**: output ciphertext; hide data from everyone except those holding
+  decryption key
+- **decryption**: output plaintext; recover original data from cipher text using the key
+- **cryptography**
+  - based on hard problems on average:
+    - RSA: factorising product of 2 large primes
+    - AES: substituion-permutation network
+  - SAT not appropriate: on average can be solved quickly
+- **one-time pad**: cannot be cracked.  Uses one time pre-shared key of the same size
+  as the message being sent.  Plaintext is paired with random secret key
+- no perfect security:
+  - always susceptible to brute force attack
+  - challenge: make brute force take so long as to be infeasible to perform in lifetime
+    of data
+
+### Symmetric cryptography
+
+```
+Encrypt(SecretKey, message) -> ciphertext
+Decrypt(SecretKey, ciphertext) -> message
+```
+
+- e.g. AES
+- need way to securely exchange secret key
+- useful for keeping your own data secure, e.g. full disk encryption
+
 ## AES: Advanced Encryption Standard
 
-- symmetric block cipher
+- symmetric block cipher: break data into blocks and encrypt each block
 - same plaintext block always produces same ciphertext
 - world's dominant cryptographic cipher
 - part of instruction set for some processors e.g. Intel
@@ -1028,14 +1080,20 @@ Simple dynamic relocation approach that used to be common, hardware support with
   - 128-bit block with 128-bit key,
   - 128-bit block with 256-bit key
 - key space: $2^{128}$
+- hardware support: AES-NI instruction set extension on Intel
 
 ### ECB: Electronic Code Book mode
 
-- basically: monoalphabetic substitution cipher using big characters (128-bit)
+- monoalphabetic substitution cipher using big characters (128-bit)
 - break plaintext up into 128-bit blocks and encrypt them one after the other
 - parallelisable
 - easy to attack: can swap cipher blocks without disrupting message integrity
+  - no diffusion
+  - may not provide confidentialityX
+  - shouldn't be used
 - repeated content in same location of ciphertext also helps cryptanalysis
+
+![ecb-penguin](img/ecb-penguin.png)
 
 ### CBC: Cipher Block Chaining mode
 
@@ -1047,17 +1105,25 @@ Simple dynamic relocation approach that used to be common, hardware support with
   the recipient
 - **initialisation vector**: randomly chosen and XORed with the first block
   - transmitted in plaintext with ciphertext
+  - **salt**: random value added to encryption/hash; public; not to be reused
 
  ![cipher-block-chaining](img/cipher-block-chaining.png)
 
 ## Public Key Cryptography
 
+- aka asymmetric cryptography
+- at heart of modern security: Digital signatures, TLS, PGP, Secure messaging, end-to-end encryption
 - keyed encryption algorithm, E; keyed decryption algorithm, D
 - requirements to make encryption key public
 
 1. $D(E(P)) = P$ i.e. if we apply D to encrypted message we get plaintext
 2. Exceedingly difficult to deduce D from E
 3. E cannot be broken by chosen plaintext attack
+
+- asymmetric slower than symmetric
+- often unsuitable for encrypting large amounts of data
+- often used in combination with symmetric cryptography as way of exchanging joint
+  secret key
 
 ### RSA
 
@@ -1087,6 +1153,7 @@ Simple dynamic relocation approach that used to be common, hardware support with
 - sender signs with their private key, then encrypts plaintext with recipient's public
   key.  Recipient decrypts with their private key, then verifies signature with
   sender's public key:
+- sign with private `SignKey`; verify with public `VerifKey`
 
 ![digital-signatures](img/digital-signatures.png)
 
@@ -1098,9 +1165,10 @@ Simple dynamic relocation approach that used to be common, hardware support with
 ### Message Digests
 
 - method that provides authentication but not secrecy
-- don't need to encrypt entire message
+- don't need to encrypt entire message (i.e. suited to large documents)
 - much faster digital signature
 - **MD: message digest/hash:** one-way hash function goes from plaintext to fixed-length bit string
+  - lossy-compression function
 - **MD/cryptographic hash properties**:
   - given P, it is easy to compute MD(P)
   - given MD(P), it is effectively impossible to find P
@@ -1109,6 +1177,8 @@ Simple dynamic relocation approach that used to be common, hardware support with
   - change to input of 1 bit produces very different output
 
 ![message-digests](img/message-digests.png)
+
+- storing password hash is subject to dictionary attack: hash common passwords
 
 ### SHA-1
 
@@ -1122,10 +1192,6 @@ Simple dynamic relocation approach that used to be common, hardware support with
   is valid.
 - no way for Trudy to modify plaintext in transit or Bob would detect the change
 
-
-### MAC Message Authentication Code
-
-<!--TODO-->
 
 ## Management of Public Keys
 
@@ -1144,7 +1210,15 @@ Simple dynamic relocation approach that used to be common, hardware support with
 - **CA: certification authority**: organisation that certifies public keys
 - **certificate**: binds public key to name of principal (individual/company/...) or attribute
   - not secret/protected themselves
+  - provides proof of identity/ownership
 - CA issues a certificate, signing the SHA-1 hash with its private key
+- prevent: website spoofing; server impersonation; man in the middle attacks
+
+Alice asks issuer to sign info
+d = (PK_alice, Alice)  
+s = Sign(SK_issuer, d')  
+Certificate: Issuer, signature s, d' = (Issuer, PK_Alice, Alice, ...)
+Verification: Verify(PK_issuer, d', s)
 
 ### X.509
 
@@ -1169,18 +1243,572 @@ Fields of X509 certificate:
 - **chain of trust/certification path**: chain of verified certificates back to the root
 - **revocation**: each CA periodically issues **Certificate Revocation List/CRL**
   providing serial numbers of all certificates it has revoked (that have not expired)
+  - if root certificate revoked, all certs below it become untrusted: cross-signing is important
+
+### Certificate issuance
+
+- **domain validation**: most common
+  - ties cert to domain
+  - checks requester has control over the domain
+  - validation via email/DNS/URL
+- **organisation validation**: ties cert to domain and legal entity
+- **extended validation**: establishes legal entity, jurisdiction, presence of
+  authorised officer
+  - offline + expensive
+
+![domain-validation](img/domain-validation.png)
+
+- issues: DV certificates don't establish link between domain and real world entity
+  - LetsEncrypt issued 14,000 certs containing word paypal
+
+### Certificate Validation
+
+- **CN Common Name**: contains DNS URL
+  - may be wildcard `*.google.com`
+  - only 1 URL
+- **Subject Alternative Name** extension allows multiple URLs to be covered by 1 cert
+- **Valid From/To**
+- **Public Key**: including algorithm and key length
+- **Constraints**: can it be used as CA cert? or is it end entity
+- **enhanced key usage**
+
+### PGP
+
+- Pretty Good Privacy
+- decentralised web of trust
+- not as scalable as centralised approach: hard to connect subnets which may be individually trusted
+
+## Secure Communication
+
+Goals
+
+- **encryption**: secure private communication between two endpoints
+- **authentication**: establish identities of one/both endpoint/s
+- **integrity**: ensure data doesn't change in transit
+
+- encryption, digital signatures, cryptographic hashing, certificates: provide
+  privacy and authentication, but not integrity
+  - adversary could arbitrarily delete, reorder, modify, ...
+
+- **CBC tampering**: as every possible ciphertext corresponds to valid plaintext, attacker can:
+  - reorder ciphertext
+  - flip bits in IV
+
+### MAC Message Authentication Code
+
+- identify if message has been tampered with
+- verify integrity of message using a shared secret key
+  - c.f. digital signature, which uses public key to verify
+  - not for error correction
+  - doesn't require an encryption algorithm: can be used if confidentiality isn't an issue
+  
+- k: secret key, m: message
+
+```
+t = Mac(k, m)         # compute tag
+b = Verify(k, m, t)   # bit is 0/1 indicating success of verification
+```
+
+- for this to work: adversary should not be able to create m', t' such that
+  `Verify(k, m', t') = true` for m' it hasn't seen
+
+![mac-kurose](img/mac-kurose.png)
+
+1. Alice creates $m$, concatenates $s$ with $m$ giving $m+s$.  Computes hash
+  $H(m+s)$, called the **message authentication code**
+2. Alice appends the MAC to the message $m$: $(m, H(m+s))$ and sends this to Bob
+3. Bob receives $(m,h)$ and knowing $s$, calculates MAC $H(m+s)$.  If $H(m+s) = h$
+   Bob is convinced of the integrity of the message.
+
+ e.g. CBC-MAC, HMAC
+
+### HMAC
+
+- industry standard, widely used
+- used in TLS
+
+```
+t = Hash((k XOR opad) || Hash((k XOR ipad) || m))
+```
+
+- hashes twice
+- prevents attacks where you append to hash output
+- `ipad, opad`: fixed constants used for padding
+
+### Authenticated Encryption
+
+- confidentiality + integrity of messages between Alice and Bob
+- e.g. AES-GCM, AES-OCB, AES-CCM
+- encrypt-then-mac
+
+```
+// Encrypt
+c = Enc(SK, m)
+// Compute tag over ciphertext
+t = MAC(k, c)
+// Transmit (c, t) 
+// Verify tag
+b = Verify(k, t, c)
+// if successful, decrypt
+m = Dec(SK, c)
+```
+
+### Diffie-Hellman Key Exchange
+
+[Wiki](https://en.m.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
+
+- fundamental to HTTPS, SSH, IPSec, SMTPS, TLS
+- goal: get 2 parties to agree on a shared session key
+- **session key**: ephemeral key for use in a single session
+- provides **perfect forward secrecy**: exposure of long term keys doesn't compromise
+  security of past sessions
+- sends information in a way that allows both parties to calculate a shared key without
+  ever having to explicitly communicate the shared key
+
+![diffie-hellman-paint](img/diffie-hellman-paint.png)
+
+- generate public information:
+  - $p$: large prime
+  - $g$: generator (primitive root modulo p)
+- Alice picks random private value $x$ and computes $X = g^x\mod{p}$
+  - send $X$ to Bob
+- Bob picks random private value $Y$ and computes $y = g^y\mod{p}$
+  - send $Y$ to Alice
+- Alice calculates secret key $s = Y^x\mod{p} = g^{xy}\mod{p}$
+- Bob calculates secret key $s = X^y\mod{p} = g^{yx}\mod{p}$
+- Bob and Alice now have a shared secret that they never explicitly communicated
+
+![diffie-hellman-2](img/diffie-hellman-2.png)
+
+- solving discrete log is a hard problem: infeasible to recover $a$ from $g^a$
+- provided 2 parties discard secrets, even if one has their private key exposed, it
+  will not allow past communication to be decrypted
+- secret key should look indistinguishable from random string
+
+- DH is not secure against:
+  - impersonation
+  - main-in-the-middle attack
+  - convert $g^xy$ to secret key
+  - need to agree of $p$ and $g$
+
+### SSL/TLS history
+
+- **SSL secure sockets layer**: historical
+  - Secure TCP connection
+  - Designed by Netscape 1994
+  - v1.0 never released: security flaws
+  - v2.0: first to be made public; also had security flaws
+  - v3.0: 1996, complete redesign, forming basis of TLS
+- **TLS transport layer security**: protocol
+  - TLS 1.0: 1999, upgrade from SSL3.0 with additional security improements
+  - TLS 1.1: 2006, further upgrades/defences against known attacks
+  - TLS 1.2: 2008, updated primitives, moving from MD5-SHA1 to SHA-256 for pseudorandom
+    number generation, due to broken collision resistance
+    - adds support for AES
+    - 2011 update to prevent downgrade attacks
+  - TLS 1.3: significant differences, not backward compatible
+    - remove weak crypto primitives
+    - enforce forward secrecy
+    - Firefox, Chrome briefly defaulted to TLS 1.3 but had to switch back due to incompatibility
+
+### TLS Basics
+
+- TLS provides private communication with integrity guarantees
+- certificates, certificate authorities provide authentication
+- supported by most web browsers, servers, ...
+- **HTTPS**: implementation of TLS over HTTP
+
+#### Handshake protocol
+
+- uses public-key cryptography to establish several shared secret keys between client and server
+- negotiate version of protocol and set of cryptographic algorithms to use
+  - e.g. Diffie-Hellman, RSA, ...
+  - need to find interoperable set
+- authenticate server and client (optional)
+  - use digital certificates to learn each other's public keys and verify identity
+  - often only server will be authenticated
+- use public keys to establish shared secret
+
+- TCP connection established
+- Alice send `ClientHello`: in plaintext protocol version, cryptographic algorihtms, ...
+- Bob responds `ServerHello`: in plaintext highest supported protocol version supported
+  by both, strongest cryptographic suite selected from those offered
+- Bob sends `ServerKeyExchange`:
+  - public-key certificate containing either public key or Diffie-Hellman public key $g^y$
+- Alice validates the certificate
+- Alice sends `ClientKeyExchange`: client generates secret key material and sends to server
+  encrypted with server's public key, or $g^x$ if Diffie-Hellmann
+- Handshake concludes: both parties share key for encryption/decryption
+
+#### Record protocol
+
+- uses secret keys established in handshake to protect confidentiality, integrity, authenticity
+  of data exchange
+
+#### Local TLS Interception
+
+- TLS can be intercepted locally or at server level
+- web traffic analysis: may be legitimate reason to intercept
+- create own local certificate authority and install in root stores
+- local proxy can intercept TLS connections
+  - acts as MITM
+  - dynamically issues fake certificate using local CA
+  - virtually invisible to user
+  - commonly done by antivirus software
+  - from point of view of browser, will appear that you are communicating securely
+  - here you are trusting tools for privacy _and_ security
+  - when acting as MITM, local proxy performs validation rather than the browser
+- often flawed:
+  - susceptibility to [FREAK](https://en.m.wikipedia.org/wiki/FREAK) (Factoring RSA Export Keys)
+  - may not support modern features
+  - may be susceptible to protocol downgrade attacks
+- worst case: Superfish/eDellRoot
+  - Superfish: marketing company trying to analyse web traffic
+  - the same root certificate was installed on all machines with an identical private key
+  - once compromised anyone could impersonate websites/code signing
+  - Superfish also had faulty certificate checking
+
+#### Network level TLS Interception
+
+- many companies use same approach to intercept TLS connections: install root certificate
+  on all machines within the company
+  - can be important for network protection
+  - private network proxy acts as MITM and generates fake certificates
+  - domain controllers install root cert on machine
+  - if you don't control the machine you don't control the trust
+  - similar issues: poor validation, old cipher suites
+- web servers increasingly use TLS proxies/load balancers
+  - protect against hacking/DDoS
+  - prevalent on cloud services
+
+![tls-proxy](img/tls-proxy.png)
+
+- issues:
+  - proxy has cert for many sites: must trust proxy for privacy
+  - breaks concept of end-end encryption
+- Cloudbleed attack
+  - Cloudflare: CDN and TLS proxy service
+  - HTML parser error: memory leaked into returned pages (unbalanced tags)
+  - led to that data being crawled by Google etc, making it visible in public domain
+  - potential breaches of authentication tokens, passwords, messages, ...
+
+### QUIC
+
+- Quick UDP Internet Connection
+- goal: replace TCP and TLS
+- combines 3-way handshake with TLS 1.3 handshake
+
+![quic](img/quic.png)
+
+## System Security
+
+- often an afterthought due to pressure to get to market
+- problems only arise when something go wrong; usually quite bad when it does
+- why it matters: confidential, proprietary, sensitive, private information, e.g.
+  - health records, financial information, IP, personal data
+- attacks may be:
+  - physical theft/acces
+  - access to the system: multi-user system, botnet
+  - network
+- attackers may be
+  - **passive**: observing traffic/activities
+    - may be active in background, e.g. keylogger
+  - **active**: maliciously changing content, tampering
+
+### Goal
+
+- **confidentiality**: only intended recipient can understand message
+  - threat: exposure of data
+- **integrity**: ensure that message is delivered without modification
+  - threat: tampering with data
+- **availability**: cannot disturb system so that it is unusable
+  - threat: denial of service
+
+- additional goals
+  - **authenticity**
+  - **privacy**: protect misuse of personal information
+
+- usability vs security:
+  - with a small number of lines of code, you can formally verify security, e.g. that
+    there are no buffer overruns
+  - users like features, adding many lines of code, making verification infeasible
+  - e.g. static plaintext website vs dynamic website: introduces JavaScript
+
+### Trusted Computing Base
+
+- **trusted systems**: systems with formally stated security requirements, that meet
+  those requirements
+- **trusted computing base**: minimal hardware/software to enforce security rules
+  - if trusted computing base working to specification, system security cannot be compromised
+  - consists of most of hardware (excluding I/O devices that have no impact on security),
+    portion of OS kernel, and most user programs with superuser power
+  - process creation, switching, memory management, some file + I/O management must
+    be part of TCB
+  - often will be separate from rest of OS to minimise size to allow verification of
+    correctness
+  - anything inside TCB is trusted, anything external is not
+- **reference monitor**: accepts all system calls involving security and decides whether
+  or not to process them
+  - allows all security decisions to be put in one place with no chance of bypassing
+  - most OSs are not designed this way, making them quite insecure
+
+![reference-monitor](img/reference-monitor.png)
+
+### Protection Domains
+
+- computer systems consists of many resources (objects) that need to be protected,
+  both hardware and software.
+- **domain**: set of (object, rights) pairs.  Each pair specifies an object and a subset
+  of operations that can be performed on it
+  - **right**: permission to perform one of the operations
+  - often may correspond to a single user, but is more general
+- at each moment in time, a process runs in some protection domain: it has a set of objects
+  it can access, and for each of those objects it has some set of rights
+- processes can switch from domain to domain during execution
+- UNIX: domain of a process defined by `UID, GID`
+  - when user logs in, shell gets `UID, GID` contained in the user entry in the password file
+  - these are inherited by all children
+  - two processes with the same `(UID, GID)` will have access to exactly the same set of objects
+  - each process in UNIX has user part and kernel part
+    - kernel part has access to different objects e.g. all pages in physical memory
+    - a system call therefore causes a domain switch
+
+![protection-domains](img/protection-domains.png)
+
+- **principle of least authority**: need to know; each domain has minimal objects
+  and privileges for it to complete its task, and no more
+
+### Access Control Lists
+
+- associate each object with domains that may access the object and how
+- Entry: `User, Group: access rights`
+- rights: read, write, execute
+
+![acl](img/acl.png)
+
+- any process owned by user A can read and write file F1
+- `tana, *: RW`: gives Tana access to file no matter which group she is currently in
+
+### Capabilities
+
+- **capability list**: associate each process with objects and corresponding rights (capabilities)
+- must be protected from user tampering
+- much harder to keep track of than ACLs
+- revoking access is quite difficult for kernel-managed capability list
+  - hard for system to find all outstanding capabilities for any object and take them back
+    as they can be started in capability lists all over the disk
+- very efficient c.f. ACL, which may require a long search to verify permissions
+- ACLs allow selective revocation of rights, C-lists do not
+
+![capability-liest](img/capability-liest.png)
+
+### Code Signing - Specialised hardware
+
+- code signing: ensure that code running in hardware is what you expect it to be
+- specialised hardware can perform this function and protect against physical theft
+
+![code-signing](img/code-signing.png)
+
+- encrypted hard drive
+- trusted platform module
+- secure processors:
+  - Intel SGX
+  - ARM TrustZone
+
+#### Encrypted hard drive
+
+- protect against: data theft from lost/stolen/decommissioned computers
+- disk appears as normal, with encryption/decryption performed transparently to user
+- disk driver has encryption engine
+- can be combined with TPM to allow decryption only on the machine the disk is in
+- Data is encrypted with Data Encryption Key
+- Data Encryption Key is encrypted with Authentication Key
+  - this allows user to change Authentication Key without needing to decrpyt/re-encrypt
+    entire disk
+
+#### Trusted Platform Module TPM
+
+- cryptoprocessor with non-volatile storage used to store secret keys
+- performs some cryptographic operations
+- verify digital signatures
+- specialised hardware for these functions makes it much faster and more widely used
+
+- uses:
+  - prevent unauthorised code
+  - encrypt hard drive (store the DEK in TPM)
+  - remote attestation
+
+#### Remote Attestation
+
+- **remote attestation**: allows external part to verify that the computer with TPM
+  runs the software it should be, and not something that cannot be trusted
+
+- On machine to be verified, create a measurement by taking a hash of loaded code.
+- store hash in **Platform Counter Register (PCR)**
+  - PCR cannot be overwritten, only extended
+  - extend PCR value using hash chain: `hash(prev_PCR + measurement)`
+- External party: create a nonce and send to machine
+  - nonce used to prevent replay attack
+- TPM signs PCR value and nonce
+- external party verifies
+
+- **TPM measurement** verifies software stack booted on machine is as expected
+  - BIOS
+  - hardware configuration
+  - boot loader and its configuration
+  - operating system
+  - loaded apps
+
+- cannot protect against running code being compromised
+
+#### Intel SGX
+
+- software guard extensions
+- extension to Intel processor instruction set
+- protect processes from the host/OS: as OS is all-powerful entity that may have been
+  compromised
+- **enclave**: run code and memory isolated from rest of the system
+  - specialised memory regions
+- attestation: prove to local/remote system what code is running in enclave
+- minimum TCB: only processor is trusted
+- DRAM and peripherals are untrusted, all accesses need to be encrypted
+  - responsibility of application
+
+### Covert Channels
+
+- even system with formal verification of secure and correct implementation, security
+  leaks can occur
+- consider 3 processes on a protected machine:
+  - process 1: client wants process 2 (server) to perform work
+  - client and server don't trust each other
+  - process 3: collaborator, conspiring with server to steal client's data
+- **covert channel**: deliberate modulation of something to intentionally leak
+  information to a collaborator
+  - e.g. CPU modulation: to communicate a 1 bit, it computes as hard as
+  it can for a fixed time.  To send a 0 bit, it sleeps for the same amount of time.
+  - e.g. locking/unlocking a file
+  - e.g. modulate paging rate: many page faults = 1, few page faults = 0
+- so many possible covert channels it is nearly hopeless to attempt to block them
+
+![covert-channel](img/covert-channel.png)
+
+- **side channel**: unintentional leakage of data, without a collaborator
+  - observer observes shared resources: memory, caches, page faults, timing, power
+  - meta-data observations about encrypted data: e.g. you know a message is being sent
+    between 2 parties, even if you don't necessarily know what it is
+
+- **steganography**: hiding information in non-obvious ways
+  - can be used to communicate information between processes without being detected
+  - e.g. change low-order bit of each RGB channel to store secret information
 
 ## Future Computer Systems
 
 ### Trends
 
+- end user: shift in hardware from desktop to laptop to tablet
+  - commoditised hardware
+  - online services
+  - **Desktop as a Service**:
+    - Citrix XenDesktop: multiple clients access central OS installation
+- impact on development:
+  - web first approach
+  - collaborative tools increasingly important
+  - need to support multiple platforms
+
+#### History of Multi-User Systems
+
+- mainframe: 1960s-80s
+- microcomputer server: internal data centre, 1990s
+- large scale data centre: mid-1990s
+- virtualisation: VMWare 1999
+- SaaS: Software as a Service
+  - Salesforce 1999
+- IaaS: infrastructure as a service
+  - AWS 2006
+- PaaS: platform as a service
+  - Canon Zimki 2006
+  - Google app engine 2008
 
 ### Cloud Services
 
-- **IaaS**
-- **PaaS**
-- **SaaS**
-- **Serverless**
+![x-as-a-servce](img/x-as-a-servce.png)
 
+![x-as-a-service-2](img/x-as-a-service-2.png)
+
+#### SaaS
+
+- **what it is**: enterprise applications delivered through browser: email, CRM, collaboration
+- **benefit**: streamlines enterprise IT management: vendor maintains OS, runtimes, patches, backup,
+  hardware
+- e.g. Office 365, GitHub, Zoom
+- start of cloud services
+- **issues**
+  - dependent on good connectivity
+  - trust in single provider
+  - privacy and security challenges:
+    - where is data stored?
+    - what protection does it have
+
+#### IaaS
+
+- **what it is**: virtualised access to hardware instances
+  - software is still responsibility of enterprise: install patches, keep OS up to date,
+    manage software
+- many hardware specifications available
+- e.g. AWS EC2
+- shared/dedicated instances depending on security/performance requirements
+- **benefit**: able to reduce hardware purchase/support costs
+  - rapid rescaling of resources: can handle peak demand more efficiently at lower cost
+  - good for startups
+- **issues**:
+  - requires skilled system administrators
+  - replication for scaling can replicate vulnerabilities
+    - out of date images
+    - poorly configured server instance
+    - incorrect security settings
+
+- Amazon S3: many not configured correctly and publicly accessible
+- 2017 breach: Republican National Committee, 198 million voter details
+- AWS EC2: instance will always have some insecurity
+  - globally accessible
+  - password based access
+  - publicly available metadata
+- credentials can be compromised: hardcoding/storing in git repository
+
+#### PaaS
+
+- **what it is**: framework for rapid development and deployment of applications
+  - select frameworks to add to an application (e.g. Python runtime, Postgres instance, ...)
+- **benefits**
+  - developer doesn't need to manage installation or update of underlying frameworks
+  - auto-scaling
+  - integrates with CI/CD on git for automated deployment
+- e.g. Salesforce Heroku, AWS Elastic Beanstalk, Microsoft Azure
+
+#### Serverless
+
+- **what it is**: developer only implements app functionality with no concern for infrastructure
+  or software stack
+- **benefits**
+  - simplified development
+  - no low-level handling of requests
+  - functions are small pieces of code running in milliseconds
+  - static content served via CDN
+  - aligns with microservice development: applications are loosely coupled services
+  - allows companies to focus on their product rather than commoditised infrastructure
+- e.g. AWS Lambda, Hook.io
+- e.g. Alexa:
+  - easy access to advanced APIs and functionality
+  - to include Alexa there is some configuration and a single JS function, you can
+    implement an Alexa skill
+  - delivered with no configuration of server/installation of software library
 - security implications: <!--TODO-->
 
+#### System Administrator
+
+- skillset changing: configuration vs installation
+  - awareness of best practice, network configuration, security, privacy
+  - role moving away from low-level OS and network management to strategic planning
+    and anomaly management
+  - understanding bottlenecks and advise changes in architecture
+  - understanding security and privacy, and constraints they impose
