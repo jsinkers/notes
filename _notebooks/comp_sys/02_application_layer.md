@@ -525,6 +525,7 @@ Reply-To:
 ### Types of name servers
 
 Hierarchy
+
 - **Root DNS servers**: managed by 13 different organisations, with [~1100 (at 2020-03-12)](https://root-servers.org/) distinct server instances around the world
   - provide IP address of TLD servers
   - [IANA list of root servers](https://www.iana.org/domains/root/servers)

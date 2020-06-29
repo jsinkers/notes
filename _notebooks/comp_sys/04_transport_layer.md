@@ -988,6 +988,8 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
 - when window is 0, sender shouldn't send data as the receiver's buffer is full.
   Sender can still send data:
   - _URGENT data_
+  - on receipt of size 0 window, sender starts _Persist Timer_, which periodically
+    issues _ZeroWindowProbe_ segments
   - _zero window probe_: 0 byte segment; causes receiver to re-announce next
     expected byte and window size
     - in case that sender never becomes notified that buffer has free space
@@ -997,6 +999,11 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
   - [Stackoverflow: what is a tcp window update?](https://stackoverflow.com/questions/1466307/what-is-a-tcp-window-update)
 
 ## Congestion Control
+
+- overloaded networks experience congestion, potentially affecting all layers
+- while link/network layers attempt to ameliorate congestion, TCP affects congestion
+  most significantly: it has methods to transparently reduce data rate and hence
+  reduce congestion
 
 ### Congestion Control Principles
 
@@ -1117,6 +1124,7 @@ LastByteSent - LastByteAcked <= min(cwnd, rwnd)
   - restart slow start
 - if duplicate ACK loss event
   - move to fast recovery mode and perform a fast retransmit
+- initial value `ssthresh`:
 
 ### Congestion Avoidance
 

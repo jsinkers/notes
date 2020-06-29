@@ -11,6 +11,23 @@ tags:
 [TOC]: #
 
 ## Table of Contents
+- [Layered Network Models](#layered-network-models)
+  - [Presentation layer](#presentation-layer)
+  - [Session Layer](#session-layer)
+- [HTTP](#http)
+  - [URL - Uniform Resource Locator](#url---uniform-resource-locator)
+  - [Persistent connection](#persistent-connection)
+  - [Response Codes](#response-codes)
+  - [Cookies](#cookies)
+- [FTP - File Transfer Protocol](#ftp---file-transfer-protocol)
+- [SMTP - Simple Mail Transfer Protocol](#smtp---simple-mail-transfer-protocol)
+  - [Comparison HTTP vs SMTP](#comparison-http-vs-smtp)
+- [DNS - Domain Name System](#dns---domain-name-system)
+  - [Database: Resource Records](#database-resource-records)
+- [Sockets](#sockets)
+  - [Sockets in C](#sockets-in-c)
+- [UDP User Datagram Protocol](#udp-user-datagram-protocol)
+- [TCP Transport Control Protocol](#tcp-transport-control-protocol)
 - [Network Layer](#network-layer)
   - [Connectionless](#connectionless)
   - [Connection oriented](#connection-oriented)
@@ -131,6 +148,225 @@ tags:
 
 # Networks 
 
+## Layered Network Models
+
+- useful to model network as stack of layers, where each layer offers services to
+  the layer above, and protocols govern inter-layer exchanges
+  - **service**: set of primitives a layer provides to a layer above it
+  - **protocol**: rules governing format/meaning of packets exchanged by peers
+    within a layer
+
+![layer-service-protocol-model](img/layer-service-protocol-model.png)
+
+- benefits of model
+  - interoperability: open, non-proprietary protocols
+  - simplify design process with well-defined system boundaries: you can rely on
+    services of lower layers and don't need to implement them yourself
+- OSI 7-layer model: standardised before implementation but not widely implemented
+  - useful abstraction for designing network/diagnosing faults
+
+![osi-layers](img/osi-layers.png)
+
+ - TCP/IP: effectively standardised after implementation
+  - reflects what happens on internet
+
+![tcp-vs-osi](img/tcp-vs-osi.png)
+
+- protocol stack
+
+![layers-1](img/layers-1.png)
+
+![layers-2](img/layers-2.png)
+
+### Presentation layer
+
+- OSI layer 6, providing:
+  - encryption
+  - compression
+  - data conversion: e.g. CR/LF to LF
+  - mapping between character sets
+- these services are implemented by applications
+- IETF considers these application layer:
+  - protocol to negotiate encryption is simple and separate from algorithms
+  - there aren't simple common services applicable to all applications
+  - application is not in the kernel, making it more flexible
+- RTP: Real Time Protocol
+  - closest thing to presentation layer
+
+### Session Layer
+
+- OSI layer 5, providing
+  - authentication
+  - authorisation
+  - session restoration: e.g. continue failed download, log back in to same point
+    in online purchase
+- e.g.
+  - RPC: Remote Procedure Call
+  - PPTP: Point-to-Point Tunneling Protocol
+  - PAP/EAP: Password/Extensible Authentication Protocol
+- often used between protocols called layer 2/layer 3
+
+## HTTP
+
+- web pages mostly base HTML file + several referenced objects
+
+### URL - Uniform Resource Locator
+
+```
+scheme:[//[user[:password]@]host[:port][/path][?query][#fragment]
+```
+
+- fragment: hint for displaying file, e.g. section header
+
+e.g. `abc://username:password@example.com:123/path/data?key=value#fragid1`
+
+### Persistent connection
+
+- HTTP 1.0 uses non-persistent connections: for each GET request a connection is established
+  and torn down
+- HTTP 1.1 introduced persistent connections, additional headers
+- HTTP2 additional speed improvements
+
+### Response Codes
+
+[MDN: Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
+
+- **2xx**: success
+- **3xx**: redirection
+- **4xx**: client error
+- **5xx**: server error
+
+### Cookies
+
+- HTTP is stateless protocol
+- cookies store small amount of information on user's computer
+  - allows you to maintain state at sender/receiver across multiple transactions
+  - e.g. user ID for shopping site
+
+## FTP - File Transfer Protocol
+
+- uses two parallel TCP connections to transfer files
+  - **control connection**: persistent
+  - **data connection**: non-persistent
+
+## SMTP - Simple Mail Transfer Protocol
+
+- transfer messages from sender's computer or mail server to recipient's mail server
+- can use persistent TCP connections between mail servers
+- messages can take multiple hops
+
+### Comparison HTTP vs SMTP
+
+- HTTP: transfers objects from Web server to Web client (usually browser)
+- SMTP: transfers messages from mail server to mail server
+- HTTP: primarily _pull_ protocol; i.e. requesting content from a server
+- SMTP: primarily _push_ protocol; i.e. sending content to another server
+- SMTP messages are ASCII only; HTTP messages are not
+- HTTP encapsulates each object in single message; SMTP combines all message objects
+  into a single message
+
+## DNS - Domain Name System
+
+- map human readable names to other things
+- UDP, port 53
+  - TCP would require substantial overhead: setting up/maintaining/tearing down connections.
+    Wouldn't scale well
+  - don't need reliable transfer: if a packet gets lost, resend it with no ill effects
+
+### Database: Resource Records
+
+- resource records carried by DNS replies
+  - 4-tuple: `(Name, Value, Type, TTL)`
+
+| Type  |                                                   Value                                                    |
+|:-----:|:----------------------------------------------------------------------------------------------------------:|
+|   A   |                                      IPv4 address for hostname `Name`                                      |
+| AAAA  |                                      IPv6 address for hostname `Name`                                      |
+|  NS   |                           Hostname of authoritative DNS server for domain `Name`                           |
+| CNAME |                                Canonical hostname for alias hostname `Name`                                |
+|  MX   | Mail exchange. Canonical name of a mail server.  Allows company to have same aliased name for mail and Web |
+
+- Authoritative DNS server for a particular hostname contains corresponding A record
+- Non-authoritative server for a given hostname: contains a NS record for domain that includes the hostname
+  - also contains A record that provides IP address of the DNS server referenced in the NS record
+- Can use multiple A records for a single domain name to balance traffic across multiple servers
+
+## Sockets
+
+- transport layer protocols provide multiplexing/demultiplexing service
+- **socket**: interface between application and transport layer implementation of
+  the kernel, allowing application processes to receive and send data
+  - each socket has a unique identifier
+    - UDP: `([protocol,] destination IP addr, destination port)`
+    - TCP: `([protocol,] source IP addr, source port, dest IP addr, dest port)`
+- **multiplexing**: combining multiple streams into a single stream
+  - gather data chunks at source host from different sockets
+  - encapsulate each chunk with header that will be used to demultiplex later,
+    creating segments
+  - pass segments to transport layer
+- **demultiplexing**: examine fields in segment to identify receiving socket and
+  direct segment to that socket
+  
+### Sockets in C
+
+```c
+int listenfd = 0, connfd = 0    // listen, connection file descriptors
+char sendBuff[1025];            // send buffer
+struct sockaddr_in serv_addr;
+//create socket
+listenfd = socket(AF_INET, SOCK_STREAM, 0);
+// initialise server address
+memset(&serv_addr, '0', sizeof(serv_addr)); 
+// initialise send buffer
+memset(sendBuff, '0', sizeof(sendBuff));
+
+// type of address: Internet IP
+serv_addr.sin_family = AF_INET;
+// listen on any IP address
+serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+// listen on port 5000
+serv_addr.sin_port = htons(5000);
+// bind
+bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+// listen: maximum number of client connections to queue
+listen(listenfd, 10);
+// accept
+connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+// write
+snprintf(sendBuff, sizeof(sendBuff), "Hello World!);
+write(connfd, sendBuff, strlen(sendBuff));
+// close
+close(connfd);
+// connect
+connect(connfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+// receive
+while ((n = read(connfd, recvBuf, sizeof(recvBuff)-1) > 0) {
+  // process buffer
+}
+```
+
+![socket-usage-system-calls](img/socket-usage-system-calls.png)
+
+## UDP User Datagram Protocol
+
+- lightweight: provides multiplexing/demultiplexing and light error checking
+- connectionless
+- unreliable: no guarantee on delivery, order, integrity
+- poor choice for non-idempotent operations
+
+![udp-segment-structure-kr](img/udp-segment-structure-kr.png)
+
+## TCP Transport Control Protocol
+
+- see TCP notes
+- provides flow control to prevent sender overflowing receiver's buffer
+  - sliding window protocol
+  - maintained by receiver, remaining space communicated to sender
+- provides congestion control: sender adjusts transmission rate according to implicit
+  congestion state of network
+  - maintain congestion window
+  - perceive network congestion: segment loss via timeout, triple DupACK causing fast retransmission
+
 ## Network Layer
 
 - role: get data from source to destination
@@ -204,7 +440,7 @@ tags:
   - VoIP vs file downloads
   - VPN connections vs web browsing
 - within network or autonomous system, services can be prioritised
-  - explicit: can be done if you own the network using Differentiated Services Header
+  - explicit: can be done if you own the network using **Differentiated Services Header**
     to define class of traffic
   - implicit: used on shared network, ISP traffic shaping
 
