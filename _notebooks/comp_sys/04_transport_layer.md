@@ -51,6 +51,8 @@ tags:
   - [Simple Connection Management](#simple-connection-management)
   - [Socket Finite State Machine](#socket-finite-state-machine)
 - [Sockets in C](#sockets-in-c)
+  - [UDP Sockets](#udp-sockets)
+  - [UDP Sockets](#udp-sockets-1)
   - [Multi-threaded web server](#multi-threaded-web-server)
 - [Round-Trip Time estimation and Timeout](#round-trip-time-estimation-and-timeout)
   - [Estimating round trip time](#estimating-round-trip-time)
@@ -847,6 +849,8 @@ close(connfd);
 
 - NB `htonl()`: host to network (long); establishes standard byte order: most
   significant byte first as some systems are big/little endian
+- `accept()`: creates a new socket based on a connection request, and then returns
+  a file descriptor referring to that socket
 
 **client side**
 
@@ -860,6 +864,19 @@ while ((n = read(connfd, recvBuff, sizeof(recvBuff)-1)) > 0) {
     // process received buffer
 }
 ```
+
+### UDP Sockets
+
+### UDP Sockets
+
+[UDP Server Client Implementation C](https://www.geeksforgeeks.org/udp-server-client-implementation-c/)
+
+![udp-server-client-sockets](img/udp-server-client-sockets.png)
+
+- `bind()` is used to bind a given port to a pid.  This doesn't matter much if you
+  are only sending, but if you are trying to listen you will need to call it
+  - for a client `sendto()` automatically binds, which means you don't need to call
+    `bind()` prior to a `recvfrom()`
 
 ### Multi-threaded web server
 
@@ -990,7 +1007,7 @@ $$TimeoutInterval = EstimatedRTT + 4 DevRtt$$
   - _URGENT data_
   - on receipt of size 0 window, sender starts _Persist Timer_, which periodically
     issues _ZeroWindowProbe_ segments
-  - _zero window probe_: 0 byte segment; causes receiver to re-announce next
+  - _zero window probe_: 1 byte segment; causes receiver to re-announce next
     expected byte and window size
     - in case that sender never becomes notified that buffer has free space
 - receiver can initiate an update by sending a _Window Update_ (not a flag), can

@@ -333,7 +333,7 @@ listen(listenfd, 10);
 // accept
 connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
 // write
-snprintf(sendBuff, sizeof(sendBuff), "Hello World!);
+snprintf(sendBuff, sizeof(sendBuff), "Hello World!");
 write(connfd, sendBuff, strlen(sendBuff));
 // close
 close(connfd);
@@ -947,12 +947,28 @@ Many approaches operating at different time scales
 
 ### ICMP Internet Control Message Protocol
 
+- used by hosts and routers to communicate network-layer information, typically
+  used for error reporting, MTU path discovery, and network diagnostic utilities
+- e.g. _Destination network unreachable_ when web browsing originates from ICMP
+- messages are carried as IP payload: architecturally lies just above IP
 - `ping`: sends ICMP echo messages
+  - sends type 8 code 0
+  - receiver responds with type 0 code 0 ICMP echo reply
 - `traceroute`: exploits ICMP _time exceeded_ message
+  - sends out UDP segments with unlikely port number
   - sends out packets to target destination each with incremented TTL (starting from 1)
   - TTL hits zero at successive routers along the route, causing it to return _time exceeded_ message,
     revealing IP address of router on route
+  - at an intermediate router when TTL hits 0, the router discards the datagram and sends ICMP
+    warning message to the source (type 11 code 0)
+  - at destination, host sends port unreachable ICMP message (type 3 code 3)
+  - once received probe packets no longer need to be sent
   - sender can now determine path and timings of route a packet will take
+- messages have type and code field, and contain header and 1st 8 bytes of IP datagram
+  that caused the ICMP message to be generated (for diagnosis)
+- **destination unreachable**: message type used
+  - in path MTU discovery with **fragmentation required** code
+  - when routing algorithm is running and forwarding tables are in inconsistent state
 
 ### DHCP Dynamic Host Configuration Protocol
 
@@ -1007,6 +1023,9 @@ Many approaches operating at different time scales
   - manage resources: CPU, memory, display, network interfaces, ...
     - many processes trying to make use of shared resources
   - runs in kernel mode
+
+Good overview of OS concepts:
+[Linux kernel labs](https://linux-kernel-labs.github.io/refs/heads/master/lectures/intro.html)
 
 ### Modes of operation
 

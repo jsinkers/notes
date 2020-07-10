@@ -240,9 +240,9 @@ Consists of
 - fields: domain: server the cookie belongs to, path, content, expiry, security
 - HTTP messages carry state
 - components
-  - cookie header line in HTTP response message
-  - cookie header line in HTTP request message
-  - cookie file kept on user's end system, managed by the broswer
+  - cookie header line in HTTP response message: `Set-cookie: 1678`
+  - cookie header line in HTTP request message: `Cookie: 1678`
+  - cookie file kept on user's end system, managed by the browser
   - back-end database server-side
 - when you access a site, it may respond with a Set-cookie: <id>, with that id and the server hostname
   being appended to a cookie file.  When you make HTTP requests this id is
