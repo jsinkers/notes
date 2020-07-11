@@ -38,6 +38,15 @@ tags:
 - [Boot Process](#boot-process)
   - [Dynamic Loading](#dynamic-loading)
   - [`init`](#init)
+- [Memory Management](#memory-management)
+  - [System Calls](#system-calls)
+  - [Implementation](#implementation-1)
+  - [Physical memory](#physical-memory)
+  - [Paging Scheme](#paging-scheme)
+  - [Memory-Allocation](#memory-allocation)
+  - [Representation of Virtual Address Space](#representation-of-virtual-address-space)
+  - [Paging](#paging)
+  - [Page Frame Reclaiming Algorithm](#page-frame-reclaiming-algorithm)
 
 
 ## History
@@ -406,7 +415,7 @@ gets shared.
 - kernel data structures are allocated: page cache, page tables
 - autoconfiguration: probe for present devices and add them to a table
   - device drivers can be loaded dynamically
-- set up process 0, set up its stack, and run it
+- set up process 0 (idle process), set up its stack, and run it
   - initialisation: e.g. program real-time clock
   - mount root file system
   - create `init` (process 1)
@@ -441,4 +450,185 @@ gets shared.
 
 [Wiki: Init](https://en.m.wikipedia.org/wiki/Init)
 
+## Memory Management
+
+- each process has an address space with three logical segments: text, data, stack
+- **text**: machine instructions that form the program's executable code, read only
+- **data**: variables, strings, arrays.  Two parts: initialised and uninitialised data
+  - initialised data: variables and compiler constants that have an initial value
+    when the program starts. Similar to program text, bit patterns produced by the compiler
+  - **Block Started by Symbol (BSS)**: uninitialised data
+  - data segment can be increased in size by system call `brk`
+    - heavily used by `malloc`
+    - **heap** is dynamically allocated memory area
+- **stack**: starts at/near top of virtual address space and grows downward
+  - programs don't manage the size of the stack explicitly
+  - if the stack grows below the bottom of the stack segment, a hardware fault occurs
+    and the OS lowers the bottom of the stack segment by 1 page
+  - when a program starts it contains environment variables and command line arguments
+- **shared text segments**: allows two processes running the same program can share the same piece
+  of text in physical memory
+- some computer hardware allows separate address spaces to be used for text (in one)
+  and data + stack (in the other), doubling the available address space
+- **memory-mapped files**: ability to map a file onto a portion of a process' address space
+  so that it can be read/written as if a byte array, making random access much easier
+  - shared libraries are accessed by mapping them in this way
+  - two or more files can map in the same file at the same time
+
+![virtual-address-space-linux-memmgmt](img/virtual-address-space-linux-memmgmt.png)
+
+![mapped-file-linux](img/mapped-file-linux.png)
+
+### System Calls
+
+- POSIX doesn't specify system calls for memory management as they were considered too
+  system dependent.  Instead programs need to use `malloc`, defined in ANSI C.
+- most Linux systems have system calls for managing memory:
+  - `brk`: change data segment to new address
+  - `mmap`: map a file in
+
+### Implementation
+
+[Duke: linux memory management](https://www2.cs.duke.edu/courses/spring04/cps210/projects/mmlinux.html)
+
+- each process on a 32-bit machine has 2 segments of the address space: user and kernel.
+- 3GB: private user segment individual to a process, including text, data, and stack
+- 1GB: every process maps the same kernel segment into its address space,
+  storing a small stack, kernel data structures, and mappings to directly access
+  physical memory.  This eliminates the need for address translation.
+- the kernel segment is only accessible in kernel mode.  If an attempt to access an address
+  over (and including) `0xC00000000`, this will produce a fault
+
+![virtual-address-space-linux-user-kernel](img/virtual-address-space-linux-user-kernel.png)
+
+- 64-bit x86 machines: only use 48 bits for addressing, for a theoretical limit of 256TB of addressable
+  memory
+  - Linux divides this between kernel and user space, of 128TB each
+- address space gets created when a process is created, and is overwritten on an `exec`
+
+### Physical memory
+
+- Linux uses **nodes** to allow it to support **Non-Uniform Memory Access (NUMA)**,
+  where access time for different memory locations may vary.  Physical memory is partitioned
+  into nodes.
+- in the case of **Uniform Memory Access**, physical memory is represented under a single node
+
+For each node, Linux distinguishes between **zones** of memory, resulting from differences idiosyncracices
+of hardware which require them to be handled differently.  Memory allocation can then
+be performed for each zone separately.
+
+- **pinned**: memory that doesn't get pages out
+- the kernel and **memory map** are pinned, while the rest of memory is divided into page frames
+- a page frame can be a page for: (or else on the free list)
+  - text
+  - data
+  - stack
+  - page-table
+- **memory map**: map maintained by the kernel representing the usage of physical memory
+  - `mem_map`: an array of page descriptors (`page`) for each physical page frame in
+    the system
+- **zone descriptor**: one for each zone. It stores:
+  - memory utilisation
+  - array of free areas, where the $i$th element identifies the head of a list of
+    page descriptors of blocks of $2^i$ free pages (used in the buddy scheme)
+- page descriptor `page`: contains pointer to address space that it belongs to
+  - if free, it has an additional pair of pointers that allow it to form a doublyy
+    linked list with other free page frames
+
+![linux-memory-representation](img/linux-memory-representation.png)
+
+### Paging Scheme
+
+- Linux uses a 4-level paging scheme for efficient paging
+- virtual address is broken into 5 fields, each used to index the appropriate page of
+  the table
+
+![linux-page-table](img/linux-page-table.png)
+
+### Memory-Allocation
+
+- **page allocator**: allocates new page frames of physical memory using **buddy algorithm**
+  - request for memory (in number of pages) is rounded up to the next power of 2
+  - chunk of memory is repeatedly split until the chunk size matches this power of 2,
+    which can then be allocated
+- the array of free areas in the zone descriptor is used to store lists of blocks of
+  size $2^i$, allowing you to quickly locate such a block by indexing the array
+- this results in a lot of internal fragmentation (e.g. 65 page chunk requested would yield a 128-page chunk)
+- **slab allocator**: second memory allocation which takes chunks from buddy algorihtm
+  and carves them into smaller slabs for separate management
+  - slabs maintain **object caches** which can be used for storing objects frequently
+    created/destroyed by the kernel
+
+### Representation of Virtual Address Space
+
+The virtual address space can be broken into **areas** that are runs of consecutive pages
+sharing protection and paging properties, e.g. text segment, mapped files
+
+- **`vm_area_struct`**: describes an area, including:
+  - protection mode (read/write),
+  - pinned/pageable,
+  - growth direction (up/down),
+  - private/shared between processes,
+  - whether it has backing storage on disk: e.g. text segment: uses executable binary as backing storage,
+    memory-mapped file: uses disk file as backing storage.  The stack doesn't have
+    backing storage assigned until they need to be paged out
+- **`mm_struct`**: top-level memory descriptor, with information about all virtual-memory
+  areas in an address space, information about different segments, users sharing the address
+  space
+
+There are 2 ways to access of an area of an address space via this top-level memory descriptor:
+
+- linked-list: useful when all areas need to be accessed, or the kernel is trying to
+  find a virtual memory region of a specific size to allocate
+- red-black tree: gives fast lookup when a specific virtual memory needs to be accessed
+
+### Paging
+
+- early UNIX used **swapper process** to move entire process between memory and disk
+- Linux: demand-paged system, no prepaging, no working set
+- paging is implemented by both kernel and **page daemon** (process 2), which runs periodically,
+  checking if there are sufficient free memory pages, and if not, it starts to free some
+- pages with backing storage are paged to their files on disk
+- pages without backing storage are paged to the **swap area** (either paging partition
+  or fixed-length paging file)
+- paging to a separation partition is more efficient:
+  - no mapping between file blocks/disk blocks is needed
+  - physical writes can be of any size, not just file block size
+  - page is always written contiguously to disk
+
+### Page Frame Reclaiming Algorithm
+
+- idea: keep some pages free so that they can be claimed as needed
+  - requires continual replenishment of the pool
+- page types
+  - *unreclaimable*: may not be paged out, e.g. kernel mode stacks
+  - *swappable*: must be written to the swap area before the page can be reclaimed
+  - *syncable*: must be written back to the disk if dirty
+  - *discardable*: can be immediately reclaimed
+- page daemon `kswapd` is started by `init` at boot for each node
+- each time it awakens, `kswapd` checks if there are enough free pages available.
+  If free pages falls below a threshold, it initiates PFRA
+- for each run, only a target number of pages is reclaimed, typically a maximum of 32,
+  to control I/O pressure
+- approach: reclaim easy pages, then harder ones
+  - discardable and unreferenced pages can be reclaimed immediately by moving to the
+    zone's free list
+  - pages with a backing store that haven't been referenced recently are next
+  - then come shared pages that no user seems to be using much
+  - pages that are invalid, absent from memory, shared, locked, or being used for
+    Direct Memory Access are skipped
+- uses a clock-like algorithm within a category to select old pages for eviction
+- pages get categorised by two flags: _active/inactive_ and _referenced/not referenced_
+
+![page-states-linux](img/page-states-linux.png)
+
+- when PFRA first scans pages, it clears the reference bits
+- on the next scan of pages, if the page has been referenced it is advanced to another state where it is
+  less likely to be reclaimed
+- pages on the inactive list which have not been referenced since last inspected are the
+  best eviction candidates
+- `pdflush`: a set of background daemons that wake periodically to write very old
+  dirty pages back to disk
+  - can also be explicitly awakened when the available memory falls below a threshold to write
+    dirty pages from the page cache back to disk
 
