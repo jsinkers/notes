@@ -3,7 +3,7 @@ title: Unix, Linux, Android
 notebook: Computer Systems
 layout: note
 date: 2020-07-07 22:51
-tags: 
+tags:
 ...
 
 # Unix, Linux, Android
@@ -47,6 +47,16 @@ tags:
   - [Representation of Virtual Address Space](#representation-of-virtual-address-space)
   - [Paging](#paging)
   - [Page Frame Reclaiming Algorithm](#page-frame-reclaiming-algorithm)
+- [I/O](#io)
+  - [Implementation](#implementation-2)
+  - [Modules](#modules)
+- [File System](#file-system)
+  - [System calls](#system-calls-1)
+  - [Virtual File System](#virtual-file-system)
+  - [`ext2`](#ext2)
+  - [`ext4`](#ext4)
+  - [`/proc` file system](#proc-file-system)
+- [Security](#security)
 
 
 ## History
@@ -328,7 +338,7 @@ tags:
   contain 1+ threads, sharing address space, open files, signal handlers, alarms, ...
 - `clone`: introduced in Linux in 2000, blurring the distinction between threads and processes,
   allowing parameters to be specified as process specific or thread specific
-  
+
 ```c
 pid = clone(function, stack_ptr, sharing_flags, arg);
 ```
@@ -437,7 +447,7 @@ gets shared.
   which has printed the prompt.  The user has typed `cp f1 f2`, causing the shell
   to `fork` off a child process executing `cp`.  The shell is blocked, waiting for the
   child to terminate.
-  
+
 ### Dynamic Loading
 
 - traditional UNIX: static linking of drivers
@@ -631,4 +641,261 @@ There are 2 ways to access of an area of an address space via this top-level mem
   dirty pages back to disk
   - can also be explicitly awakened when the available memory falls below a threshold to write
     dirty pages from the page cache back to disk
+
+## I/O
+
+- all I/O devices are made to look like files, and are accessed as such, using the
+  same system calls `read`, `write`, etc.
+- **special file**: integrates device into file system, with each device being assigned
+  a path e.g. `/dev/hd1`
+- **block special file**: consists of a sequence of numbered blocks, allowing addressing/accessing of individual blocks
+  - e.g. hard disk
+- **character special file**: input/output character stream
+  - e.g. keyboard, printer, network, mouse, ...
+- each special file is associated with a device driver handling the device
+- **sockets** are networking interfaces
+  - socket creation returns a file descriptor
+  - connections function like a pipe between processes
+
+![linux-sockets](img/linux-sockets.png)
+
+### Implementation
+
+- I/O is implemented by a collection of device drivers, one per device type
+- the driver isolates the rest of the system from the hardware particulars,
+  providing a standard interface that allows the I/O system to be largely machine-independent
+- major device number: identifies driver, used to index a hash table containing data structures
+  for character/block devices
+  - these structures contain pointers to procedures to open/read/write to the device
+- minor device number: allows distinguishing devices supported by the same driver
+- major + minor device numbers uniquely specify each I/O device
+- adding new device type to Linux involves adding an entry to one of the tables, and
+  supplying procedures to handle device operations
+
+Drivers are split into 2 parts, both of which are part of the kernel and run in kernel mode
+
+- top half: runs in the context of the caller, interfacing with the rest of Linux
+- bottom half: runs in kernel context, interacting with the device
+- drivers can call a set of kernel procedures e.g. memory allocation, timer management,
+  as defined in **Driver Kernel Interface** document
+- goal for system handling block special files: minimise the number of transfers required
+- Linux uses a page cache between disk drivers and the file system
+- **generic block layer**: performs translations between disk sectors, blocks, buffers,
+  pages of data
+- **page cache**: table in the kernel holding thousands of most recently used blocks
+  - works for reads and writes: when a program writes a block, it goes to the cache, not to disk
+  - `pdflush` daemon flushes the block to disk if the cache exceeds a threshold, and
+    dirty blocks are written to the disk every 30s
+- **I/O scheduler**: aims to reduce latency of repetitive disk-head movements by reordering
+  and bundling read/write requests to block devices
+- **Linux elevator scheduler**: sort disk operations in a doubly linked list, ordered
+  by address of the sector of the disk request
+  - new requests are inserted in order
+  - request list can be merged so that adjacent operations are issued via a single disk request
+  - to prevent starvation, two additional lists are maintained for read/write operations
+  - these lists are ordered by deadline, after which the read/write request will be
+    serviced before any on the main doubly linked list
+    - read deadline: 0.5s
+    - write deadline: 5s
+- **raw block file**: allow programs to access the disk using absolute block numbers
+  without regard to filesystem
+  - used for paging, swapping, file system utilities (e.g. `mkfs`, `fsck`)
+- **line discipline**: provide support for random access across a line on a device
+  that is otherwise a character device (supplying a stream of bytes), typically
+  a terminal
+- **network devices**: due to asynchronous nature they aren't easily integrated under the
+  same interface as character devices
+  - `skbuff`: socket buffer structure used to represent portions of memory filled with packet data
+
+### Modules
+
+- UNIX originally had device drivers statically linked into the kernel, so that they
+  were all present in memory when the system was booted.  This meant the kernel
+  was built specific to the devices being used.
+- with Linux on PCs, a vast array of I/O devices was possible, but building a separate
+  kernel is not feasible for widespread use
+- Linux uses **loadable modules** which are chunks of code loaded into the kernel
+  while it runs
+- process of loading a module
+  - relocate it on the fly
+  - check if resources needed are available and mark as in use
+  - set up interrupt vectors
+  - update driver switch table for new major device type
+  - perform device-specific initialisation
+  - driver is now fully installed
+
+## File System
+
+- exemplifies _small is beautiful_, providing minimal mechanisms and function calls
+  while providing powerful and elegant file system
+- initially Linux used `MINIX 1` file system, which was extremely limited in file name
+  length and file size
+- `ext` was developed with much longer file names and maximum file sizes, but was
+  slower than `MINIX 1`
+- `ext2`: long file names, long files, good performance
+- **virtual file system (VFS) layer** allows Linux to support multiple file systems,
+  which can be linked to the kernel or dynamically loaded
+- file: sequence of 0+ bytes.  No distinction between file types: this is entirely
+  up to the file owner
+- mount: disks can be mounted in different parts of the tree
+- **locking**: POSIX defines ability to lock from an individual byte to an entire file
+  into an atomic operation
+  - **shared lock**: a second attempt to place a lock on the same portion of a file already under a shared lock
+    will success for a shared lock, and fail for an exclusive lock
+  - **exclusive lock**: any attempt to lock a portion of a file under an exclusive lock will
+    fail until the lock is released
+  - for a lock to be placed every byte in the region must be available
+  - locked regions may overlap
+
+### System calls
+
+```c
+// create and open file "abc" with protection bits specified in mode
+fd = creat("abc", mode);
+```
+
+- file descriptor: small nonnegative integer used to index the process' file descriptor
+  table
+- each file has a pointer associated with it indicating the current position in the file
+- `lseek` allows you to change the value of the position pointer at will
+  - ironically it is the only file system call that never causes a real disk seek
+    because it is just updating a pointer value
+- `stat` lets you find out file metadata
+- `pipe` creates shell pipelines, creating a pseudofile that buffers data between pipeline
+  components
+
+![linux-file-system-system-calls](img/linux-file-system-system-calls.png)
+
+![linux-file-system-syscalls-dirs](img/linux-file-system-syscalls-dirs.png)
+
+### Virtual File System
+
+- VFS is a file-system abstraction that hides details of particular file systems
+  from user processes and applications, as well as whether the file system
+  is local or remote
+- VFS supports four main file-system structures:
+
+![file-system-strucures](img/file-system-strucures.png)
+
+- **superblock**: contains critical information about layout of the filesystem
+- **i-nodes**: index nodes, describe one file each
+- superblocks and i-nodes have corresponding structures maintained on the physical disk
+- **dentry**: struture representing a directory entry, a single component of a path, created on the fly
+  - cached in the `dentry_cache`
+- **file**: in-memory representation of an open file, created in response to an `open` syscall
+  - supports `read, write, sendfile, lock, ...`
+- operations in data structures for each VFS object are pointers to underlying
+  functions in the file system
+
+### `ext2`
+
+- block 0: not used by Linux, contains boot code
+- block groups: disk partition is divided into block groups, with no consideration
+  for disk cylinder boundaries
+- **superblock**: contains information about the layout of the file system
+  - number of i-nodes
+  - number of disk blocks
+  - start of list of free disk blocks
+- uses bitmaps to keep track of free blocks and free i-nodes, each one block long
+- **i-nodes**: 128 bytes long
+
+![ext2-disk-partition](img/ext2-disk-partition.png)
+
+- within a directory, entries for files are in unsorted entry
+- as directories are searched linearly, it can take a long time to find an entry,
+  hence the **dentry cache** for recently accessed directories
+  - lookups use the name of the file
+
+![linux-directory-file](img/linux-directory-file.png)
+
+- e.g. lookup `/usr/ast/file`:
+
+1. system locates root directory (usually i-node 2), placing entry in dentry cache
+for future lookups of `/`
+2. look up `usr` in `/` to get i-node of `/usr` directory, and enter this in dentry cache
+3. fetch the i-node, extract the disk blocks from it
+4. search `/usr` directory file for filename string `ast`, and get the corresponding
+i-node number
+5. read the i-node for `/usr/ast`, and extract directory blocks
+6. look up `file` and find the i-node number
+7. use the i-node number to index the on-disk i-node table and bring it into memory
+8. put the i-node on an in-memory i-node table, which is a kernel data structure
+holding i-nodes for all open files
+
+
+- **open-file-description table**: maps between file descriptor of a process and
+  the i-node table, also storing the file position and read/write bit
+  - allows parent and child to share a file position, while allowing unrelated
+    processes to have their own file position values
+
+- e.g. reading a file `n = read(fd, buffer, nbytes)`
+  - use file descriptor to index the open-file-description table and map to an i-node and position
+  - if the file position falls in the first 12 blocks, read them in and copy the data
+    to the user.  Otherwise the i-node will have to contain a disk address to an
+    indirect block of i-nodes (of potentially several layers of indirection)
+
+![open-file-descriptor-and-indirection](img/open-file-descriptor-and-indirection.png)
+
+### `ext4`
+
+- `ext3` added journalling
+- `ext4` uses journalling and changed the block addressing scheme, supporting larger
+  files and file-system sizes
+- journal is a file managed as a circular buffer, and may be stored on the same or a separate
+  device from the main file system
+- **journal blocking device (JBD)** is used to perform read/write operations for the journal
+  - data structures: log record, atomic operation handle, transaction
+  - log record: describes low-level file system operation resulting in changes within a block
+  - atomic operation handle: ext4 notifies JBD at start/end of system-call processing
+  - transaction: collects atomic operations for efficiency reasons
+- can be configured to journal all disk changes, or only metadata changes, with the latter
+  providing less system overhead but no protection against file data corruption
+- **extents**: contiguous blocks of storage, e.g. 128MB of 4KB blocks, are used in `ext4`
+  - don't need metadata operations for each block of storage
+  - reduces fragmentation of large files
+  - increases speed of file system operations
+  - supports larger files and file system sizes
+
+### `/proc` file system
+
+- for every process in the system, a directory is created in `/proc`, named after
+  the PID
+- directory contains files with information about the process: environment, signal masks, ...
+- provides safe way for user programs to learn about system behaviour
+- provides way to tune some system parameters
+
+## Security
+
+- **UID User ID**: unique ID for a registered user of a linux system, 0-65,535
+  - files are marked with the UID of their owner
+  - **superuser/root**: UID 0; power to read/write all files in the system, as well
+    as make some protected system calls
+- **GID Group ID**: used to group users, 16-bit integer
+- each process carries the UID and GID of its owner
+- when a file is created, it gets the UID and GID of the creating process
+- the file also gets permissions determined by the creating process
+- **permissions**: 9 bits representing read/write/execute for
+  - owner
+  - group
+  - everyone else
+
+[`chmod` calculator](https://chmod-calculator.com/)
+
+|   Binary    |  Symbolic   | Octal | Allowed file access                                             |
+|:-----------:|:-----------:|:------|:----------------------------------------------------------------|
+| `111000000` | `rwx------` | `700` | Owner can read, write, execute                                  |
+| `110100000` | `rw-r-----` | `640` | Owner can read, write; group can read                           |
+| `111101101` | `rwxr-xr-x` | `755` | Owner can read, write, execute; all others can read and execute |
+
+- **`SETUID`**: additional protection bit which can be set on a program, such that
+  the **effective UID** for the process becomes the UID of the executable file's owner,
+  rather than the UID of the user who invoked it.  Temporary change in permissions
+  allowing the user to execute a program
+  - useful for say, granting access to a printer
+  - many sensitive programs are owned by root but with `SETUID` set, e.g. `passwd` the program
+    allowing users to change their passwords.  This needs to write in the passwords
+    file, but you don't want to give users free ability to write to it.  Instead they
+    can invoke `passwd`, which has full access to the password file, but only changes
+    the caller's password
+
 
