@@ -898,4 +898,244 @@ holding i-nodes for all open files
     can invoke `passwd`, which has full access to the password file, but only changes
     the caller's password
 
+## Questions
+
+
+1. Explain how writing UNIX in C made it easier to port it to new machines. 
+
+This meant that you only needed to implement a C compiler for a particular architecture and re-implement
+specific device drivers, which involves
+less work than re-implementing a whole operating system in assembly for a different architecture.
+
+2. The POSIX interface defines a set of library procedures. Explain why POSIX standardizes library procedures instead of the system-call interface. 
+
+By standardising library procedures, some procedures can be implemented in user space.  It allows
+existing operating systems to implement POSIX without modifying their system calls, and prevents
+tightly coupling the kernel design to the POSIX interface.
+
+3. Linux depends on gcc compiler to be ported to new architectures. Describe one advantage and one disadvantage of this dependency. 
+
+Advantage: Linux can use special capabilities of gcc
+Disadvantage: Linux cannot be compiled with other compilers, e.g. `llvm` which may 
+provide more features 
+
+4. A directory contains the following files: 
+
+```
+aardvark ferret koala porpoise unicorn 
+bonefish grunion llama quacker vicuna 
+capybara hyena marmot rabbit weasel 
+dingo ibex nuthatch seahorse yak 
+emu jellyfish ostrich tuna zebu 
+```
+
+Which files will be listed by the command `ls [abc]*e*`? 
+
+This command asks to list files starting with either a, b, or c, followed by 0 or more characters, then e, then 0 or more characters.
+`bonefish` is the only returned file.
+
+5. What does the following Linux shell pipeline do? grep nd xyz | wc –l
+
+Counts the number of lines containing "nd" in file xyz
+
+6. Write a Linux pipeline that prints the eighth line of file z on standard output. 
+
+```bash
+head -n 8 z | tail -n 1
+```
+
+7. Why does Linux distinguish between standard output and standard error, when both default to the terminal? 
+
+This allows standard output to be redirected without being affected by standard error, as the result may
+be pipeline.  It is also useful to be able to direct error output to a log file for debugging 
+
+8. A user at a terminal types the following commands: `a | b | c & d | e | f &` 
+After the shell has processed them, how many new processes are running? 
+
+6 new processes were started
+
+9. When the Linux shell starts up a process, it puts copies of its environment variables, such as HOME, 
+on the process’ stack, so the process can find out what its home directory is. If this process should 
+later fork, will the child automatically get these variables, too? 
+
+Yes.  The child's memory is an exact copy of the parent's, which includes the stack, of which the environment
+variables are a part.
+
+10. About how long does it take a traditional UNIX system to fork off a child process under the 
+following conditions: text size = 100 KB, data size = 20 KB, stack size = 10 KB, task structure = 1 KB, 
+user structure = 5 KB. The kernel trap and return takes 1 msec, and the machine can copy one 32-bit word 
+every 50 nsec. Text segments are shared, but data and stack segments are not. 
+
+Child process will have: data: 20KB, stack: 10KB, task structure: 1KB, user structure: 5KB = 36KB
+Trap and return: 1ms
+Copy 36KB / 32-bit words = 9000 words @ 50ns = 450$\mu$s
+
+Total: 1.45ms
+
+11. As multimegabyte programs became more common, the time spent executing the fork system call 
+and copying the data and stack segments of the calling process grew proportionally. When fork 
+is executed in Linux, the parent’s address space is not copied, as traditional fork semantics 
+would dictate. How does Linux prevent the child from doing something that would completely 
+change the fork semantics?
+
+Copy on write: the child gets pointers to the parent's address space, but marks the parent's pages 
+write-protected.  When the child attempts to write into the parent's address space, a fault occurs
+and a copy of the parent's page is created and allocated into the child's address space.
+
+12. Why are negative arguments to nice reserved exclusively for the superuser? 
+
+This is to prevent abuse of priority: all users would attempt to prioritise their processes.
+
+13. A non-real-time Linux process has priority levels from 100 to 139. What is the default static priority and how is the nice value used to change this? 
+
+The default static priority is 120.  
+`nice` allows you to adjust this by -20 to +19.  A positive nice value decreases the priority.
+
+14. Does it make sense to take away a process’ memory when it enters zombie state? Why or why not? 
+
+A process enters a zombie state when it exits but the parent hasn't waited for it.
+The process cannot run any more so it would be beneficial to free up the memory.
+
+15. To what hardware concept is a signal closely related? Give two examples of how signals are used. 
+
+A signal is closely related to hardware interrupt.  Signals are used for interprocess communication.
+
+- `SIGKILL` sends a kill signal
+- `SIGALRM` notifies a process that a period has elapsed
+
+16. Why do you think the designers of Linux made it impossible for a process to send a signal to another process that is not in its process group? 
+
+For security: to prevent malicious tampering, or prevent unintended signals being passed from processes that are not associated with that group.
+
+18. In general, do you think daemons have higher or lower priority than interactive processes? Why? 
+
+Lower priority, because interactive processes are more time-sensitive 
+
+19. When a new process is forked off, it must be assigned a unique integer as its PID. Is it sufficient 
+to have a counter in the kernel that is incremented on each process creation, with the counter used as 
+the new PID? Discuss your answer. 
+
+Almost - you also need to check which PIDs are already allocated.  As an example, if many processes 
+are created and destroyed the counter will eventually overflow, and process 0 and 1 will
+still be running.
+
+20. In every process’ entry in the task structure, the PID of the parent is stored. Why? 
+
+The parent PID is needed so that when the process exits the parent can be notified of the exit status.
+
+22. What combination of the sharing flags bits used by the Linux clone command 
+corresponds to a conventional UNIX fork call? To creating a conventional UNIX thread? 
+
+- conventional UNIX fork: none set
+- conventional UNIX thread: all set, `CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLINE_PARENT`
+
+23. Two tasks A and B need to perform the same amount of work. However, task A has 
+higher priority, and needs to be given more CPU time. Explain
+how will this be achieved in each of the Linux schedulers described in this chapter, 
+the O(1) and the CFS scheduler. 
+
+- O(1): runs highest priority task in the active list.  Each time it runs the priority may be reduced
+- CFS: uses a red-black tree sorted on the amount of cpu time each process has had.  Processes
+  with higher priority have time run more slowly than processes with low priority.
+
+24. Some UNIX systems are tickless, meaning they do not have periodic clock interrupts. Why is 
+this done? Also, does ticklessness make sense on a computer (such as an embedded system) 
+running only one process? 
+
+This is done because frequent clock interrupts can use a lot of CPU time.  Normally, processes make 
+hundreds of system calls per second, so the kernel can check on whether a process' quantum has elapsed
+during the system call, rather than using an interrupt.  If there is only 1 process, there is
+no need for pre-emption, so no interrupts are needed. 
+
+25. When booting Linux (or most other operating systems for that matter), the bootstrap 
+loader in sector 0 of the disk first loads a boot program which then loads the operating 
+system. Why is this extra step necessary? Surely it would be simpler to have the bootstrap 
+loader in sector 0 just load the operating system directly. 
+
+This allows you to keep the bootloader very small (i.e. it has to be at most 512 bytes), while the 
+boot program itself to load the operating system is quite complicated and will be quite large.  The boot
+program can also be modified this way (e.g. if the operating system is updated) without the disk 
+needing to be reorganised to locate the bootloader at the beginning (or else wasting disk space).
+
+26. A certain editor has 100 KB of program text, 30 KB of initialized data, and 50 KB of BSS. 
+The initial stack is 10 KB. Suppose that three copies of this editor are started 
+simultaneously. How much physical memory is needed (a) if shared text is used, and (b) if it is not? 
+
+- a. shared text: `100 + 30*3 + 50*3 + 10*3 = 370KB`
+- b. non shared: `(100+30+50+10)*3 = 570KB`
+
+27. Why are open-file-descriptor tables necessary in Linux?
+
+Open file descriptor tables map between a file descriptor and a physical page, maintaining the mode and file position.
+Having the open file descriptor table means that processes can share/copy a file descriptor, while other processes
+can have completely independent position in the same file.
+
+
+28. In Linux, the data and stack segments are paged and swapped to a scratch copy kept on a special paging disk or partition, but the text segment uses the executable binary file instead. Why? 
+
+The text is read-only, while the data and stack pages are likely to be modified.
+
+29. Describe a way to use `mmap` and signals to construct an interprocess-communication mechanism. 
+
+`mmap` is used to request the kernel to map a file to memory at a specific address.  Two processes
+can request the same file to be mapped to the same location, allowing shared access to physical memory.
+Half of this could be used by each process as it's write buffer.  A signal could be used to communicate
+to the other process that it has written a message, and the other process can now read it.
+
+30. A file is mapped in using the following mmap system call: `mmap(65536, 32768, READ, FLAGS, fd, 0)` 
+Pages are 8 KB. Which byte in the file is accessed by reading a byte at memory address 72,000? 
+
+The arguments for mmap are addr, len, prot, flags, fd, offset
+Here:
+addr = 65536
+
+`72000 - 65536 = 6464`
+
+i.e. byte 6464 is accessed
+
+32. Can a page fault ever lead to the faulting process being terminated? If so, give an example. If not, why not? 
+
+Yes: e.g. if the stack has bumped into the data stack, the next available page cannot be allocated to the
+stack, so the process must be terminated as it has run out of virtual memory.  Alternatively,
+the paging area of the disk may be full.
+
+34. It is stated in the text that a paging partition will perform better than a paging file. Why is this so? 
+
+Paging to a partition allows the use of a raw device, eliminating overhead from handling file-system data
+structures.
+
+35. Give two examples of the advantages of relative path names over absolute ones. 
+
+Convenient for the programmer
+Much simpler and requires fewer disk accesses
+
+36. The following locking calls are made by a collection of processes. For each call, tell what happens. If a process fails to get a lock, it blocks. 
+
+- a. A wants a shared lock on bytes 0 through 10.  
+- b. B wants an exclusive lock on bytes 20 through 30. 
+- c. C wants a shared lock on bytes 8 through 40. 
+- d. A wants a shared lock on bytes 25 through 35. 
+- e. B wants an exclusive lock on byte 8. 
+
+- a. A is granted shared lock from 0-10
+- b. B is granted exclusive lock from 20-30
+- c. C is denied the lock
+- d. A is denied the lock
+- e. B is denied the lock
+
+37. Consider the locked file of Fig. 10-26(c). Suppose that a process tries to lock bytes 10 and 11 and blocks. 
+Then, before C releases its lock, yet another process tries to lock bytes 10 and 11, and also blocks. What 
+kinds of problems are introduced into the semantics by this situation? Propose and defend two solutions. 
+
+The issue is which process should get the lock first.
+Solutions: leave it undefined, grant locks in order of request, let processes provide a priority when asking for a lock
+
+38. Explain under what situations a process may request a shared lock or an exclusive lock. What problem 
+may a process requesting an exclusive lock suffer from? 
+
+39. If a Linux file has protection mode 755 (octal), what can the owner, the owner’s group, and everyone 
+else do to the file? 
+
+40. Some tape drives hav e numbered blocks and the ability to overwrite a particular block in place without 
+disturbing the blocks in front of or behind it. Could such a device hold a mounted Linux file system?
 
