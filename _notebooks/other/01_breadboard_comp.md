@@ -11,7 +11,7 @@ tags:
 [TOC]: #
 
 
-![my breadboard computer](https://imgur.com/gallery/4jkHO5a)
+[my breadboard computer](https://imgur.com/gallery/4jkHO5a)
 
 Tonight is the first night of curfews in Melbourne following continued COVID-19 deaths and
 new cases that have not given way in spite of the lockdown we were already facing.  I am 
