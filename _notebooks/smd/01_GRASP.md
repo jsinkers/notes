@@ -8,28 +8,57 @@ tags:
 
 # GRASP
 
-[TOC]: #
-
 ## Table of Contents
 
+<!-- vim-markdown-toc GFM -->
+
+* [GRASP: Overview and Interrelationship](#grasp-overview-and-interrelationship)
+* [Responsibilities](#responsibilities)
+* [Creator](#creator)
+* [Information Expert](#information-expert)
+* [Low Coupling](#low-coupling)
+* [High Cohesion](#high-cohesion)
+* [Controller](#controller)
+* [Polymorphism](#polymorphism)
+* [Pure Fabrication](#pure-fabrication)
+* [Indirection](#indirection)
+* [Protected Variations](#protected-variations)
+  * [Liskov Substitution Principle](#liskov-substitution-principle)
+  * [Don't talk to strangers](#dont-talk-to-strangers)
+
+<!-- vim-markdown-toc -->
 
 ## GRASP: Overview and Interrelationship
 
-- types of responsibility:
-  - _knowing_: 
-  - _doing_:
 - General Responsibility Assignment Software Patterns
-  - Creator
-  - Information expert
-  - Low coupling
-  - High cohesion
-  - Controller
-  - Polymorphism
-  - Pure fabrication
-  - Indirection
-  - Protected variations
+- __pattern__: named and well-known problem and solution that can be applied to new contexts, providing guidance for 
+  assessing trade-offs 
 
-- <!-- TODO taxonomy --> 
+![Relationship between grasp principles](img/relationship-between-grasp-principles.png)
+
+## Responsibilities
+
+- __responsibility__: contract/obligation
+- types of responsibility:
+  - _doing_: an object could
+    - do something itself, e.g. create an object, perform a calculation
+    - initiate action in other objects
+    - control/coordinate activities in other objects
+  - _knowing_: an object could
+    - know about private encapsulated data
+    - know about related objects
+    - know about things it can derive/calculate
+
+- __low representational gap__: domain model can be used to inspire _knowing_ responsibilities 
+- __granularity__: big responsibilities may take hundreds of classes/methods, while small ones 
+  may take a single method
+- responsibilities are distinct from methods: responsibilities are an abstraction, but methods 
+  fulfill responsibilities
+- __collaboration__: responsibiilities may involve multiple objects working together to fulfill a responsibility
+
+- __Responsibility Driven Design:__ way to think about assigning responsibilities inOO software design, 
+  where the design comprises a community of collaborating responsible objects
+
 
 ## Creator
 
