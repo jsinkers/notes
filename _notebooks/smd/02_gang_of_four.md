@@ -119,7 +119,7 @@ __Solution:__ create a Factory, a Pure Fabrication, that handles object creation
 
 __Implementation:__
 
-![img/adapter.png](Factory for an adapter)
+![Factory for an adapter](img/adapter.png)
 
 __Related:__ 
 - Factories are often accessed with the Singleton pattern
@@ -182,7 +182,7 @@ __Solution:__ define each algorithm in a separate class, implementing a common i
 __Implementation:__
 - a strategy object is passed the context object, which it uses to apply the algorithm
 
-![img/strategy.png](Strategy Pattern)
+![Strategy Pattern](img/strategy.png)
 
 ```java
 public interface RouteStrategy {
@@ -231,7 +231,7 @@ __Solution:__ define classes for both atomic and composite objects, both impleme
 
 __Implementation:__
 
-![img/composite.png](Composite)
+![Composite](img/composite.png)
 
 __Notes:__
 - _IDs to objects:_ often rather than just passing around strings of IDs it ends up more flexible to create a full-fledged
@@ -269,7 +269,7 @@ subsystem.  This provides a unified interface and is responsible for collaborati
 
 __Implementation:__
 
-![img/facade.png](ATM with a facade)
+![ATM with a facade](img/facade.png)
 
 Note `ATM` is a controller, while `BankAccountFacade` is the `Facade`.
 
@@ -301,7 +301,7 @@ register interested subscribers and notify them when an event occurs.
 
 __Implementation:__
 
-![img/observer.png](Observer pattern)
+![Observer pattern](img/observer.png)
 
 __Related:__ 
 - based on Polymorphism
@@ -328,11 +328,11 @@ __Solution:__
 - add behaviours to objects by placing them within special wrapper objects which contain the behaviours
 - use this when it is awkward/not possible to extend an object's behaviour with inheritance
 
-![img/decorator-1.png](Decorator acting as a wrapper)
+![Decorator acting as a wrapper](img/decorator-1.png)
 
 __Implementation:__
 
-![img/decorator-2.png](Decorator Pattern)
+![Decorator Pattern](img/decorator-2.png)
 
 __Related:__ 
 - Adapter changes interface of an existing object, while Decorator enhances the object without modifying 
