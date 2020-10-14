@@ -8,10 +8,56 @@ tags:
 
 # Real World Haskell
 
-[TOC]: #
-
 ## Table of Contents
 
+
+<!-- vim-markdown-toc GFM -->
+
+* [Getting started](#getting-started)
+* [Types and Functions](#types-and-functions)
+  * [Comment on Purity](#comment-on-purity)
+  * [Type constructors](#type-constructors)
+  * [`String`s](#strings)
+  * [Defining type synonyms](#defining-type-synonyms)
+  * [Type Classes](#type-classes)
+  * [Type Definitions](#type-definitions)
+  * [`newtype`](#newtype)
+  * [Comparison of `type`, `newtype`, `data`](#comparison-of-type-newtype-data)
+  * [Recursive Data Types](#recursive-data-types)
+  * [Defining operations on custom types](#defining-operations-on-custom-types)
+* [Binary Tree](#binary-tree)
+* [List Comprehension](#list-comprehension)
+  * [`zip`](#zip)
+* [Modules](#modules)
+* [Lazy evaluation](#lazy-evaluation)
+  * [Infinite Lists](#infinite-lists)
+  * [What drives evaluation?](#what-drives-evaluation)
+  * [Sieve of Eratosthenes](#sieve-of-eratosthenes)
+* [I/O and Monads](#io-and-monads)
+  * [Input Actions](#input-actions)
+  * [Output Actions](#output-actions)
+  * [File I/O](#file-io)
+  * [Binding and Sequencing](#binding-and-sequencing)
+  * [Do](#do)
+* [Partial Application and Currying](#partial-application-and-currying)
+* [Kind](#kind)
+* [Functors](#functors)
+  * [Mapping over an `IO` action:](#mapping-over-an-io-action)
+  * [Mapping over `Maybe`](#mapping-over-maybe)
+  * [Functions as Functors](#functions-as-functors)
+  * [`fmap` perspectives](#fmap-perspectives)
+  * [Functor Laws](#functor-laws)
+* [Applicative Functors](#applicative-functors)
+  * [Maybe](#maybe)
+  * [Applicative Style](#applicative-style)
+  * [Lists](#lists)
+  * [IO](#io)
+  * [Functions `(->) r`](#functions---r)
+* [Monoid Type Class](#monoid-type-class)
+  * [Lists](#lists-1)
+  * [Boolean: Any and All](#boolean-any-and-all)
+
+<!-- vim-markdown-toc -->
 
 ## Getting started
 
@@ -37,7 +83,6 @@ tags:
   - makes type errors at runtime impossible
 - __type inference__: compiler can automatically deduce the types of most expressions
 - __type signature__: `:: Type`
-- function application is left-associative: `a b c d` is equivalent to `(((a b) c) d)`
 - __side effect__: dependency between global state of the system and the behaviour of a function
   - invisible inputs to/outputs from functions
 - __pure function__: has no side effects, the default in Haskell
@@ -112,6 +157,22 @@ Typically, you use the same name for the type and data constructor:
 ```Haskell
 data Point = Point Float Float
 ```
+
+- __value constructor/data constructor__: creates a new value of a specified type
+
+### `newtype`
+
+- used when you want to take one type and wrap it in something to present it as
+another type
+- faster than `data`
+- can only use it if there is a single value constructor with a single field
+
+### Comparison of `type`, `newtype`, `data`
+
+- `data`: useful when you're trying to make something new
+- `type`: useful when you want to make type signatures more descriptive
+- `newtype`: useful for wrapping existing types in new types to make it an
+instance of a typeclass
 
 ### Recursive Data Types
 
@@ -489,3 +550,282 @@ main
 
 - Haskell is layout sensitive: you need to indent actions the same or else they won't be considered
   part of the `do` expression
+
+## Partial Application and Currying
+
+- all Haskell functions actually take one parameter: a function `a -> b -> c`
+  takes one parameter of type `a` and returns a function `b -> c`, which takes
+  one parameter and returns `c`
+- this means we can call a __partially apply__ a function by providing it with
+  insufficient arguments, and it gives us back a function that takes the
+  remaining number of arguments
+- function application is left-associative: `a b c d` is equivalent to 
+  `(((a b) c) d)`
+- `->` is __right-associative__ i.e. `a -> b -> c` is interpreted `a -> (b -> c)`
+
+## Kind
+
+- __kind__: type of a type
+  - use `:k` in `ghci` to list the kind of something
+  - `*`: indicates the type is concrete
+  - `* -> *`: indicates the type takes one concrete type as a type parameter
+
+## Functors
+
+- `Functor` is a type class of types that can be mapped over, and 
+  requires the definition of one function, `fmap`
+
+```haskell 
+class Functor f where 
+    fmap :: (a -> b) -> f a -> f b
+```
+
+- types that act like a box can be functors: a list can be thought of as a box
+  that is empty of has something in it
+- `fmap` then applies the function to the values inside the box, like performing
+  _keyhole surgery_
+- `<$>` is an infix alias for `fmap`
+- think of functors as values within contexts
+
+- examples of `Functors`:
+  - `List` 
+  - `Maybe`
+  - `(->) r`
+  - `IO`
+- `Functor` is of kind `* -> *`: it takes exactly one concrete type
+
+### Mapping over an `IO` action:
+
+```haskell
+instance Functor IO where
+  fmap f action = do
+      -- get a result from the IO action
+      result <- action
+      -- inject the value of the function applied to the result
+      return (f result)
+```
+
+
+### Mapping over `Maybe` 
+
+- When you try to `map` over a list of `Maybe`s, you find you need to unpack each
+value to apply the function to the value held within the `Maybe`.  
+- As `Maybe` is a `Functor`, you can instead `fmap` over the list to get the 
+  desired result
+
+```haskell
+-- lookup will return a Maybe Int
+fmap sum (Map.lookup student marks)
+```
+
+### Functions as Functors
+
+- function type `r -> a` can be written in prefix notation as `(->) r a`
+- from this perspective, `(->)` is just a type constructor taking two type
+  parameters
+- as `Functor` accepts exactly one concrete type, `(->)` needs to already be
+  partially applied to type `r`
+
+```haskell
+instance Functor ((->) r) where
+  fmap f g = (\x -> f (g x))
+```
+
+- to map a function over a function, you do function composition.  
+- An equivalent definition is:
+
+```haskell
+instance Functor ((->) r) where
+  fmap = (.)
+```
+
+- functions as functors are also values in contexts
+- __lifting a function__: revisiting the type of `fmap`, adding right
+  associative parentheses `fmap :: (a -> b) -> (f a -> f b)`, we see that we can
+  think of `fmap` as taking a function from `a -> b` and returns a new function
+  that takes a functor value as a parameter, and returns a functor value as the
+  result
+
+### `fmap` perspectives
+
+You can consider `fmap` in 2 ways:
+
+- as a function taking a function and a functor value, then mapping that 
+  function over the functor value (keyhole surgery)
+- as a function `f` taking a function `g`, where `f` lifts `g` so that it
+  operates on functor values
+
+### Functor Laws
+
+When you define a functor, you need to check that it conforms to the expected
+properties for it to be well-behaved:
+
+- identity: `fmap id = id`
+- composition: `fmap (f . g) = fmap f . fmap g`
+
+## Applicative Functors
+
+- `Functor` only works for unary functions, but not for anything of greater
+arity: we can't map a function inside a functor value over another functor value
+using `fmap`
+- __`Applicative` type class__: applicative functors are beefed-up functors that
+  contain functions that can be applied to other functors
+
+```haskell
+class (Functor f) => Applicative f where
+    pure :: a -> f a
+    (<*>) :: f (a -> b) -> f a -> f b
+
+    -- c.f. fmap :: (a -> b) -> f a -> f b
+```
+
+- to make a type an instance of `Applicative`, you need to define `pure` and
+`(<*>)` functions
+- `pure`: 
+  - inserts a value into the applicative functor
+  - takes a value of any type and returns an applicative value with that
+  value inside it (boxing)
+  - alternatively you could say it takes a value
+  and puts it in some pure/minimal context
+- `(<*>)`: beefed-up `fmap`
+  - `f (a -> b)`: takes a functor value with a function (call it `g :: a -> b`)
+  - `f a`: takes another functor
+  - maps `g` onto the value in the second functor
+
+- normal functors: mapping a function over a functor doesn't allow you to get a 
+  result out in a general way
+- applicative functors give you a way to operate on several functors using a
+  single function
+- every `Applicative` must also be a `Functor`, just as every `Ord` must be `Eq`
+- `(<*>)` is in some ways similar to a Cartesian product
+
+```haskell
+> (++) <$> ["a", "b", "c"] <*> ["1", "2"]
+["a1", "a2", "b1", "b2", "c1", "c2"]
+```
+
+### Maybe
+
+- `Maybe` is an instance of `Applicative`:
+
+```haskell
+instance Applicative Maybe where
+  -- to wrap it in an applicative value, we use Just (the value constructor)
+  pure = Just
+  -- can't extract a function from Nothing
+  Nothing <*> _ = Nothing
+  -- pull out the function, and apply it to the functor something with fmap
+  (Just f) <*> something = fmap f something
+```
+
+### Applicative Style
+
+- with `Applicative`, we can chain the use of `<*>` for operation across several 
+  applicative values
+
+```haskell 
+> pure (+) <*> Just 3 <*> Just 5
+Just 8
+```
+
+- breaking this down, by left-association of `<*>`: `(pure (+) <*> Just 3) <*>
+Just 5`
+- `(+)` gets put in an applicative value: a `Maybe` containing `(+)`
+- `Just (+) <*> Just 3` produces `Just (3+)` by partial application
+- `Just (3+) <*> Just 5` produces `Just 8`
+
+- observation: we can apply a function that doesn't expect any applicative
+values (like `(+)`) and apply it to a bunch of applicative values
+- `pure f <*> x` is the same as `fmap f x`: 
+  - `pure f <*> x <*> y <*> ...` can be rewritten as `fmap f x <*> y <*> ...`
+  - using infix notation: `f <$> x <*> y <*> ...`
+- to apply a function `f` between three applicative values `x, y, z`: 
+  `f <$> x <*> y <*> z`, where we would normally write `f x y z`
+
+### Lists
+
+- List type constructor `[]` is an applicative functor
+
+```haskell 
+instance Applicative [] where
+  -- pure inserts a value into a minimal context yielding the value, i.e. a singleton
+  pure x = [x]
+  -- applies functions in the list on the lhs to all values on the rhs
+  fs <*> xs = [f x | f <- fs, x <-xs]
+```
+
+- using the applicative style on lists can be a good replacement for list
+comprehension
+
+```haskell
+[ x*y | x <- [2,5,10], y <- [8,10,11]]
+(*) <$> [2,5,10] <*> [8,10,11]
+```
+
+### IO
+
+- also an applicative functor
+
+```haskell
+instance Applicative IO where
+    -- inject a value into a minimal context that still holds the value with return
+    pure = return
+    -- takes IO action a, which gives a function
+    a <*> b = do 
+        -- perform the function, bind the result to f
+        f <- a
+        -- perform b and bind the result to x
+        x <- b
+        -- apply f to x and yield that as the result
+        return (f x)
+```
+
+- `Maybe`, `[]`: `<*>` was extracting a function from LHS and applying it to RHS
+- with `IO`, we are still extracting a function, but also sequencing actions (as
+  to extract a result from an IO action it needs to actually be performed)
+
+### Functions `(->) r`
+
+- also applicative functors
+- not often used.  See LYAH for details
+
+```haskell 
+> (+) <$> (+3) <*> (*100) $ 5
+508
+```
+
+- this makes a function that uses `+` on the results of `(+3)` and `(*100)`, and
+applies it to `5`
+
+## Monoid Type Class
+
+- __monoid__: made of an __associative binary function__ and a value acting as an
+__identity__ for that function
+- `1` is identity for `*`  
+- `[]` is identity for `++`
+
+```haskell
+class Monoid m where
+    mempty :: m
+    mappend :: m -> m -> m
+    mconcat :: [m] -> m
+    mconcat = foldr mappend mempty
+```
+
+- `mempty`: polymorphic constant, representing the identity value of the monoid
+- `mappend`: binary function, taking 2 values of a type and returning a value of
+the same type
+  - don't read too much into the name: doesn't necessarily have anything to do
+  with appending
+- `mconcat`: takes a list of monoid values and reduces them to a  single value
+using `mappend`
+
+### Lists
+
+```haskell
+instance Monoid [a]
+    mempty = []
+    mappend = (++)
+```
+
+### Boolean: Any and All
