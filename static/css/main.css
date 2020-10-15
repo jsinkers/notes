@@ -398,11 +398,17 @@ h6 {
         color: #eee;
       }
 
-    #nav-bg, a#logo, #top-nav, #top-nav a, .trigger {
+    #page-header, #nav-bg, a#logo, #top-nav, #top-nav a, .trigger {
       background-color: #A6E22E;
       /*background-color: #6300b1;*/
       color: #202020;
     }
+
+    #page-header h3 {
+      color: #202020;
+    }
+
+    
 
     a:hover > code  {
         background-color: #66D9EF;
