@@ -11,6 +11,7 @@ tags:
 [TOC]: #
 
 ## Table of Contents
+
 - [Readings](#readings)
 - [Principles of Network Applications](#principles-of-network-applications)
   - [Network Application Architectures](#network-application-architectures)
@@ -51,16 +52,6 @@ tags:
   - [DNS Caching](#dns-caching)
   - [DNS Security](#dns-security)
 
-
-
-
-
-## Readings
-- [x] K&R 2.1
-- [x] K&R 2.2
-- [x] K&R 2.3
-- [x] K&R 2.4
-- [ ] K&R 2.6
 
 ## Principles of Network Applications
 
@@ -236,7 +227,7 @@ Consists of
 
 - **cookies** allow sites to keep track of users to identify users, either to restrict
   access or serve tailored content
-- place small amount of info (<4kB) on user's computer,
+- place small amount of info (less than 4kB) on user's computer,
 - fields: domain: server the cookie belongs to, path, content, expiry, security
 - HTTP messages carry state
 - components
@@ -244,7 +235,7 @@ Consists of
   - cookie header line in HTTP request message: `Cookie: 1678`
   - cookie file kept on user's end system, managed by the browser
   - back-end database server-side
-- when you access a site, it may respond with a Set-cookie: <id>, with that id and the server hostname
+- when you access a site, it may respond with a `Set-cookie: id`, with that id and the server hostname
   being appended to a cookie file.  When you make HTTP requests this id is
   added to the header, and the server uses it for some cookie-specific action,
   such as maintaining intended purchases.
@@ -285,12 +276,12 @@ Consists of
 - **hypertext markup language (HTML)**
   - plain text encoding, browser rendering
 - components of a web page
-  - Head <head>...</head>
-  - Body <body>...</body>
-  - Attributes and values <img src="pic1.gif" alt="<pic1.gif>">
-  - hyperlinks/anchors <a href="next_page.html">
-  - cannot nest tags, < and > can be in argument strings
-  - cannot mis-nest <b><i>text</b></i> $\Rightarrow$ <b><i>text</i></b>
+  - Head `<head>...</head>`
+  - Body `<body>...</body>`
+  - Attributes and values `<img src="pic1.gif" alt="<pic1.gif>">`
+  - hyperlinks/anchors `<a href="next_page.html">`
+  - cannot nest tags, `<` and `>` can be in argument strings
+  - cannot mis-nest `<b><i>text</b></i> $\Rightarrow$ <b><i>text</i></b>`
 
 ### Dynamic content
 
@@ -393,12 +384,14 @@ Consists of
 - headers are separated by `<CR><LF>`
 - header ends with a blank line i.e. `<CR><LF>`
 - mandatory header lines:
+
 ```
 From: abc@xyz.com
 To: ijk@bbb.com
 Subject: searching for the meaning of life
 ```
 - other header lines:
+
 ```
 CC:
 Bcc:
@@ -481,7 +474,7 @@ Reply-To:
     - in summary: it doesn't scale
 
 ### DNS Components
-[TODO]
+
 - **domain name space**:
 - **DNS database**
 - **name servers**
@@ -493,6 +486,7 @@ Reply-To:
 - $\le$ 63 chars per constituent
 - $\le$ 255 chars per path
 - can be internationalised: introduces security problems as people can repeat domain name
+
 ![dns_tree](img/dns_tree.png)
 
 - opened up in 2014 to allow e.g. `.accenture`
@@ -524,7 +518,7 @@ Reply-To:
 
 ### Types of name servers
 
-Hierarchy
+__Hierarchy__
 
 - **Root DNS servers**: managed by 13 different organisations, with [~1100 (at 2020-03-12)](https://root-servers.org/) distinct server instances around the world
   - provide IP address of TLD servers
@@ -566,6 +560,7 @@ Hierarchy
 _**DNS message format**_
 
 - to see this in action, use `nslookup`:
+
 ```bash
 # query A record for google.com
 $ nslookup
@@ -598,6 +593,7 @@ registermachine.com     nameserver = ns-894.awsdns-47.net.
 
 Authoritative answers can be found from:
 ```
+
 ### DNS Caching
 
 - DNS caching used extensively to
