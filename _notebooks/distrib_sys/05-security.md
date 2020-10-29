@@ -44,33 +44,43 @@ tags:
   - $E$ encryption algorithm
   - $D$ a decryption algorithm
 
-### Scenario 1: Ensuring Secrecy
+### Scenario 1: Secret communication via shared secret key
 
-Alice and Bob share a secret key $k_{AB}$ encryption/decryption algorithm.
-If the decrypted message makes sense or contains an agreed upon-value (checksum etc).
+Alice and Bob share a secret key $k_{AB}$, and agree upon an encryption/decryption algorithm.
 
-Bob can be confident: 
+If the decrypted message makes sense or contains an agreed upon-value (checksum etc), Bob can be confident: 
+
 - the message came from Alice
 - the message hasn't been tampered with
 
-Issues:
+__Issues__
 - how to securely __send the shared key__?
 - how can Bob know any message is not a __replay__?
 
 Alice needs to send something with the message so that Bob can verify it isn't a replay
 
-### Scenario 2: Authentication
+### Scenario 2: Authenticated communication with a server
 
-Alice wants to access Bob's resource.  Sara is a securely managed authentication server.
-Sara issues passwords to all users, and knows $k_A, k_B$, as they are derived from the passwords.
+- Alice wants to access Bob's resource.
+- Sara is a securely managed authentication server.
+- Sara issues passwords to all users, and knows secret keys $k_A, k_B$, as they are derived from the passwords.
+  - user passwords aren't transmitted over the network
+- __ticket__: encrypted item issued by authentication server, containing the identity of the principal 
+  and a shared key generated for the current communication session
 
-- Alice sends a plaintext message to Sara stating identity and requesting a ticket for access to Bob
-- Sara sends a ticket to Alice encrypted with $k_A$ containing ticket encrypted by $k_B$, and a
-  new secret key $k_{AB}$
+1. Alice sends a plaintext message to Sara stating identity and requesting a ticket for access to Bob
+2. Sara sends a ticket $\{K_{AB}, \text{Alice}\}_{K_B}$ to Alice encrypted with $k_A$ containing ticket encrypted by $k_B$, and a
+   new secret key $k_{AB}$: $\{\{\text{Ticket}\}_{K_B}, K_{AB}\}_{K_A}$
+3. Alice decrypts with $K_A$, giving a ticket for Bob and a shared key: 
+     - Alice can't tamper with the ticket, as it's encrypted with $K_B$
+4. Alice sends the ticket to Bob with her identity and request $R$ to access a file: $\{\text{Ticket}\}_{K_B}, Alice, R$
+5. Bob decrypts the ticket with $K_B$, allowing him to confirm Alice's identity, and establishes a shared session key $K_{ AB }$
+
+
 
 0 TODO:  <15-10-20, yourname> 0
 
-Issues:
+__Issues__
 - how to trust server?
 - how to enrol in the system?
 
