@@ -2,7 +2,7 @@
 title: Name Services
 notebook: Distributed Systems
 layout: note
-date: 2020-10-22
+date: 2020-10-29
 tags: 
 ...
 
