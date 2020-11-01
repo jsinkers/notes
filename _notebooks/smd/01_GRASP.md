@@ -56,7 +56,7 @@ tags:
   fulfill responsibilities
 - __collaboration__: responsibiilities may involve multiple objects working together to fulfill a responsibility
 
-- __Responsibility Driven Design:__ way to think about assigning responsibilities inOO software design, 
+- __Responsibility Driven Design:__ way to think about assigning responsibilities in OO software design, 
   where the design comprises a community of collaborating responsible objects
 
 
