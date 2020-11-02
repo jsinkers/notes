@@ -156,6 +156,7 @@ Approaches:
 
 - __attribute:__ logical data value of an object
 - include when requirements suggest a need to remember information
+- do not show visibility: this is a design detail
 
 ### Creating a Domain Model
 
@@ -254,3 +255,39 @@ Approaches:
   actors and the system
 - Design sequence diagram illustrates behaviours __within__ the system, focusing on interaction
   between software objects
+
+### Lifeline Notation
+
+![Lifeline Notation](img/dsd-lifeline-notation.png)
+
+### Reference frames
+
+![Reference Frames](img/uml-reference-frames.png)
+
+### Loop frames
+
+![Loop Frame](img/uml-loop-frame.png)
+
+## Visibility
+
+- __visibility:__ ability of an object to see/refer to another object
+- objects require visibility of each other in order to cooperate
+- e.g. for `A` to send a message to `B`, `B` must be visible to `A`
+
+### Achieving visibility
+
+`A` can get visibility of `B` in 1 of 4 ways:
+
+1. `B` is an attribute of `A`
+2. `B` is a parameter of a method of `A`
+3. `B` is a (non-parameter) local object in a method of `A`
+4. `B` has global visibility
+
+## Translating design models to code
+
+- build least-coupled classes first, as more highly coupled classes will depend on these
+- use `Map` for key-based lookup
+- use `List` for growing ordered list
+- declare variable in terms of the interface (e.g. `Map` over `HashMap`)
+
+## 

@@ -31,10 +31,17 @@ tags:
 ## GRASP: Overview and Interrelationship
 
 - General Responsibility Assignment Software Patterns
-- __pattern__: named and well-known problem and solution that can be applied to new contexts, providing guidance for 
-  assessing trade-offs 
+- __pattern__: named and well-known problem and solution that can be applied to
+  new contexts, providing guidance for assessing trade-offs 
 
 ![Relationship between grasp principles](img/relationship-between-grasp-principles.png)
+
+### Benefits of patterns
+
+- capture expertise in an accessible, standardised manner 
+- facilitate reuse of applying expertise
+- improve understandability and communication, by operating in a common language
+- inspiration for new solutions based on modifying existing patterns
 
 ## Responsibilities
 
