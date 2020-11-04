@@ -11,9 +11,251 @@ tags:
 
 ## Table of Contents
 
-## Prolog
+# Prolog
 
-### Predicates
+## Key points
+
+- __closed world assumption:__ anything you haven't said to be true is assumed to be false
+- __negation as failure:__ to execute `\+G`, Prolog first tries to prove `G`.  If it fails, `\+G` succeeds.
+  Otherwise, it fails.
+  - failing goals does not bind variables, so `\+G` cannot solve for variables
+  - ensure all variables in a negated goal are bound before the goal is executed
+- __terms:__ all data structures are terms.  They can be 
+  - __atomic:__
+    - integers, floating point numbers
+    - __atoms:__ begins with lower case letter
+  - __compound:__ functor/function symbol followed by 0+ arguments
+  - __variable:__ denotes a single unknown term, begins with upper case letter
+    - single `_` specifies a different variable each time it appears
+- __Datalog:__ fragment of Prolog with only atomic terms and variables
+- __single-assignment language:__ a variable can only be bound once
+- __ground term:__ contains no variables
+  - has only one instance
+- __nonground term:__ contains 1+ variable
+  - has an infinite number of instances
+- __substitution:__ mapping from variables to terms
+  - never replaces atomic/compound terms, only replaces variables
+- __applying a substitution:__ consistently replacing occurrences of each variable in the map with the term it is mapped to
+- do arithmetic with the `is/2` predicate, infix e.g. `X is 6*7`
+  - `is/2` only works if the 2nd argument is ground
+
+### Proper List
+
+- either empty `[]` or not `[X|Y]`
+- if not empty, the tail `Y` must be a proper list
+
+```prolog
+proper_list([]).
+proper_list([Head|Tail]) :- proper_list(Tail).
+```
+
+- this is a common pattern for recursive list traversal in Prolog
+
+### Append
+
+```prolog
+append([], C, C).
+append([A|B], C, [A|BC]) :- append(B, C, BC).
+```
+
+### Member
+
+```prolog
+member1(Elt, List) :- append(_, [Elt|_], List).
+
+member2(Elt, [Elt|_]).
+member2(Elt, [_|Rest]) :- member2(Elt, Rest).
+```
+
+- `member2` is more efficient: `member1` builds and ignores the list of elements before `Elt` in `List`.
+  The second does not.
+
+## Logic and Resolution
+
+### Interpretations
+
+- __interpretation__:
+  - atomic terms stand for entities in the __domain of discourse (universe)__
+  - each functor (function symbol of arity $n > 0$ stands for a function from $n$ entities to one entity
+    in the domain
+  - each predicate of arity $n$ stands for a particular relationship between $n$ entities in the domain of discourse
+
+### Views of predicates
+
+- predicate with $n$ arguments can be viewed in different ways:
+  - function from all possible combinations of $n$ terms to a truth value
+  - set of tuples of $n$ terms.  Every tuple in the set is implicitly mapped to true, while every other tuple
+    is mapped to false
+- predicate definition is then, for each view
+  - define the mapping
+  - define the set of tuples
+
+### Meaning of clauses
+
+```prolog
+grandparent(A, C) :- parent(A,B), parent(B,C).
+```
+
+means "for all terms that A and C may stand for: A is a grandparent of C if there is a term B such that A is a parent of B,
+ and B is a parent of C"
+
+$$
+\forall A,C (grandparent(A,C) \leftarrow \exists B (parent(A,B) \wedge parent(B,C))).
+$$
+
+- variables in the head are universally quantified over the entire clause
+- variables appearing only in the body are existentially quantified over the body
+
+### Meaning of predicate definitions
+
+- predicates are define by a finite number of clauses, each of which is in the form of an implication
+- e.g. `parent(queen_elizabeth, prince_charles)` represents
+$$
+\forall A,B(parent(A,B) \leftarrow (A = \text{queen\_elizabeth} \wedge B = \text{prince\_charles}))
+$$
+
+- the meaning of the predicate is a disjunction of the bodies of all the clauses:
+$$
+\forall A,B : parent(A,B) \leftarrow 
+  \newline(A = \text{queen\_elizabeth} \wedge B = \text{prince\_charles}) \vee
+  \newline(A = \text{prince\_philip} \wedge B = \text{prince\_charles}) \vee
+  \newline(A = \text{prince\_charles} \wedge B = \text{prince\_william})
+$$
+
+### Closed world assumption
+
+- to implement closed world assumption, make the implication biimplication
+$$
+\forall A,B : parent(A,B) \iff 
+  \newline(A = \text{queen\_elizabeth} \wedge B = \text{prince\_charles}) \vee
+  \newline(A = \text{prince\_philip} \wedge B = \text{prince\_charles}) \vee
+  \newline(A = \text{prince\_charles} \wedge B = \text{prince\_william})
+$$
+
+- A is not a parent of B unless they are one of the listed cases
+- adding reverse implication produces the __Clark completion__ of the program
+
+### Semantics
+
+- logic program P consists of a set of predicate definitions
+- __semantics/meaning of P__: set of __logical consequences__ as ground atomic formulae
+- a ground atomic formula $a$ is a logical consequence of a program $P$ if $P$ makes it true
+- a negated ground atomic formula $\neg a$ (`\+a`) is a logcical consequence of $P$ if $a$ is not
+  a logical conequence of $P$
+
+### Finding semantics
+
+- you can determine the semantics of a logic program by working backwards: instead of reasoning from 
+  a query to find a satisfying substitution, you reason from the program to find what ground queries
+  succeed.
+- immediate consequence operator $T_P$ takes a set of ground unit clauses $C$ and produces the set of ground
+  unit clauses implied by $C$ together with the program $P$
+- always includes all ground instances of all unit clauses in $P$
+- for each clause `H :- G1, ... Ga` in P
+
+e.g. 
+```prolog
+% P
+q(X,Z) :- p(X,Y), p(Y,Z).
+% C
+p(a,b).
+p(b,c).
+p(c,d).
+
+```
+Then:
+$$T_P(C) = \{q(a,c).q(b,d).\}$$
+
+- the semantics of P is always $T_P$ applied infinitely many times to the empty set: $T_P(T_P(...(\empty)...))$
+
+### Procedural interpretation
+
+```prolog
+grandparent(A, C) :- parent(A,B), parent(B,C).
+```
+
+Logical interpretation:
+
+$$
+\forall A,C (grandparent(A,C) \leftarrow \exists B (parent(A,B) \wedge parent(B,C))).
+$$
+
+Procedural interpretation: to show that A is a grandparent of C, it suffices to show A is a parent of B and B is a parent of C.
+
+### Selective Linear Definite Resolution
+
+- consequences of a logic program are determined through __resolution__
+- __SLD resolution__ is an efficient version of resolution
+- e.g. to determine if Queen Elizabeth is Prince Harry's grandparent:
+
+```
+?- grandparent(queen_elizabeth, prince_harry).
+```
+With program:
+```prolog
+granpdarent(X,Z) :_ parent(X,Y), parent(Y,Z).
+```
+
+- Unify query goal (`grandparent(queen_elizabeth, prince_harry)` with clause head `grandparent(X,Z)`
+- apply resulting substitution to the clause, to yield the __resolvent__
+- the goal is identical to the resolvent head, so we can replace it with the resolvent body:
+
+```
+?- parent(queen_elizabeth, Y), parent(Y, prince_harry).
+```
+
+- now pick one of these goals to resolve: say you choose `parent(Y, prince_harry)`
+- only two clauses can resolve with it:
+
+```prolog
+parent(prince_charles, prince_harry).
+parent(princess_diana, prince_harry).
+```
+
+- choose the second clause.  After resolution, we are left with the query:
+```
+?- parent(queen_elizabeth, princess_diana).
+```
+
+- no clause unifies with this query: resolution fails.  This can sometimes take many steps.
+- now __backtrack__ and try the first matching clause
+
+```
+?- parent(queen_elizabeth, prince_charles).
+```
+
+- there is a matching program clause, so there is nothing more to prove.  The query succeeds.
+
+![SLD Tree](img/sld-resolution-tree.png)
+
+### Order of Execution
+
+- order of goal resolution and trial of different clauses:
+  - doesn't matter for correctness
+  - does matter for efficiency
+- Prolog always selects the first goal to resolve, and always selects the first matching clause to pursue first
+  - allows programmer to control execution
+
+### Backtracking
+
+- when there are multiple clauses matching a goal, Prolog leaves a __choicepoint__ so that it can return to 
+  that state and try the next matching clause
+- when a goal fail, Prolog __backtracks__ to the most recent choicepoint
+  - removes all variable bindings since the choicepoint
+  - Prolog begins resolution with next matching clause
+  - once all matching clauses are exhausted, the choicepoint is removed
+  - subsequent failures then backtrack to the next choicepoint
+
+### Indexing
+
+- __indexing__ can improve efficiency
+- Prolog systems automatically create an index for predicates with multiple clauses, where the heads
+  have distinct constants/functors
+- for a call with the first argument called, Prolog immediately jumps to the first matching clause
+- SWI Prolog constructs indices for multiple arguments, meaning more queries benefit from indexing
+
+## Predicates
+
 - logic programming language based on predicate calculus
 - build on __predicates__ which define __relations__ among their arguments
 - e.g. relationships: parent/child
@@ -37,6 +279,7 @@ enrolled(don, logic).
 enrolled(don, art_history).
 
 ```
+
 You can then load this file, and make queries:
 
 ```prolog
@@ -48,9 +291,9 @@ true.
 false.
 
 ```
-- __closed world assumption__: anything you haven't said to be true is assumed to be false
 
-### Variables
+## Variables
+
 - __variables__ in Prolog can only hold one value each time it exists, and refers
   to the same value each place it appears in that scope.  Think of it as standing
   in for a value we don't yet know
@@ -88,7 +331,8 @@ true.
 
 ```
 
-### Compound queries
+## Compound queries
+
 - queries can involve conjunctions (`AND`), disjunctions (`OR`), and negations (`NOT`)
 - conjunction operator: `,`
 - disjunction operator: `:`
@@ -111,7 +355,8 @@ S = don.
 
 ```
 
-### Rules
+## Rules
+
 __Facts__ are clauses specifying that a relationship holds.
 __Rules__ are clauses that specifies that a relationship holds under certain conditions.
 
@@ -129,7 +374,7 @@ classmates(X, Y) :- enrolled(X, Class), enrolled(Y, Class)
 
 ```
 
-### Equality
+## Equality
 
 ```prolog
 % this shows bob is his own classmate
@@ -147,7 +392,8 @@ false.
 
 ```
 
-### Disequality and Negation as Failure
+## Disequality and Negation as Failure
+
 - `\=`: not equal predicate.. `X \= Y` behaves the same as `\+ X = Y`
 - __negation as failure__: Prolog negates a query by attempting to find a solution: if it succeeds, the negation fails.
   If it fails, the negation succeeds.  It doesn't bind any variables, so negations should be written _following_ goals
@@ -163,7 +409,8 @@ Y = alice.
 
 ```
 
-### Terms
+## Terms
+
 - Prolog is __dynamically typed__.  All data are called __terms__.
 - __atomic terms__: primitive types.  Integers, floating point numbers, and atoms.
 - atoms can begin with a lowercase letter and follow with letters, digits, or underscores, otherwise
@@ -171,21 +418,22 @@ Y = alice.
 - the Prolog compiler will not identify type errors in the code
 - any argument of any predicate you define can have any type
 
-### Compound Terms
+## Compound Terms
+
 - compound term: Prolog equivalent to C `struct`. Begins with a _functor_ (an atom) and follows with 1+ terms as arguments
 - e.g. compound term with functor `card`, arity 2, first argument is clubs, second argument is 3.
 
 ```prolog
 card(clubs, 3)
-
 ```
 
-### Lists
+## Lists
 - `[]` : empty list
 - `[E|Es]` : non empty list, `E`: head, `Es`: tail
 - e.g. `[E1,E2,E3|Es]`
 
-### Unification
+## Unification
+
 - variables in Prolog are a kind of data that stands for a currently unknown value, and continue to exist after the predicate that creates them finishes executing.
 - variables become bound through __unification__, which takes two terms and tries to make them identical, binding variables as necessary
 - if a set of _consistent_ bindings cannot be found for all variables, unification fails
@@ -193,7 +441,8 @@ card(clubs, 3)
   of the clause; if the unification fails, Prolog goes to the next clause for the predicate and tries the same thing
 - the equality predicate `=` also unifies its two arguments
 
-### `length`
+## `length`
+
 Here's an implementation of Haskell's `take` that returns the first `N` elements of a list
 
 ```prolog
@@ -205,31 +454,36 @@ take(N, List, Front) :-
 
 `Front` is the first `N` elements of `List` if the length of `Front` is `N` and you can append `Front` to something to produce `List`.
 
-### `member`
+## `member`
+
 - `member(E, List)` holds when `E` is one of the elements of `List`
 - use this to check whether `E` is an element of `List`, or to have Prolog produce elements of `List` one at a time
 
-### `select`
+## `select`
+
 - `select(Elem, List1, List2)`: `List2` contains everything in `List1` except `Elem`
   - can use to remove single occurrence of `Elem` from `List1`, or insert `Elem` in any place in `List2`, 
     or to select an element of `List1`, producing 1 element plus the rest of the list
 
-### `nth0/3`
+## `nth0/3`
+
 - `nth0(Index, List, Elem)`: finds the _n_ th element of `List` (0-based).
 - can determine position of `Elem` in `List`
 - can produce elements of `List` together with their positions.
 
-### `nth0/4`
+## `nth0/4`
+
 - `nth0(N, List, Elem, Rest)`: same as `nth0/3`, but `Rest` is the list of elements other than `Elem`
 - use it to remove an element from a list by position, by value while providing position, or to 
   insert an element at a particular position
 
 
 ## Documenting Modes
+
 - document each Prolog predicate in a comment before the predicate definition
 - give each argument a character indicating its mode
-- `+`: input argument.  Expected to be bound when the predicate is called
-- `-`: output argument.  Normally unbound when the predicate is called.  If it is 
+- `+`: input argument.  Expected to be __bound__ when the predicate is called
+- `-`: output argument.  Normally __unbound__ when the predicate is called.  If it is 
   bound, it will be unified with the output
 - `?`: the predicate may be input/output/both
 - e.g. `append/3`
@@ -247,8 +501,8 @@ take(N, List, Front) :-
 
 
 ## Arithmetic
-- `is/2` is used to evaluate expressions:
 
+- `is/2` is used to evaluate expressions:
 ```prolog
 ?- X is 6*7.
 X=42.
@@ -266,6 +520,7 @@ ERROR: In:
 - Prolog is not a symbolic computation system, with very limited ability to reason about arithmetic
 
 ### Arithmetic Predicates 
+
 | **Predicates**  | **Description**                                               |
 |-----------------|:--------------------------------------------------------------|
 | `V is Expr      ` | Unify V with the value of expression Expr                   |
@@ -291,10 +546,10 @@ ERROR: In:
 | `X mod Y    ` | integer modulus, same sign as Y        |
 | `integer(X) ` | round X to the nearest integer         |
 | `float(X)   ` | floating point value of X              |
-| `ceil(X)    ` | smallest integer >= X                  |
-| `floor(X)   ` | largest integer =< X                   |
-| `max(X,Y)   ` | larger of X and Y (integer or float)   |
-| `min(X,Y)   ` | smaller of X and Y (integer or float)  |
+| `ceil(X)    ` | smallest integer `>=` X                  |
+| `floor(X)   ` | largest integer `=<` X                   |
+| `max(X,Y)` | larger of X and Y (integer or float)   |
+| `min(X,Y)` | smaller of X and Y (integer or float)  |
 
 
 ## Semantics

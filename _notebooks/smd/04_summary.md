@@ -203,11 +203,6 @@ Approaches:
 - __Design:__ conceptual solution that meets the requirements of the problem
 - __OO Software Design:__ defining software objects and their collaboration
 
-### OO Implementation 
-
-- __Implementation:__ concrete solution that meets the requirements of the problem
-- __OO Software Implementation:__ implementation in OO languages and technologies
-
 ### Input Artifacts to OO design
 
 - __Use case text__ describes functional requirements that design models must realise
@@ -268,7 +263,19 @@ Approaches:
 
 ![Loop Frame](img/uml-loop-frame.png)
 
-## Visibility
+## OO Implementation 
+
+- __Implementation:__ concrete solution that meets the requirements of the problem
+- __OO Software Implementation:__ implementation in OO languages and technologies
+
+### Translating design models to code
+
+- build least-coupled classes first, as more highly coupled classes will depend on these
+- use `Map` for key-based lookup
+- use `List` for growing ordered list
+- declare variable in terms of the interface (e.g. `Map` over `HashMap`)
+
+### Visibility
 
 - __visibility:__ ability of an object to see/refer to another object
 - objects require visibility of each other in order to cooperate
@@ -283,11 +290,86 @@ Approaches:
 3. `B` is a (non-parameter) local object in a method of `A`
 4. `B` has global visibility
 
-## Translating design models to code
+## State Machines
 
-- build least-coupled classes first, as more highly coupled classes will depend on these
-- use `Map` for key-based lookup
-- use `List` for growing ordered list
-- declare variable in terms of the interface (e.g. `Map` over `HashMap`)
+- __state machine:__ behaviour model capturing dynamic behaviour of an object in terms of 
+  - __states:__ condition of an object at a moment in time
+  - __event:__ significant/noteworthy occurrence that causes the object to change state
+  - __transition:__ directed relationship between two states, such that an event can cause
+    the object to change states per the transition
+- visualised via __UML State machine diagram__
 
-## 
+### When to apply state machine diagrams?
+
+- __state-dependent object:__ reacts differently to events depending on its state
+  - e.g. elevator
+- __state-independent object:__ reacts uniformly to all events 
+  - e.g. automatic door
+- __state-independent w.r.t a particular event:__ responds uniformly to a particular event
+  - e.g. microwave state-independent w.r.t cancel
+
+- Consider state machines for __state-dependent objects with complex behaviour__
+- Domain guidance:
+  - business information systems: state machines are uncommon 
+  - communications/control: state machines are more common (e.g. Berkeley socket)
+
+### UML Details 
+
+- __transition action:__ action taken when a transition occurs
+  - typically represents invocation of a method 
+- __guard:__ pre-condition to a transition
+  - if false, transition does not proceed
+
+![Transition actions and guards](img/state-machine-transition-actions.png)
+
+- __nested states:__ substates inherit transitions of the superstate
+
+![Nested States](img/state-machine-nested.png)
+
+- __choice pseudostates:__ dynamic conditional branch
+  - can have as many branches as needed
+  - can use an `[else]` branch to follow if no other guards are true 
+
+![Choice Pseudostate](img/state-machine-choice-pseudostate.png)
+
+### Implementation Details
+
+- use an enumeration for states
+
+![Implementation](img/state-machine-implementation-eg.png)
+
+```java
+public class IncreasingPairFinder {
+  // enum for all the states of the state machine
+  enum State { STATE1, STATE2, FINAL }
+  // initialise to start state
+  State state = State.STATE1;
+  int lastX;
+
+  // trigger
+  public void eventA(int x) { 
+    if (state == State.STATE1) {
+      // action
+      lastX = x;
+      // transition
+      state = State.STATE2;
+    } else if (state == State.STATE2) {
+      // condition
+      if (x > lastX) {
+        // action
+        otherClass.doStuff(x - lastX);
+        // transition
+        state = State.STATE1;
+      }
+    } 
+  }
+
+  public void eventB() {
+    if (state == State.STATE1) {
+      state = State.FINAL;
+    }
+  }
+}
+```
+
+
