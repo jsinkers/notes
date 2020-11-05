@@ -254,6 +254,166 @@ parent(princess_diana, prince_harry).
 - for a call with the first argument called, Prolog immediately jumps to the first matching clause
 - SWI Prolog constructs indices for multiple arguments, meaning more queries benefit from indexing
 
+## Debugging
+
+### Prolog Debugger
+
+- `trace` turns on the debugger
+- `nodebug` turns off the debugger
+- Byrd box model: goal execution is a box with ports for entry/exit
+
+![Prolog Debugger](img/prolog-debugger.png)
+
+### Infinite Backtracking Loop
+
+Initial version of reverse
+
+```prolog
+% rev1(X,Y)
+% rev1/2 holds when Y is the reverse of the list X
+rev1([], []).
+rev1([A|BC], CBA) :-
+    rev1(BC, CB),
+    append(CB, [A], CBA).
+```
+
+- Doesn't work if the first argument is free, e.g. `rev1(X, [a]).`
+- Prolog enters an infinite backtracking loop: 
+  - `rev1(BC,CB)` has an infinite backtracking sequence of solutions 
+    `{BC ->[Z], CB->[Z]}, {BC ->[Y,Z], CB->[Z,Y]}`
+  - `append([Z], [A], [a]` fails
+  - `append([Y,Z], [A], [a]` fails
+  - ...
+
+- you could prevent this by swapping the body goals around, but then it won't 
+  work with the second argument free
+- solution: ensure that `rev1`'s first argument is always bound to a list when called
+  - length of a list must always be the same as that of its reverse
+  - when `same_length/2` succeeds, both arguments are bound to lists of the same
+    fixed length
+
+```prolog
+% rev3(X,Y)
+% rev3/2 holds when Y is the reverse of the list X
+rev3(ABC, CBA) :-
+    same_length(ABC, CBA),
+    rev1(ABC, CBA).
+
+same_length([], []).
+same_length([_|Xs], [_|Ys]) :- 
+    same_length(Xs, Ys).
+```
+
+### Managing nondeterminism
+
+- when clauses succeed, but there are later clauses that may succeed, 
+  Prolog leaves a choicepoint so that it can later backtrack and try the later 
+  clause
+- when efficiency matters: ensure recursive predicates don't leave choicepoints
+  when they should be deterministic (i.e. leave no choice points) when there are 
+  no other solutions
+- if choicepoints remain, it disables tail recursion optimisation
+
+### If-then-else `( -> ; ).`
+
+- can be used to avoid choicepoints
+- `->` is treated like conjunction, but any alternative solutions of the condition,
+  and any alternatives of the else block will be forgotten.  
+- if the condition goal fails, the else goal is tried
+- deterministic whenever the then/else blocks are deterministic
+- indexing is preferable to ITE: avoid where possible
+  - ITE often prevents code working in multiple modes
+
+## Tail Recursion
+
+- __tail recursive:__ the only recursive call is the last code executed before returning to the caller
+
+### Tail Recursion Optimisation (TRO)
+
+- Prolog performs __tail recursion optimisation__, making recursive predicates behave as if they were loops
+- more often applicable in Prolog than other languages
+
+### The Stack
+
+- __stack frame:__ stores local variables and where to return to when finished
+- when `a` calls `b`, it creates a fresh stack frame for `b`, preserving `a`'s frame
+- similarly when `b` calls `c`
+- if all `b` does after calling `c` is return to `a`, there is no need to preserve `b`'s local variables
+
+![Stack frames](img/stack.png)
+
+- __last call optimisation:__ saves significant stack space
+  - Prolog can release `b`'s frame before calling `c`
+  - then when `c` finishes, it directly returns to `a`
+
+![Last call optimisation](img/stack-2.png)
+
+- TRO is a special case of last call optimisation, where the last call is recursive
+- particularly beneficial, as recursion replaces looping
+- without TRO: a new stack frame would be needed for each iteration, which would quickly exhaust the stack
+- with TRO: tail recursive predicates execute in __constant__  stack space, just like a loop
+
+### Choicepoints
+
+- if `b` leaves a choicepoint, it sits on the stack above `b`'s frame
+- this freezes it, and all earlier frames, meaning they can't be reclaimed
+- this is necessary: when Prolog backtracks to the choicepoint, `b`'s arguments 
+  must be ready to try the next matching clause for `b`
+
+![TRO and choicepoints](img/tro-choicepoint.png)
+
+### Accumulator
+
+- make code tail recursive through an __accumulating parameter/accumulator__,
+  an extra parameter to the predicate that holds a partially computed result
+- base case: (usually) partially computed result is the actual result
+- recursive clause: compute more of the partially computed result, and pass this to
+  the recursive goal
+- helpful approach: consider how you would implement it using a `while` loop, then implement it in Prolog
+
+### Accumulating Lists
+
+- accumulators can make an order difference to efficiency
+  - e.g. replacing `append/3` (linear time) with list construction (constant time)
+- e.g. `rev1` defined earlier is $O(n^2)$: 
+  - for the $n$-th element from the end of we append a list of length $n-1$ to a singleton list
+  - doing this $n$ times gives ~ $\frac{n(n-1)}{2}$
+
+### Tail Recursive `rev/2`
+
+```prolog
+% rev(BCD, A, DCBA)
+% DCBA is BCD reversed, with A appended
+rev([], A, A).
+rev([B|CD], A, DCBA) :-
+  rev(CD, [B|A], DCBA).
+```
+
+- at each step, an element is removed from the head of the input list, and added to the head of the accumulator
+- the cost of each step is constant, so overall cost is linear in length of the list
+- accumulator here works like a stack, last element is the first element added to it
+
+### Difference Pairs
+
+- the tail recursive `rev` is a common pattern in Prolog 
+- a predicate that generates a list takes an extra argument specifying what should come after the list,
+  avoiding the need to append to the list
+- if you don't know what will come after the list at the time you call the predicate, you can pass an unbound variable
+- then bind the variable when you do know what should come after
+- many predicates intended to produce a list have 2 arguments
+  - 1st argument: list produced
+  - 2nd argument: what comes after
+- __difference pair:__ predicate that generates the difference between the first and second list
+
+```prolog
+% inorder tree flatten
+flatten(empty, List, List).
+flatten(node(L,E,R), List, List0) :-
+    flatten(L, List, List1),
+    List1 = [E|List2],
+    flatten(R, List2, List0).
+```
+
 ## Predicates
 
 - logic programming language based on predicate calculus
@@ -603,8 +763,6 @@ sumlist([E|Es], Sum0, Sum) :-
 
 ## Determinism
 
-- for efficiency you should make predicates deterministic (i.e. leave no choice points) when there are no other solutions
-- if choicepoints remain, it disables tail recursion optimisation
 
 ## Indexing
 
