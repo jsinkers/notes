@@ -6,12 +6,10 @@ date: 2020-10-07
 tags: 
 ...
 
-# Summary
-
-## Table of Contents
+# Table of Contents
 
 
-## Use Cases
+# Use Cases
 
 - __use case__: informally: text story of an actor using a system to meet goals
   - emphasises user goals and perspective
@@ -26,13 +24,13 @@ tags:
 - __actor:__ something with behaviour; e.g. person, computer system, organisation
 - __scenario/use case instance:__ specific sequence of actions/interactions between actors and SuD
 
-### Level of Detail 
+## Level of Detail 
 
 - __brief:__ terse one-paragraph summary of the main success scenario
 - __casual:__ informal multi-paragraph format covering various scenarios
 - __fully dressed:__ formal writing of each step and variations in detail, with supporting material
 
-### Use case variants
+## Use case variants
 
 - __main success scenario:__ ideal use case; mandatory element
   - "happy path", typical flow
@@ -40,7 +38,7 @@ tags:
 - __alternative scenario:__ optional, enhances understanding, provides some alternative behaviour
   - covered in Extensions section when fully dressed
 
-### Actors
+## Actors
 
 - __primary actor:__ has user goals fulfilled through using services of SuD
 - __supporting actor:__ provides a service to SuD to clarify external interfaces/protocols
@@ -49,19 +47,19 @@ tags:
   - e.g. tax agency
   - important to include to ensure all stakeholder requirements are captured
 
-### Importance
+## Importance
 
 - influences design, implementation, project management
 - key source of information for OO analysis/testing
 - use cases should be strongly driven by project goals
 
-### Use case Model
+## Use case Model
 
 - __Use case model:__ model of system functionality/environment
   - _primarily:_ set of _written_ use cases
   - _optionally:_ includes UML use case diagram
 
-### Use case Diagram
+## Use case Diagram
 
 - show primary actors on LHS
 - show supporting actors on RHS
@@ -70,7 +68,7 @@ tags:
 
 ![Use case notation](img/use-case-notation.png)
 
-### Relevance of Use cases
+## Relevance of Use cases
 
 To check whether use-cases are at the right level for application requirements analysis, you can apply a number of tests.
 
@@ -86,7 +84,7 @@ __Example:__
 - Log in: fails boss test
 - Move piece on game board: single step - fails size test.
 
-### Include relationship
+## Include relationship
 
 - used to reduce repetition in multiple use cases
 - refactor common part of use cases into subfunction use case
@@ -100,7 +98,7 @@ Extensions:
 
 ![Use case include relationship](img/use-case-include.png)
 
-### Extend relationship
+## Extend relationship
 
 - used to add new extensions/conditional steps to a use case
   - base case is complete without the extension
@@ -112,21 +110,21 @@ Extensions:
 
 ![Use case extend and include](img/use-case-extends.png)
 
-## OO Analysis
+# OO Analysis
 
 - __OO analysis:__ creating description of domain from OO perspective
   - analyse use cases and identify objects/concepts in problem domain
   - concepts/behaviours captured in Domain models and Sequence diagrams
   - abstract level of intention
   - intended to help understand the domain
-- domain models and system sequence diagrams are the primary artifacts
+- domain models and system sequence diagrams are the primary artefacts
 
-## Domain Models
+# Domain Models
 
 - __domain model:__ representation of real-situation conceptual classes
   - not a software object
   - shows noteworthy domain concepts/objects
-  - is an OO artifact
+  - is an OO artefact
   - focus on explaining things and products important to the particular business domain
 - represented visually using UML class diagram: show conceptual classes, attributes and associations
 - __no method signatures__ defined
@@ -138,33 +136,33 @@ Extensions:
     an attribute
 - don't use attributes as foreign keys: show the association
 
-### Identifying conceptual classes
+## Identifying conceptual classes
 
 Approaches:
 
 - noun phrase analysis: use carefully, but often suggestive
 - use published category list/existing models for common domains
 
-### Associations
+## Associations
 
 - __association:__ relationship between classes indicating a meaningful/interesting connection
 - include associations when
   - significant in the domain
   - knowledge of the relationship needs to be preserved
 
-### Attributes
+## Attributes
 
 - __attribute:__ logical data value of an object
 - include when requirements suggest a need to remember information
 - do not show visibility: this is a design detail
 
-### Creating a Domain Model
+## Creating a Domain Model
 
 1. find conceptual classes
 2. draw as classes in UML class diagram
 3. add associations and attributes
 
-### Description Class
+## Description Class
 
 - __description class:__ contains information that describes something else
 - used when:
@@ -175,7 +173,7 @@ Approaches:
 
 ![Description class example 2](img/description-class-2.png)
 
-## System Sequence Diagrams
+# System Sequence Diagrams
 
 - __system sequence diagram:__ shows chronology of system events generated by external actors
 - captures __dynamic context of system__ 
@@ -191,43 +189,43 @@ Approaches:
 
 ![System Sequence Diagram](img/system-sequence-diagram.png)
 
-## Object-Oriented Design Models
+# Object-Oriented Design Models
 
-### OO Domain Models
+## OO Domain Models
 
 - __Analysis:__ investigation of problem and requirements
 - __OO Software Analysis:__ finding and describes objects/concepts in the problem __domain__
 
-### OO Design Models
+## OO Design Models
 
 - __Design:__ conceptual solution that meets the requirements of the problem
 - __OO Software Design:__ defining software objects and their collaboration
 
-### Input Artifacts to OO design
+## Input Artefacts to OO design
 
 - __Use case text__ describes functional requirements that design models must realise
 - __Domain models__ provide inspiration for software objects in design models
 - __System sequence Diagram__ indicates an interaction between users and system
 
-### OO Software Design
+## OO Software Design
 
 - process of creating conceptual solution: defining software objects and their collaboration
 - __architecture__
 - __interfaces__: methods, data types, protocols
 - assignment of __responsibilities__: principles and patterns
 
-### Output Artifacts of OOSD
+## Output Artefacts of OOSD
 
 - Static model: Design class diagram
 - Dynamic model: Design sequence diagram
 
-## Static Design Models
+# Static Design Models
 
 - __static design model:__ representation of software objects, defining class names, attributes
   and method signatures
   - visualised via UML class diagram, called __design class diagram__ 
 
-### Comparison to Domain models
+## Comparison to Domain models
 
 - Domain model: conceptual perspective
   - noteworthy concepts, attributes, associations in the domain
@@ -236,7 +234,7 @@ Approaches:
 - Domain models __inspire__ design models to __reduce the representational gap__
   - talk the same language in software and domain
 
-## Dynamic Design Models
+# Dynamic Design Models
 
 - __dynamic design model:__ representation of how software objects __interact__ via messages
   - visualised as __UML Sequence diagram__ or __UML Communication diagram__
@@ -244,44 +242,44 @@ Approaches:
   objects
   - helpful in assigning responsibilities to software objects
 
-### SSD vs DSD
+## SSD vs DSD
 
 - System Sequence Diagram treats the system as a black box, focusing on interactions between 
   actors and the system
 - Design sequence diagram illustrates behaviours __within__ the system, focusing on interaction
   between software objects
 
-### Lifeline Notation
+## Lifeline Notation
 
 ![Lifeline Notation](img/dsd-lifeline-notation.png)
 
-### Reference frames
+## Reference frames
 
 ![Reference Frames](img/uml-reference-frames.png)
 
-### Loop frames
+## Loop frames
 
 ![Loop Frame](img/uml-loop-frame.png)
 
-## OO Implementation 
+# OO Implementation 
 
 - __Implementation:__ concrete solution that meets the requirements of the problem
 - __OO Software Implementation:__ implementation in OO languages and technologies
 
-### Translating design models to code
+## Translating design models to code
 
 - build least-coupled classes first, as more highly coupled classes will depend on these
 - use `Map` for key-based lookup
 - use `List` for growing ordered list
 - declare variable in terms of the interface (e.g. `Map` over `HashMap`)
 
-### Visibility
+## Visibility
 
 - __visibility:__ ability of an object to see/refer to another object
 - objects require visibility of each other in order to cooperate
 - e.g. for `A` to send a message to `B`, `B` must be visible to `A`
 
-### Achieving visibility
+## Achieving visibility
 
 `A` can get visibility of `B` in 1 of 4 ways:
 
@@ -290,7 +288,7 @@ Approaches:
 3. `B` is a (non-parameter) local object in a method of `A`
 4. `B` has global visibility
 
-## State Machines
+# State Machines
 
 - __state machine:__ behaviour model capturing dynamic behaviour of an object in terms of 
   - __states:__ condition of an object at a moment in time
@@ -299,7 +297,7 @@ Approaches:
     the object to change states per the transition
 - visualised via __UML State machine diagram__
 
-### When to apply state machine diagrams?
+## When to apply state machine diagrams?
 
 - __state-dependent object:__ reacts differently to events depending on its state
   - e.g. elevator
@@ -313,7 +311,7 @@ Approaches:
   - business information systems: state machines are uncommon 
   - communications/control: state machines are more common (e.g. Berkeley socket)
 
-### UML Details 
+## UML Details 
 
 - __transition action:__ action taken when a transition occurs
   - typically represents invocation of a method 
@@ -332,7 +330,7 @@ Approaches:
 
 ![Choice Pseudostate](img/state-machine-choice-pseudostate.png)
 
-### Implementation Details
+## Implementation Details
 
 - use an enumeration for states
 
@@ -372,4 +370,282 @@ public class IncreasingPairFinder {
 }
 ```
 
+# Architecture
 
+- Larman: Chs 13, 33
+
+## Software Architecture
+
+- __software architecture:__ large scale organisation of the elements in a software system
+- __descisions:__ 
+  - __structural elements:__ what are the components of the system?
+  - __interfaces:__ what interfaces do elements expose?
+  - __collaboration:__ how do the elements work together according to the business logic?
+  - __composition:__ how can elements be grouped into larger subsystems?
+
+## Architectural Analysis
+
+- __architectural analysis:__ process of identifying __factors__ that will influence the architecture,
+  understand their variability and priority, and resolve them
+  - identify and resolve non-functional requirements in the context of functional requirements
+  - challenge: what questions to ask, weighing the trade-offs, knowing the many ways to resolve 
+    architecturally significant factors
+- __goal:__ reduce risk of missing critical factor in the design of a system
+  - focus effort on high priority requirements
+  - align the product with business goals
+
+Architectural analysis identifies and analyses:
+
+- __architecturally significant requirements:__ are those which can have a significant impact on the 
+  system design, especially if they are not accounted for early in the process
+- __variation points:__ variation in existing current system/requirements
+  - e.g. multiple tax calculator interfaces that need to be supported
+- __potential evolution points:__ speculative points of variation that may arise in the future, but are 
+  not captured in existing requirements
+
+### Architecturally significant functional requirements
+
+- Auditing
+- Licensing
+- Localisation
+- Mail
+- Online help
+- Printing
+- Reporting
+- Security
+- System management
+- Workflow
+
+### Architecturally significant Non-functional Requirements
+
+- Usability
+- Reliability
+- Performance
+- Supportability
+
+### Effects of requirements on design
+
+- the answer to the following questions significantly affects the system design 
+- how do reliability and fault-tolerance requirements affect the design?
+  - e.g. POS: for what remote services (tax calculator) will fail-over to local services be allowed?
+- how do the licensing costs of purchased subcomponents affect profitability?
+  - e.g. more costly database server weighed against development time
+
+### Steps
+
+- start early in _elaboration_ phase
+- __architectural factors/drivers:__ identify and analyse architectural factors
+  - architectural factors are primarily non-functional requirements that are architecturally significant
+  - overlaps with requirements analysis
+  - some should have been identified during the _inception_ phase, and are now investigated in more detail
+- __architectural decisions:__ for each factor, analyse alternatives and create solutions, e.g.:
+  - remove the requirement
+  - custom solution
+  - stop the project
+  - hire an expert
+
+### Priorities
+
+- __inflexible constraints__
+  - must run on Linux
+  - budget for 3rd party components is X
+  - legal compliance
+- __business goals__
+  - demo for clients at tradeshow in 18 months
+  - competitor driven window of opportunity
+- __other goals__
+  - extendible: new release every 6 months
+
+### Architectural Factor Table
+
+- documentation recording the influence of factors, their priorities, and variability
+
+__Fields__
+
+- Factor
+- Measures, quality scenarios
+- Variability: current, future evolution
+- Impact of factor to 
+  - stakeholders
+  - architecture
+  - other factors
+- Priority for success
+- Risk
+
+### Technical Memo
+
+- records alternative solutions, decisions, influential factors, and motivations
+  for noteworthy issues/decisions
+
+__Contents__
+
+- Issue
+- Solution summary
+- Factors
+- Solution 
+- Motivation
+- Unresolved Issues
+- Alternatives Considered
+
+## Logical Architecture
+
+- __logical architecture:__ large-scale organisation of software classes into __packages, subsystems__ 
+  and __layers__
+- __deployment architecture:__ mapping of system onto physical devices, networks, operating systems, etc.
+  - not a part of logical architecture
+
+### Layered architecture
+
+- __layers:__ coarse-grained grouping of classes, packages, or subsystems that has
+  cohesive responsibility for a major aspect of the system
+  - very common 
+  - vertical division of a system into subsystems
+- e.g. 
+  - UI 
+  - application logic/domain objects
+  - technical services: general purpose objects/subsystems e.g. interfaces with DB 
+- __strict layered architecture:__ each layer only calls upon the services of the layer directly below it
+  - common in network protocol stacks
+- __relaxed layered architecture:__ higher layer calls upon several lower layers
+  - common in information systems
+- __partitions:__ horizontal division of parallel subsystems within a layer
+- __benefits:__ 
+  - prevent high coupling: changes don't ripple through entire system, and hard to divide work
+  - promote reuse: application logic is distinct from UI
+  - ability to change underlying technical services
+
+### UML Package Diagram
+
+![Layers and Partitions](img/logical-architecture.png)
+
+### Information Systems - Typical Logical Architecture
+
+![IS Logical Architecture](img/infosys-logical-architecture.png)
+
+### UML Component Diagram - Implementation View
+
+- __component:__ modular part of a system that encapsulates its contents, and is replaceable within its
+  environment
+  - can be a class, but can also be external resources (e.g. DB) and services
+- __component diagram:__ show how to implement software system at a high level
+  - initial architectural landscape of the system
+  - defines behaviour: provided/required interfaces
+
+![UML Components](img/uml-component-notation.png)
+
+![UML Components 2](img/uml-component-notation2.png "UML Component Diagram Notation")
+
+### Architectural Improvement
+
+#### Strategies
+
+Options that might be considered: buy, build, modify
+
+- __Buy__: Use COTS
+  - pros: short development time, low starting cost
+  - cons: business differences, control over software, long term cost
+- __Build:__ build a new system from the ground up
+  - pros: built-for-purpose for current needs
+  - cons: high cost, long timeline, high risk for transition
+- __Modify:__ modify existing solution
+  - pros: simpler transition, control of software
+  - cons: cost and delay tradeoff
+
+- Challenge: planning and executing an acceptable path
+
+#### Handling issues: some ideas
+
+- responsiveness: host system locally, reduce Internet communications
+- reliability: update networking
+- modifiability: remove old/redundant systems
+- functionality: add high priority, low complexity features
+
+# Modelling and Design in the Software Process
+
+- Larman: Chs 4, 8, 12, 14
+- __Unified Process:__ iterative/incremental software development
+
+![Unified Process](img/unified-process.png)
+
+## Inception 
+
+- __inception:__ initial short step to establish common vision and basic scope
+- not the time to detail all requirements, and create high fidelity estimates/plans: this happens in 
+  elaboration
+- answering questions:
+  - vision, business case, RoM cost estimates 
+  - buy/build?
+  - Go/no go?
+  - Agreement from stakeholders on vision and value?
+- how much UML? Probably only simple UML use case diagrams
+- should last ~ 1 week
+- artefacts should be brief and incomplete
+
+### Artefacts
+
+[Bold means mandatory]
+
+- __Vision and business case:__ high level goals and constraints, executive summary, business case
+- __Use case model:__ functional requirements.  Most use cases name, ~ 10% detailed.
+- Supplementary specification: architecturally significant __non-functional requirements__
+- glossary
+- risk list and mitigation plan
+- prototypes, proof of concept
+- __iteration plan:__ what to do in 1st elaboration iteration
+- phase plan: low fidelity guess of elaboration phase duration and resources
+- development case: artefacts and steps for the project
+
+### You're doing it wrong:
+
+1. more than a few weeks spent
+2. attempted to define most requirements
+3. expect estimates to be reliable
+4. defined the architecture
+5. tried to sequence the work: requirements, then architecture, then implement
+6. you don't have a business case/vision
+7. you wrote all uses cases in detail
+8. you wrote no use cases in detail
+
+## Elaboration 
+
+- __elaboration:__ initial series of iterations for 
+  - building core architecture
+  - resolving high-risk elements
+  - defining most requirements
+  - estimating overall schedule/resources
+- after elaboration
+  - core, risky software architecture is programmed/tested
+  - majority of requirements are discovered/stabilised
+  - major risks mitigated/retired
+- start production-quality programming and testing for a subset of requirements, __before__ requirements
+  analysis is complete
+- work on varying scenarios of the same use case over several iterations: gradually extend the system
+  to ultimately handle all functionality required
+
+![Spreading use cases across Iterations](img/elaboration-use-case.png)
+
+- usually 2+ iterations of 2-6 weeks each, with a fixed end date
+- produces the __architectural baseline__
+- test early, often, realistically
+- adapt based on feedback from tests, users, developers
+
+### Artefacts
+
+- domain model 
+- design model
+- software architecture document
+- data model
+- use-case storyboards, UI prototypes
+
+### You're doing it wrong:
+
+1. more than a few months long
+2. only has 1 iteration
+3. most requirements were defined before elaboration
+4. risky elements/core architecture are not being addressed
+5. not production code
+6. considered requirements/design phase, preceding implementation
+7. attempt to design fully before programming
+8. minimal feedback/adaptation
+9. no early/realistic testing
+10. architecture is speculatively finalised, before implementation
