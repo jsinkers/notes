@@ -1,5 +1,5 @@
 ---
-title: Logic Programming: Prolog
+title: "Logic Programming: Prolog"
 notebook: Declarative Programming
 layout: note
 date: 2020-08-03
@@ -412,6 +412,238 @@ flatten(node(L,E,R), List, List0) :-
     flatten(L, List, List1),
     List1 = [E|List2],
     flatten(R, List2, List0).
+```
+
+## Homoiconicity
+
+- a language is __homoiconic__ if a program written in it can be manipulated as data, using the language
+  - a program's internal representation can be inferred by reading the program itself
+  - e.g. a Lisp program is written as a regular Lisp list, and can be manipulated by other Lisp code
+  - the language treats __code as data__
+  - primary representation of programs is a data structure in a primitive type of the language itself
+- Prolog is homiconic
+- `clause(+Head, -Body)` allows a running program to access the clauses of the program
+  - holds if `Head` can be unified with a clause head, and `Body` with the corresponding clause body
+
+```prolog
+?- clause(append(X,Y,Z), Body).
+X = [],
+Y = [],
+Body = true ;
+X = [_1234|_1235],
+Z = [_1236|_1237],
+Body = append(_1238, Y, _1239).
+```
+
+### Prolog interpreter
+
+```prolog
+% A simple Prolog interpreter
+interp(Goal) :-
+        % if goal is a free variable, throw an exception
+        (   var(Goal)
+        ->  throw(error(instantiation_error,context(interp/1,interp(Goal))))
+        ;   Goal = true
+        ->  true
+        % conjunction of two goals
+        ;   Goal = (G1,G2)
+        ->  interp(G1),
+            interp(G2)
+        % disjunction of two goals
+        ;   Goal = (G1 ; G2)
+        ->  (   interp(G1)
+            ;   interp(G2)
+            )
+        % negation of a goal
+        ;   Goal = \+(G1)
+        ->  \+ interp(G1)
+        % a known goal
+        ;   clause(Goal,Body),
+            interp(Body)
+        ).
+```
+
+## Higher order programming
+
+- `call/1`: executes a term as a goal
+  - allows higher order programming: writing a predicate that takes a goal as an argument, then call
+    that goal
+
+### Currying
+
+- often you want to provide a goal that omits some arguments, which get supplied when the goal is called
+- this way the same goal can be reused with different arguments
+- `call/n` (`call` with higher arity)
+  - all arguments after the goal are added as extra arguments at the end of the goal
+- __currying:__ arguments are supplied with the goal
+
+```prolog
+% append is called without the 3rd argument
+% call has an extra argument: this becomes the 3rd argument of append
+?- X = append([1,2],[3]), call(X,L).
+X = append([1,2], [3]),
+L = [1,2,3]
+```
+### Writing higher-order code
+
+- `maplist` is defined in SWI Prolog library with arities 2-5 (i.e. 1-4 extra arguments)
+  - calls a predicate with arguments corresponding to the elements of the lists
+```
+maplist(_, [], []).
+maplist(P, [X|Xs], [Y|Ys]) :-
+        % call P on elements X and Y
+        call(P, X, Y),
+        maplist(P, Xs, Ys).
+```
+
+```prolog
+?- maplist(length, [[a,b],[a],[a,b,c]], Lengths).
+Lengths = [2, 1, 3].
+```
+
+### All solutions
+
+- `setof(Template, Goal, List)` binds `List` to a __sorted__ list of all __distinct__ instances of `Template`
+  satisfying `Goal`
+  - `Template`: any term, often with variables that appear in `Goal`
+- `bagof/3`: same as `setof/3`, but does not sort the result, or remove duplicates
+  - solutions are collected in the order produced
+  - __not purely logical:__ the order of solutions should not matter, nor should the number of times a 
+    solution is produced
+
+```prolog
+?- setof(P-C, parent(P,C), List).
+List = [prince_charles-prince_william, prince_philip-prince_charles | ...].
+```
+
+- if `Goal` contains variables not in `Template`, `setof/3` backtracks:
+
+```prolog
+?- setof(C, parent(P,C), List).
+P = prince_charles,
+List = [prince_harry, prince_william] ;
+P = prince_philip,
+List = [prince_charles] ;
+...
+```
+
+- existential quantification (`^`): collect solutions for `Template` for a variable that is not 
+  in `Template`
+- e.g. to find all people in the database who are parents of any child:
+
+```prolog
+>- setof(P, C^parent(P,C), Parents).
+Parents = [prince_charles, prince_philip|...].
+```
+
+This is something like saying 
+$$
+Parents = \{ P | \exists C : parent(P,C) \}
+$$
+
+### Input/Output
+
+- Prolog I/O doesn't try to be pure
+- I/O operations are executed when they are reached in simple execution order
+- backtracking does not undo I/O
+- `write/1`: prints messages
+
+```prolog
+?- write('hello '), write('world!').
+hello world!
+true.
+?- write('world!'), write('hello ').
+world!hello 
+true.
+```
+
+- notice this is non-logical: conjunction should be commutative
+- guideline: isolate I/O in a small part of the code, and keep the bulk of the code I/O free
+
+### Comparing terms
+
+- Prolog terms can be compared for ordering using `@=`, `@=<`, `@>`, `@>=`
+- Prolog arbitrarily orders as:
+
+$$
+\text{Variables} < \text{Numbers} < \text{Atoms} < \text{Compound Terms}
+$$
+
+- within these classes: terms are ordered
+  - numbers: by value
+  - atoms: alphabetically
+  - compound terms: 
+    - by arity, then
+    - alphabetically by functor, then
+    - by arguments, left-to-right
+
+### Sorting
+
+- SWI Prolog built-ins for sorting ground lists with `@<` ordering:
+  - `sort/2`: sorts a list, removing duplicates
+  - `msort/2`: sorts a list without removing duplicates
+  - `keysort/2`: stable sorts list of `K-V` terms, only comparing the `K` part
+```prolog
+?- sort([h,e,l,l,o], L).
+L = [e, h, l, o].
+?- msort([h,e,l,l,o], L).
+L = [e, h, l, l, o].
+?- keysort([7-a, 3-b, 3-c, 8-d, 3-a], L).
+L = [3-b, 3-c, 3-a, 7-a, 8-d].
+```
+
+### Recognising Terms and Variables
+
+- using these can make code behave differently in different modes
+- can be used to write code that works in multiple modes, by checking whether the term is an 
+  unbound variable 
+
+#### Terms
+
+- NB all of these fail for variables:
+- `integer/1` holds for integers, otherwise fails 
+- `float/1` holds for floats
+- `number` holds integers/floats
+- `atom/1` holds for atoms
+- `compound/1` recognises compound terms
+
+#### Variables
+
+- `var/1` holds for unbound variables
+- `nonvar/1` holds for any term other than an unbound variable
+- `ground/1` holds for ground terms
+
+### Multi-mode code
+
+Tail-recursive `len` that works when length is either known/unknown
+
+```prolog
+len(L, N) :-
+    % if N is an integer, use len2
+    (   integer(N)
+    ->  len2(L, N)
+    % N is not an integer, but is not an unbound variable: an error
+    ;   nonvar(N)
+    ->  throw(error(type_error(integer, N), context(len/2, '')))
+    % N is unbound: use len1
+    ;   len1(L, 0, N)
+    ).
+
+% len1(+L, +N0, -N): length is unknown
+len1([], N, N).
+len1([_|L, N0, N) :-
+    N1 is N0 + 1,
+    len1(L, N1, N).
+
+% len2(+L, +N): length is known
+len2(L, N) :-
+    % this will throw an exception if N is free
+    (  N =:= 0
+    -> L = []
+    ;  N1 is N-1,
+       L = [_|L1],
+       len2(L1, N1)
+    ).
 ```
 
 ## Predicates
