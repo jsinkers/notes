@@ -9,7 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
       katex.render(el.getAttribute("data-expr"), el);
     });*/
     renderMathInElement(document.body, {
-        delimiters: [{left: "$$", right: "$$", display: true},
+        delimiters: [
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\[", right: "\\]", display: true},           
+            {left: "$$", right: "$$", display: true},
             {left: "$", right: "$", display: false}]
     });
 });
