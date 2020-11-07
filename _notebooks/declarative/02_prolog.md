@@ -645,6 +645,264 @@ len2(L, N) :-
        len2(L1, N1)
     ).
 ```
+## Constraint (Logic) Programming
+
+- __imperative program:__ specifies exact sequence of actions to be executed
+- __functional program:__ specifies how the result is to be computed more abstractly
+  - function definitions suggest an order of actions, but the language implementation
+    can deviate from that order: __lazyness, parallel execution, optimisation__
+- __logic program:__ in some sense more declarative
+  - specify a set of __equality constraints__ that the terms of the solution must satisfy,
+    then searches for a solution
+- __constraint program:__ even more declarative
+  - allows more __general constraints__ than equality constraints
+
+### Specification
+
+Specification comprises:
+
+- set of __variables__, each with a known domain
+- set of __constraints__, each involving 1+ variables
+- __objective/cost function__ (optional): maps each solution to a number
+
+Purpose:
+
+- find a __solution__: set of assignments of values to variables that satisfies all constraints
+
+### Common constraint systems
+
+- __Herbrand:__ variables represent terms
+  - Basic constraints are unifications `term1 = term2`
+  - constraint domain Prolog implements
+- __Finite Domain (FD):__ each variable's domain has a finite number of elements
+- __Boolean satisfiability (SAT):__ variables represent booleans
+  - each constraint asserts the truth of an expression constructed with logical operations
+- __Linear inequality:__ variables represent real numbers (sometimes integers)
+  - constraints are of the form $ax + by \leq c$
+  - $x, y$: variables
+  - $a, b, c$: constants
+
+### Herbrand Constraints
+
+- equality constraints over Herbrand terms as used in vanilla Prolog
+- Prolog: you can constrain variables to be equal
+  - Prolog will succeed if that is possible, and fail if not
+
+### Search
+
+- __generate and test:__ strategy used by Prolog to search for variable bindings that satisfy constraints
+  - Nondeterministic goals __generate__ possible solutions
+  - later goals __test__ those solutions, imposing further constraints, and rejecting some candidate solutions
+
+```prolog
+?- between(1,9,X), 0 =:= X mod 2, X =:= X * X mod 10.
+```
+
+- goal 1: generates single digit numbers
+- goal 2: tests number is even
+- goal 3: tests the numbers square ends in the same digit
+
+- __constrain and generate__: used in constraint logic programming, more efficient than generate and test
+  - constraints on variable can be more sophisticated than binding to a Herbrand term
+  - accomplished in Prolog with __attributed variables__.  These allow constraints domains to control
+    unification of constrained variables
+
+### Propagation and Labelling
+
+- algorithm for solving set of Finite Domain (FD) constraints has two steps: 
+  - propagation 
+  - labelling
+- they alternate between these two steps until failure/solution
+- __propagation:__ reduce the domain of each variable as much as possible
+  - for each constraint, check whether the constraint rules out any values in the current domainss
+    of any variables in that constraint 
+  - if it does: remove that value from the variable's domain 
+  - schedule the constraints involving that variable to be reexamined
+- propagation ends if:
+  - you found a solution: i.e. every variable has a domain of size one (a single value)
+  - it failed: some variable has an empty domain
+  - all constraints have been examined: propagation can do no more
+- __labelling:__
+  - picks a non-fixed variable
+  - partitions its domain (size $n$) into $k$ parts $d_1, ..., d_k$ (usually $k = 2$)
+  - recursively invoke the whole constraint solving algorithm (propagation + labelling) $k$ times, with invocation $i$
+    restricting the domain of the chosen variable to $d_i$
+- labelling generates a search tree: the size depends on the effectiveness of propagation
+  - more effective propagation removes more values from domains, reducing the size of the tree, and the time search will take
+
+### CLP(FD) Arithmetic Constraints
+
+- vanilla Prolog predicates only work in certain modes
+  - e.g. `is/2` only works when its second argument is ground
+- __CLP(FD)__ library: constraint logic programming over finite domains
+  - provides alternative predicates for arithmetic: __arithmetic constraints__
+  - these works in both directions: `in,out` and `out,in`
+  - most just add a `#` prefix to arithmetic operations
+
+| Arithmetic constraint | Description                                    |
+|:---------------------:|:----------------------------------------------|
+| `Expr1 #= Expr2`      | `Expr1` equals `Expr2`                        |
+| `Expr1 #\= Expr2`     | `Expr1` is not equal to `Expr2`               |
+| `Expr1 #> Expr2`      | `Expr1` is greater than `Expr2`               |
+| `Expr1 #< Expr2`      | `Expr1` is less than `Expr2`                  |
+| `Expr1 #>= Expr2`     | `Expr1` is greater than or equal to `Expr2`   |
+| `Expr1 #=< Expr2`     | `Expr1` is less than or equal to `Expr2`      |
+| `Var in Low..High`    | Low ≤ Var ≤ High                              |
+| `List ins Low..High`  | every Var in List is between `Low` and `High` |
+
+```prolog
+?- 25 #= X * X.
+X in -5\/5.
+```
+
+- read the `\/` as disjunction $\vee$
+- note: this propagation step didn't provide unique integer value, but provided a constrained variable
+
+### CLP(FD) Propagation and Labelling
+
+- domain of a CLP(FD) variable: $\Z$
+- reduce/restrict domain with CLP(FD) constraints
+- propagation: when a constraint is posted, the library automatically revises the domains of relevant variables as necessary
+  - sometimes propagation alone is enough to find a solution 
+  - if not, labelling is needed
+- `label/1`: enumeration predicate, searches for an assignment to each variable in a list that satisfies all posted constraints
+  - forces the variables in the list to be ground
+
+```prolog
+?- 25 #= X * X, label([X]). 
+X = -5 ;
+X = 5.
+```
+
+- going from the domain of $5\vee -5$, `label` splits the domain in half, and now we have a single value.  You can ask for another
+  solution, forcing backtracking and __generation__ of another solution
+
+#### Prolog generate and test
+
+```prolog
+?- between(1,9,X), 0 =:= X mod 2, X =:= X * X mod 10.
+```
+
+#### Constrain and generate
+
+```prolog
+?- X in 1..9, 0 #= X mod 2, X #= X * X mod 10.
+X in 2..8,
+_12562 mod 10#=X,
+X^2#=_12562,
+X mod 2#=0,
+_12562 in 4..64.
+```
+
+With labelling:
+
+```prolog
+?- X in 1..9, 0 #= X mod 2, X #= X * X mod 10.
+X = 6.
+```
+
+- Propagation eliminates possibilities: much smaller set of possibilities to explore, so its more efficient
+
+### Sudoku: Finite Domain Constraints
+
+- you can represent sudoku rules:
+  - set of 81 constraint variables $r1c1, r1c2, ...$, each with domain $1..9$
+  - 27 constraints: 9 rows, 9 columns, 9 boxes
+  - e.g. top left box constraint: $\text{all\_different}([r1c1, r1c2, r1c3, r2c1,r2c2, r2c3, r3c1, r3c2, r3c3])$
+- if you fix the value of a variable (e.g. $r1c1 = 5$) the other variables that share a row, column, box cannot be 5,
+  so their domain becomes $[1..4,6..9]$
+- represent grid as a list of lists
+
+```prolog
+%% Example Sudoku solver using SWI Prolog's library(clpfd)
+:- ensure_loaded(library(clpfd)).
+
+sudoku(Rows) :-
+        % each Row is a list in list of lists, there are 9 of them
+        length(Rows, 9), 
+        % make this a square grid: each row has the same number of 
+        % elements as the number of rows
+        maplist(same_length(Rows), Rows),
+        % append/2 flattens list of lists to a single list
+        append(Rows, Vs), 
+        % each of those 81 variables is in range 1 to 9
+        Vs ins 1..9,
+        % apply row constraint: all values are distinct in a row, using clpfd's all_distinct
+        maplist(all_distinct, Rows),
+        % get Columns from Rows
+        transpose(Rows, Columns),
+        % apply column constraints
+        maplist(all_distinct, Columns),
+        Rows = [A,B,C,D,E,F,G,H,I],
+        % pass groups of 3 rows in a block to blocks to impose block constraints
+        blocks(A, B, C), blocks(D, E, F), blocks(G, H, I).
+
+% blocks takes 3 lists, corresponding to 3 rows: 
+% take first 3 values from each list and assert that these 
+% 9 values are all distinct.  Then call recusively for the next block
+blocks([], [], []).
+blocks([A,B,C|Bs1], [D,E,F|Bs2], [G,H,I|Bs3]) :-
+        all_distinct([A,B,C,D,E,F,G,H,I]),
+        blocks(Bs1, Bs2, Bs3).
+
+puzzle([[5,3,_, _,7,_, _,_,_],
+        [6,_,_, 1,9,5, _,_,_],
+        [_,9,8, _,_,_, _,6,_],
+
+        [8,_,_, _,6,_, _,_,3],
+        [4,_,_, 8,_,3, _,_,1],
+        [7,_,_, _,2,_, _,_,6],
+
+        [_,6,_, _,_,_, 2,8,_],
+        [_,_,_, 4,1,9, _,_,5],
+        [_,_,_, _,8,_, _,7,9]]).
+```
+
+Test with
+```prolog
+?- puzzle(Puzzle), time(sudoku(Puzzle)), write(Puzzle).
+% 307,876 inferences, 0.039 CPU in 0.039 seconds (100% CPU, 7895949 Lips)
+[[5,3,4,6,7,8,9,1,2],
+ [6,7,2,1,9,5,3,4,8],
+ [1,9,8,3,4,2,5,6,7],
+ [8,5,9,7,6,1,4,2,3],
+ [4,2,6,8,5,3,7,9,1],
+ [7,1,3,9,2,4,8,5,6],
+ [9,6,1,5,3,7,2,8,4],
+ [2,8,7,4,1,9,6,3,5],
+ [3,4,5,2,8,6,1,7,9]]
+```
+
+-  we use `write/1` because Prolog doesn't show the whole result.
+- generates a solution in 40ms
+- works similar to a human: when it labels, you pick a value to pivot on
+
+### Linear inequality constraints
+
+- bake sale: different ingredients available, how many cakes of each type to make to maximise profit?
+  - $n_i$: number of cake $i$ to make
+  - $f_i$: flour required to make cake $i$
+  - $p_i$: unit price of cake $i$
+- you need to set up system of constraints:
+  - $\sum{n_i f_i}\leq f$ (flour available)
+  - $n_i \geq 0$: the number of each cake is non-negative
+  - Maximise revenue $r$, where $r = \sum{n_i p_i}$
+- `library(clpr)` is a SWI Prolog library to solve these problems
+  - constraints are enclosed in curly braces
+
+```prolog
+% first: ingredient constraints
+?- {250*B + 200*C =< 10000},
+|   {2*B =< 30},
+|   ...
+|   {B >= 0}, % number of cakes is non-negative
+|   {C >= 0},
+|   {Revenue = 4*B + 6.5*C}, % establish cost function
+|   maximize(Revenue). % indicate goal
+B = 12.0,
+C = 2.0,
+Revenue = 61.0
+```
 
 ## Predicates
 
