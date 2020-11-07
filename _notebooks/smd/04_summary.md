@@ -189,6 +189,49 @@ Approaches:
 
 ![System Sequence Diagram](img/system-sequence-diagram.png)
 
+## Communication Diagrams
+
+- different way to convey same information as a sequence diagram
+
+### Closest Store: System Sequence Diagram vs System Communication Diagram
+
+![System Sequence diagram](img/ssd-closest-store.png)
+
+![System Communication Diagram](img/scd-closest-store.png)
+
+### Pickup before close: SSD vs SCD
+
+![SSD](img/ssd-pickup-before-close.png)
+
+![SCD](img/scd-pickup-before-close.png)
+
+### Combined System Communication Diagram
+
+![SCD](img/scd-combined.png)
+
+### Message Sequence Numbers
+
+![SSD](img/sequencing-scd.png)
+
+![SSD](img/sequencing-scd-2.png)
+
+## Sequence vs Communication diagram
+
+- __sequence:__
+  - pros: 
+    - shows time ordering
+    - easy to convey details of message protocols
+  - cons
+    - linear layout can obscure relationships
+    - linear layout consumes horizontal space
+- __communications:__
+  - pros:
+    - clearly show relationships between object instances
+    - can combine scenarios to provide a more complete picture
+  - cons:
+    - more difficult to see message sequencing
+    - fewer notation options
+
 # Object-Oriented Design Models
 
 ## OO Domain Models
@@ -518,9 +561,13 @@ __Contents__
 
 ![Layers and Partitions](img/logical-architecture.png)
 
+![Package nesting](img/package-nesting.png)
+
 ### Information Systems - Typical Logical Architecture
 
 ![IS Logical Architecture](img/infosys-logical-architecture.png)
+
+![UML Packages to code](img/uml-packages-to-code.png)
 
 ### UML Component Diagram - Implementation View
 
@@ -533,11 +580,47 @@ __Contents__
 
 ![UML Components](img/uml-component-notation.png)
 
+![UML Components](img/uml-component-interfaces.png)
+
 ![UML Components 2](img/uml-component-notation2.png "UML Component Diagram Notation")
 
-### Architectural Improvement
+## Distributed Architectures
 
-#### Strategies
+- components are hosted on different platforms and communicate through a network
+
+![Distributed Architectures](img/distributed-architectures.png)
+
+### Client-server
+
+- component types: client, server
+- server: listens for client requests
+  - processes requests and responds to client
+  - can be __stateless__ or __stateful__
+  - __stateful:__ allows transactional interactions as __sessions__
+
+![Client-server](img/client-server.png)
+
+### Tiered Client-server 
+
+![Tiered Client-server](img/tiered-client-server.png)
+
+### Peer-to-Peer
+
+- all components act as both client and server
+
+![P2P](img/p2p.png)
+
+### Pipeline
+
+- __filter__ perpetually reads data from an input __pipe__, processes it, then writes the result to an output pipe
+- can be static and linear, or dynamic and complex
+- used a lot for graphics and signal processing
+
+![Pipeline Architecture](img/pipeline.png)
+
+## Architectural Improvement
+
+### Strategies
 
 Options that might be considered: buy, build, modify
 
@@ -553,7 +636,7 @@ Options that might be considered: buy, build, modify
 
 - Challenge: planning and executing an acceptable path
 
-#### Handling issues: some ideas
+### Handling issues: some ideas
 
 - responsiveness: host system locally, reduce Internet communications
 - reliability: update networking
@@ -649,3 +732,64 @@ Options that might be considered: buy, build, modify
 8. minimal feedback/adaptation
 9. no early/realistic testing
 10. architecture is speculatively finalised, before implementation
+
+# Test-Driven Development and Refactoring
+
+## Test-Driven Development
+
+- __TDD:__ development practise in which test code is written before the code that it will test
+  - acceptance tests at the start of an iteration
+  - unit tests before the corresponding class is implemented
+  - promoted in iterative/agile practice
+  - approach
+    - alternate between test code and production code
+    - ensure production code passes tests before proceeding
+
+### Advantages
+
+- tests actually get written
+- improved programmer satisfaction
+- clarification of detailed interface and behaviour
+- proven, repeatable, automated verification with a test suite
+- confidence to make changes
+
+### Unit test the `Sale` class
+
+- before writing `Sale`, write the class `SaleTest`
+- choose a method to implement/test e.g. `makeLineItem`
+- implement `SaleTest::testMakeLineItem` which:
+  - creates a `Sale` test item (__fixture__)
+  - add line items to it with `makeLineItem`
+  - ask for the total, verify it is as expected via assertions
+
+## Refactoring
+
+- __refactoring:__ structured, disciplined method for rewriting existing code, without changing 
+  its external behaviour
+  - small, behaviour preserving transformations (__refactors__) are applied, one-by-one
+  - run test suite to show refactoring did not cause a __regression__
+  - series of small transformation can result in major restructuring of code/design for the better
+    with no behaviour change
+
+### Code smells
+
+Code smells are suggestive of a need to refactor
+
+- duplicated code
+- big method
+- class with many instance variables
+- class with lots of code
+- strikingly similar subclass
+- little/no use of interfaces
+- high coupling between many objects
+
+### Refactorings
+
+There are many named refactorings.
+
+- extract method
+- extract constant
+- extract local variable
+- introduce explaining variable
+- replace constructor call with factory method
+

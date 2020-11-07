@@ -47,11 +47,11 @@ tags:
 
 - __responsibility__: contract/obligation
 - types of responsibility:
-  - _doing_: an object could
+  - __doing__: an object could
     - do something itself, e.g. create an object, perform a calculation
     - initiate action in other objects
     - control/coordinate activities in other objects
-  - _knowing_: an object could
+  - __knowing__: an object could
     - know about private encapsulated data
     - know about related objects
     - know about things it can derive/calculate
@@ -141,6 +141,8 @@ __Contraindications:__
   - non-functional requirements may require low cohesion, e.g. reduce processing overheads in high-
     performance computing
 
+![Cohesion in Monopoly](img/cohesion)
+
 ## Controller 
 
 
@@ -159,9 +161,17 @@ __Issues:__
     - break facade controller into multiple use case controllers
     - delegate work to other objects: only handle control in the controller itself
 
+![Facade vs Use Case Controller](img/controllers.png)
+
+- Bad coupling of UI to domain layer
+
+![UI Coupling](img/bad-coupling.png)
+
+- Better UI coupling with controller
+
+![Better UI Coupling](img/better-coupling.png)
 
 ## Polymorphism
-
 
 __Problem:__ 
   - how to handle alternatives based on _type_ (class)?
