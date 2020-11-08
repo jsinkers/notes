@@ -829,3 +829,4 @@ instance Monoid [a]
 ```
 
 ### Boolean: Any and All
+
