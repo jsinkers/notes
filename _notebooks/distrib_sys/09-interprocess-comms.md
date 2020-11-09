@@ -237,17 +237,256 @@ IntAddress aComputer = IntAddress.getByName("registermachine.com")
 
 ### CORBA's Common Data Representation
 
+- 15 primitive data types: short, long, unsigned short, ..., float, double, char, 
+  boolean, octet, any
+- primitives can be sent in big-endian/little-endian orderings
+- values are sent in sender's ordering, which is specified in the message
+- marshalled data only includes values of objects transmitted, not information concerning its type:
+  common knowledge at sender/receiver about types of data items in the message 
+- constructed types: primitive types combined in order
+
+![CORBA CDR Message](img/corba-cdr-message.png)
+
+- marshalling: performed by middleware
+  - operations can be automatically generated from data type specification 
+    defined in CORBA interface definition language (IDL)
+  - CORBA interface compiler generates marshalling/unmarshalling operations
+
 ### Java Object serialization
+
+- information about the class is included in the serialization (name, version)
+- all objects it references are serialized with it
+- references are serialised as __handles__ 
+- contents of primitive instance variables that are primitive types are written in a portable 
+  format using portable format using `ObjectOutputStream` methods
+  - Strings/characters written using `writeUTF()`
+
+```java 
+public class Person implements Serializable {...}
+```
+
+- anonymous functions aren't usually serialisable 
+- can be very inefficient
+- can also implement `Externalizable`
+  - programmer needs to implement flattening methods
+  - potentially much more efficient
+- during RMI: arguments are results are serialized/deserialized by middleware
+- __reflection:__ permits automatic de-/serialization
+- `transient`: Java won't transmit that variable
 
 ### XML Extensible Markup Language
 
+- __markup language:__ textual encoding representing data and details of the structure/appearance
+- XML
+  - markup language defined by World Wide Web Consortium (W3C)
+  - tags describe logical structure
+  - __extensible__: additional tags can be defined
+  - tags are generic; c.f. HTML, where tags give display instructions
+  - __self-describing__: tags describe the data
+  - textual: __human-readable, platform independent__
+  - textual: messages are __large__, so lots of processing, storage, transmission time
+  - SOAP: XML format whose tags are published for use by web services and their clients
+
+```xml
+<person id="123456789">
+    <name>Smith</name>
+    <place>London</place>
+    <year>1934</year>
+    <!-- comment -->
+</person>
+```
+
+#### Elements, attributes
+
+- __elements:__ data surrounded by tags e.g. `<name>Smith</name>`
+  - __hierarchical representation__ via nesting of elements
+  - empty tag with no contents terminated with `/>` e.g. <european/>
+- __attributes:__ start tag optionally contains attributes: name + value
+  - e.g. `id="123456789"`
+- either can be used to represent data
+  - substructures can only be represented with elements
+  - attributes can only be used for simple data types
+
+#### Namespace
+
+- __namespace:__ set of names for a collection of element types and attributes 
+  - referenced by a URL
+  - can be specified with attribute `xmlns` with value of the URL for the file containing namespace definition
+    - e.g. `xlmns:pers = "http://abc.def/person"`
+
+```xml
+<person pers:id="123456789" xlmns:pers ="http://abc.def/person">
+    <pers:name>Smith</pers:name>
+    <pers:place>London</pers:place>
+    <pers:year>1934</pers:year>
+    <!-- comment -->
+</person>
+```
+
+### Schema
+
+- __XML schema:__ defines elements/attributes that can appear in a document
+  - how elements are nested
+  - order/number of elements
+  - whether an element is empty/can include text
+  - intention: single schema definition shared by many documents
+```xml
+<xsd:schema xmlns:xsd = URL of XML schema definitions >
+  <xsd:element name= "person" type ="personType" />
+    <xsd:complexType name="personType">
+      <xsd:sequence>
+        <xsd:element name = "name" type="xs:string"/>
+        <xsd:element name = "place" type="xs:string"/>
+        <xsd:element name = "year" type="xs:positiveInteger"/>
+      </xsd:sequence>
+    <xsd:attribute name= "id" type = "xs:positiveInteger"/>
+    </xsd:complexType>
+</xsd:schema>
+```
+
 ### JSON JavaScript Object Notation
+
+- becoming dominant format used today
+  - supplanting XML
+  - MongoDB uses JSON derivative
+- lightweight
+- text-based
+- easy to program with
+- easy to understand
+- easy to parse
+
+- syntax diagrams at [www.json.org](https://www.json.org)
+
+#### Parsing Numbers
+
+![JSON Syntax: numbers](img/json-number.png)
+
+- there is no limit to the number of digits: this makes it difficult to represent (e.g. in a database).
+  What storage class should you use for this?
+- e.g. Twitter ran out of digits for id's, so added a string version of id
+- MongoDB created BSON (Binary JSON) to address numeric issues
+  - this can sometimes break downstream processing that expects vanilla JSON
+  - can lock you in to proprietary formats (technology lock-in)
 
 ## Group Communication 
 
-### IP Multicast
+- __multicast__ operation allows group communication
+  - send single message to a number of processes, identified as a group
+  - can happen with/without delivery guarantees
+  - one packet is sent out of 1 computer, and is received by multiple parties
+  - routers are responsible for routing multiple copies
 
-## Overlay Networks
+### Uses 
 
+- __propagation of event notification:__ e.g. pub-sub, Facebook.  When a status changes, all friends receive notification
+- __fault tolerance when used with replicated services:__ client requests get multicast to all members of the group
+  - even when some members fail, the client can still be served
+- __discovering services:__ multicast used by servers/clients to locate discovery services to register interfaces etc.
+- __better performance through replicated data:__ data are replicated to increase performance
+  - updated data are multicast to processes managing replicas
 
+### IP Multicast: Java API
 
+- `MulticastSocket`: subclass of `DatagramSocket`
+  - `joinGroup()`
+  - `leaveGroup()`
+- __IP multicast:__ built on top of IP
+  - lets sender transmit a single packet to a set of computers forming a group
+  - sender unaware of individual recipients, only group
+  - group identified by class D IP address (224.x.x.x)
+- router may not be configured to allow multicast
+  - while you may be able to use it locally, ISPs do not allow it
+
+#### API 
+  
+- IP multicast only available via UDP
+- application can send UDP datagrams to multicast address and ordinary port numbers
+- application can join a multicast group my making its socket join the group
+- when multicast message reaches a computer, copies are forwarded to __all__ processes with sockets bound
+  to the multicast address + port number
+
+- see Textbook for multicast peer
+
+#### Failure model 
+
+- datagrams multicast over IP multicast suffer from omission failures
+  - __unreliable multicast:__ not guaranteed to be delivered to any particular group member 
+    - messages may not get to 1+ members due to a single omission (i.e. some, not all members receive it)
+
+## Overlay Networks: Network virtualisation
+
+- virtual networks can be constructed on top of an existing network (e.g. the Internet)
+- these can be tailored to meet to needs of a particular distributed system
+- __overlay network:__ virtual network of nodes and virtual links sitting on top of an underlying network (e.g. IP network) 
+  - tailored service for needs of application
+  - more efficient operation in a particular networked environment
+  - additional features e.g. multicast/secure communication
+- overlays are layer sitting outside standard architecture, allowing degrees of freedom to be exploited
+
+### Advantages
+
+- new network services can be defined without changing underlying network
+- encourage experimentation to drive innovation
+- multiple overlays can coexist: more open, extensible network architecture
+
+### Disadvantages
+
+- additional indirection: performance penalty
+- additional complexity of network services
+
+### Types
+
+![Types of overlay](img/types-of-overlay.png)
+
+### Skype
+
+![Skype overlay network](img/skype-overlay-network.png)
+
+- Skype is impure P2P application for VoIP
+- developed by Kazaa - similar to Kazaa P2P filesharing application
+- virtual network: establishes connections between people 
+  - no IP address/port required to establish a call
+
+- __architecture:__ P2P infrastructure of ordinary users' machines (hosts) and super nodes
+  - super nodes: ordinary Skype hosts with sufficient capabilities to carry out enhanced role
+    - selected based on demand, based on available bandwidth, reachability, availability
+- __user connection:__ 
+  - authentication via well-known login server
+  - make contact with a selected super node (IP addr:port is stored in client cache)
+- __search for users:__
+  - super nodes: perform efficient search of global index of users
+  - search orchestrated by client's chosen super node
+  - expanding search until specified user found
+  - on average 8 super nodes are contacted, 3-4s
+- __voice connection:__ once user is discovered, Skype establishes voice connection between two parties
+  - TCP: signal call requests/terminations
+  - UDP/TCP for streaming audio.  TCP sometimes required to get around firewalls
+
+### Properties
+
+- __diameter/depth:__ shortest path between any two nodes
+  - affects latency
+- __degree:__ sum of in and out degree
+  - affects bandwidth consumption
+- __scalability bottlenecks:__ tailor depth/degree to reduce latency and bandwidth consumption
+
+### Various Configurations
+
+- latency/diameter $O(1)$, bandwidth/degree $O(n)$
+  - every node connects to every other node, degree of all nodes is $n-1$
+
+![Overlay 1](img/overlay-1.png)
+
+- diameter $O(n)$, degree $O(1)$
+  - chaining
+
+![Overlay 2](img/overlay-2.png)
+
+- diameter $O(\log{n})$, degree $O(1)$
+  - $n$-ary Tree
+
+![Overlay 3](img/overlay-3.png)
+
+- diameter $O(1)$, degree $O(\sqrt{n})$
+
+![Overlay 4](img/overlay-4.png)
