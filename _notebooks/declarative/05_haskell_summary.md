@@ -1,5 +1,5 @@
 ---
-title: Haksell 
+title: Haskell 
 notebook: Declarative Programming
 layout: note
 date: 2020-11-08
@@ -59,7 +59,12 @@ tags:
 
 ## Type classes
 
-- a type in `Ord` must also be in `Eq`
+- membership of `Ord` implies membership of `Eq`, but not vice cersa
+
+### Deriving
+
+- deriving `Ord` uses ordering in declaration for the comparison function
+  - lexicographic ordering used if there are multiple values in top level data constructor
 
 ## Disjunction and conjunction
 
@@ -155,4 +160,167 @@ The C implementation is error prone:
 - Java: forgetting to write a method for subclass will probably inherit the wrong 
   behaviour of the superclass
 
+## Recursion vs Iteration
 
+- functional languages have no constructs for iteration
+- what you do with iteration in imperative languages is done with recursion in functional languages
+
+- viewpoints
+  - writing code
+  - reliability
+  - productivity
+  - efficiency
+
+- as Haskell uses lists instead of arrays, compiler can warn when you are going to do something
+  wrong.  C compiler can't provide such warnings
+- Haskell gives meaningful name to jobs done by loops
+- functional program's structure is closer to what you would need to build a correctness 
+  argument, helping make them more reliable
+- named auxiliary functions helps readability
+
+### Efficiency
+
+- recursive versions of e.g. `search_bst` allocate one stack frame per node traversed
+  - iterative version: 1 stack frame overall
+  - recursive is less efficient: allocate, fill in, deallocate stack frames
+  - recursive version also needs more stack space
+- emphasis of compilers on optimisation of recursive code: in many cases they can produce
+  iterative code in the target language
+- declarative programs are typically slower than if written in C
+- depending on which language/implementation, as well as the particular program the slowdown
+  can be few percent to 100x.
+- other popular languages (Python, Javascript) are also significantly slower than C, and often
+  significantly slower than corresponding Haskell programs
+- trade off between speed and level of programming language
+
+## Sublists
+
+- write a function `sublists :: [a] -> [[a]]` that returns a list of all sublists of a list
+- a list `a` is a sublist of a list `b` iff  every element of `a` appears in `b` in the same order
+
+```haskell
+sublists "ABC" = ["ABC", "AB", "AC", "A", "BC", "B", "C", ""]
+sublists "BC" = ["BC", "B", "C", ""]
+```
+
+Notice: combining "A" with `sublists "BC"`, followed by `sublists "BC"`, gives `sublists "ABC"`
+The base case: the only sublist of `[]` is `[]`, so list of sublists is `[[]]`
+The recusrive case: sublists of a list is the sublists of its tail, both with and without the head
+added to the front of each list
+
+```haskell
+sublists :: [a] -> [[a]]
+sublists [] = [[]]
+sublists (x:xs) = map (x:) tail ++ tail
+  where tail = sublists xs
+```
+
+## Immutable data structures
+
+- data structures are __immutable__ in declarative languages, i.e. once created they cannot be 
+  changed
+- to update:
+  - create another version of the data structure with changes, and use the new version
+  - you can also keep the old version if needed: e.g. undo, statistics, ...
+
+## Polymorphism
+
+- __monomorphic__
+- __polymorphic__
+
+## `Data.Map`
+
+- polymorphic tree in standard library is `Map` from the `Data.Map` module
+- key functions:
+
+```haskell
+insert     :: Ord k => k -> a -> Map k a -> Map k a
+Map.lookup :: Ord k => k -> Map k a -> Maybe a
+(!)        :: Ord k => Map k a -> k -> a -- infix operator
+size       :: Map k a -> Int
+```
+
+## `let` vs `where`
+
+- `let` clauses can be used for any expression
+- `where` clauses can only be used at the top level of a function
+
+- introduce a name for a value used in the main expression
+
+```haskell
+let name = expr in mainexpr
+mainexpr where name = expr
+```
+
+## Higher Order Functions
+
+- 1st order values: data
+- 2nd order values: functions whose arguments, results are 1st order values
+- 3rd order values: functions whose arguments, results are 1st or 2nd order values
+- __nth order values:__ functions whose arguments, results are values of order up to $(n-1)$
+- __higher order values:__ belong to an order higher than 1st
+- higher order programming is central to Haskell, and often allows you to avoid writing recursive
+  functions
+
+### Higher order functions in C
+
+- function pointers: `Bool (*f)(int)`
+  - ugly, complicated
+
+### Higher order function in Hskell
+
+- much simpler and more natural, but also polymorphic
+
+```haskell
+filter :: (a -> Bool) -> [a] -> a
+filter f (x:xs) = if f x then x:filter xs else filter xs
+```
+
+### Partial Application
+
+- __partial application:__ giving a function that takes $n$ arguments $k$ arguments, $k < n$
+- produces a __closure__, recording the identity of the function and the values of those $k$ 
+  arguments
+- closure behaves like a function with $n-k$ arguments
+- a call of the closure leads to a call of the original function with both sets of arguments
+  - see e.g. definition I gave of `sublists` above
+
+### Operators and sections
+
+- __section:__ by enclosing an infix operator in parentheses, you can partially
+  apply it by enclosing it with __either__ left or right operand
+
+```haskell
+> map (5 `mod`) [3,4,5]
+[2,1,0]
+> map (`mod` 3) [3,4,5]
+[0,1,2]
+```
+
+### Currying
+
+- you can keep transforming the function type until every single argument is supplied separately
+
+```haksell
+f :: at1 -> (at2 -> (at3 -> ... (atn -> rt)))
+```
+
+- __currying:__ transformation from function type with all arguments supplied
+  together to a function type with all arguments supplied one-by-one
+- in Haskell __all function types are curried__
+- this is why it uses the arrow syntax for function types
+- NB arrow is right associative
+- what do you get when you've supplied all arguments?  Either
+  - closure containing all the functions arguments, or
+  - result of evaluation of the function
+- in C, and most other languages, these would be different, but in Haskell, they are equivalent
+
+### Function Composition
+
+```haskell
+(f . g) x = f (g x)
+```
+
+- __point-free style:__ writing functions without arguments e.g. `minimum = head . sort`
+- function composition expresses a sequence of operations: `step3f . step2f . step1f`
+- this forms the basis of monads

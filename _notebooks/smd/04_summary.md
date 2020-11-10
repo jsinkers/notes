@@ -793,3 +793,31 @@ There are many named refactorings.
 - introduce explaining variable
 - replace constructor call with factory method
 
+# UML Notes
+
+## Class Diagrams
+
+### Dependency
+
+- dependency shows coupling between classes
+- use the dependency line to depict global, parameter variable, local variable,
+  and static-method dependency between objects
+- optional label:
+  - `<<call>>`
+  - `<<create>>`
+
+### Composite Aggregation
+
+- __aggregation:__ loosely suggests whole-part relationships
+  - vague, no meaningful distinct semantics versus a plain association
+  - use composition instead, where appropriate
+- __composite aggregation/composition:__ strong kind of whole-part aggregation, where a composite aggregates parts, implying:
+  - an instance of the part (e.g. `Square`) belongs to only __one__ composite instance at a time (e.g. `Board`)
+  - part must __always belong to a composite__
+  - composite is responsible for creating/deleting its parts (whether directly, or by collaborating)
+  - if the composite is destroyed, its parts must be destroyed or attached to another composite
+- Notation: filled diamond on an association line (at the composite end)
+- Guideline: association name in composition is always implicitly some variation of "Has-part"
+  - don't bother explicitly naming it
+
+![Composite Aggregation](img/composite-aggregation.png)
