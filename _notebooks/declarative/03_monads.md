@@ -13,7 +13,6 @@ tags:
 ## Table of Contents
 
 
-
 ## Notes: Computerphile Monads
 
 Consider a data constructor for an expression which captures integer division:
@@ -106,11 +105,10 @@ So what does all this have to do with monads?  Effectively we have rediscovered 
 That's all a monad is:
 
 1. Type constructor `m`
-2. `return` definition, a function of type `a -> m a` for injecting a normal value into the chaing.  It _returns_ a pure value
+2. `return` definition, a function of type `a -> m a` for injecting a normal value into the chain.  It _returns_ a pure value
    into a monad
 3. Bind: `>>=` definition, a function of type `a -> (a -> m b) -> m b` for chaining the output of one function
    to the input of another
-   
 
 ### What's the point?
 
@@ -130,4 +128,3 @@ That's all a monad is:
 - __the `Foo` monad__: talking about the type named `Foo`, which is an instance of `Monad`
 - __action__: another name frame a moadic value
 
-## 

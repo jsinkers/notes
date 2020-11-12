@@ -650,6 +650,10 @@ Options that might be considered: buy, build, modify
 
 ![Unified Process](img/unified-process.png)
 
+## Artefacts
+
+![Sample Artefact Timeline](img/sample-up-artifact-timeline.png)
+
 ## Inception 
 
 - __inception:__ initial short step to establish common vision and basic scope

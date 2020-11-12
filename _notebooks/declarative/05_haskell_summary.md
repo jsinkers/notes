@@ -262,6 +262,13 @@ mainexpr where name = expr
 - higher order programming is central to Haskell, and often allows you to avoid writing recursive
   functions
 
+- Higher order programming is widely used in functional programming:
+  - code reuse
+  - higher level of abstraction
+  - canned solutions to frequently encountered problems
+- code that fails to use higher order programming is an antipattern, in that there is 
+  lots of structural repetition
+
 ### Higher order functions in C
 
 - function pointers: `Bool (*f)(int)`
@@ -324,3 +331,379 @@ f :: at1 -> (at2 -> (at3 -> ... (atn -> rt)))
 - __point-free style:__ writing functions without arguments e.g. `minimum = head . sort`
 - function composition expresses a sequence of operations: `step3f . step2f . step1f`
 - this forms the basis of monads
+
+## Folds
+
+- reduce (or aggregate) a list to a single value
+- three types:
+  - __left:__ $((((I \odot X_1) \odot X_2) ... ) \odot X_n)$
+    - consumes list from left to right
+  - __right:__ $(X_1 \odot (X_2 \odot ( ... (X_n \odot I)$
+    - consumes list from right to left
+  - __balanced:__ $((X_1 \odot X_2) \odot (X_3 \odot X_4))\odot ...$
+- fold operation $\odot$: binary "step" function
+  - takes an accumulator and a list element and combines them to produce the new accumulator value
+- $I$: identity element of the operation, an initial value for the accumulator
+
+### `foldl`
+
+`foldl` takes the step function, the accumulator value, the list to fold, and
+returns an accumulated value
+```haskell
+foldl :: (a -> b -> a) -> a -> [b] -> a
+foldl _ acc [] = acc
+foldl stepFn acc (x:xs) = foldl stepFn acc' xs
+      where acc' = stepFn acc x
+
+suml :: Num a => [a] -> a
+suml xs = foldl (+) 0 xs
+
+productl :: Num a => [a] -> a
+productl = foldl (*) 1 
+
+concatl :: Num a => [[a]] -> [a]
+concatl = foldl (++) []
+```
+
+- `foldl` is a poor choice in real Haskell, as it can produce __space leaks__
+  - small expressions: code operates normally, but uses much more memory than it should
+  - large expressions: stack overflow
+  - `Data.List` has `foldl'` that doesn't build up thunks
+
+### `foldr`
+
+`foldr` takes the step function, the accumulator value, the list to fold, and
+returns an accumulated value
+
+```haskell
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr _ acc [] = acc
+foldr stepFn acc (x:xs) = stepFn x acc'
+      where acc' = foldr stepFn acc xs
+
+sumr :: Num a => [a] -> a
+sumr xs = foldr (+) 0 xs
+
+productr :: Num a => [a] -> a
+productr = foldr (*) 1 
+
+concatr :: Num a => [[a]] -> [a]
+concatr = foldr (++) []
+```
+
+Note: as sum, product, concatenation are associative, we can define them using either `foldl` or `foldr`
+
+### Balanced fold
+
+- see lecture slides
+
+### More folds
+
+- `maximum` has no identity element, and will error if the list is empty
+- Prelude defines:
+
+```haskell
+foldl1 :: (a -> a -> a) -> [a] -> a
+foldr1 :: (a -> a -> a) -> [a] -> a
+
+maximum = foldr1 max
+minimum = foldr1 min
+```
+
+- these compute, e.g. 
+- __`foldl1`:__ $((((X_1 \odot X_2) \odot X_3) ... ) \odot X_n)$
+
+- can compute length of a list by summing 1 for each element
+
+```haskell
+const :: a -> b -> a
+const a b = a
+
+length = foldr ((+) . const 1) 0
+```
+
+- `map` can also be defined in terms of folds:
+
+```haskell
+map = foldr ((:) . f) []
+```
+- you can reverse a list by reversing cons
+
+```haskell
+reverse = foldl (flip (:)) []
+```
+### `Foldable`
+
+- you can fold over any type in type class `Foldable`
+- to make a type an instance of `Foldable`, define `foldr` for our type
+- this allows standard functions (`length`, `sum`, ...) to work on that type
+
+## Type System
+
+### `gcc`
+
+- `gcc`: initially implemented by Stallman, who was a Lisp programmer
+  - Lisp is dynamically typed
+  - code being compiled is therefore represented in nodes which are a big union of various fields
+  - produces various errors in handling these unions, which require lots of checking
+  - slows down `gcc` by 5%-15%
+  - violations are only detected at runtime
+  - code is harder to read and write
+- algebraic type system isn't vulnerable to these errors
+
+### Generic lists
+
+- in C, you can use `(void *)` and store a heterogeneous set of elements
+- might be convenient, but then elements need to be cast to the correct type, which can easily be done incorrectly
+- alternatively: use separate list types for every different type of item
+  - safe, but lots of duplication, and all the problems that come with it
+- Haskell type system is increasingly being copied by other languages
+- no other well-known language supports full algebraic types
+- e.g. application: unit mismatch on physical measurements
+  - solve in Haskell with data constructor that gives the unit: `data Length = Metres Double`
+
+## Monads
+
+- __monad:__ type constructor representing a computation
+  - computations can be composed to create other computations
+  - power: programmer's ability to determine how computations are composed
+  - "programmable semicolons"
+
+### Implementing a monad
+
+A monad `M` is defined with 3 things:
+
+- Type constructor `M`
+- Definition of `return :: a -> M a`
+  - identity operation, injects a normal value into the chain
+  - i.e. you can take a value of type `a` and wrap it in the monad's type constructor
+  - acts as a bridge between the pure and the impure
+  - _returns_ a pure value
+- Definition of `>>= :: M a -> (a -> M b) -> M b`: sequencing
+  - chains output of one function as the input of another
+  - unwraps the first argument, invokes the function given as the second argument, returning the wrapped result
+
+- think of `M a` as a computation producing an `a`, and possibly carries something extra
+  - e.g. if `M` is `Maybe`: the "extra" bit is whether or not an error has occurred
+
+### `Maybe` Monad
+
+```haskell
+data Maybe t = Just t | Nothing
+
+return x = Just x
+
+(Just x) >>= f = f x
+Nothing >>= _ = Nothing
+```
+
+- once you get a failure (`Nothing`), you perform no further operations
+
+### `IO`
+
+- Haskell has `IO` type constructor
+- function returning type `IO t` returns a value of type `t`, but can also do IO
+
+```haskell
+-- reading
+getChar :: IO Char
+getLine :: IO String
+
+-- writing
+putChar :: Char -> IO ()
+putStr :: String -> IO ()
+putStrLn :: String -> IO ()
+print :: (Show a) => a -> IO ()
+```
+
+- `()` unit: type of 0-tuples
+  - similar to `void` in C/Java
+  - only one value of this type, the empty tuple, `()`
+
+- type constructor `IO` is a monad
+- identity: `return val` returns `val` inside `IO` without doing any IO
+- sequencing: `f >>= g`
+  - calls `f`, which may do IO, and returns a value `rf` that may be meaningful (or `()`)
+  - calls `g rf`, which may do IO, and returns `rg`
+  - return `rg` inside `IO` as the result of `f >>= g`
+- you can use sequencing to chain together any number of IO actions
+
+```haskell
+-- monadic hello world
+hello :: IO ()
+hello = putStr "Hello, " >>= \_ -> putStrLn "world!"
+```
+
+- 2 IO actions
+  - call to `putStr`, printing the first half of the message, returning `()`
+  - second is an anonymous function, ignoring the input, and printing the rest of the message
+
+
+### `do` blocks
+
+Syntactic sugar time: write things under `do`
+
+```haskell
+greet :: IO ()
+greet = do
+    putStr "Enter name: "
+    name <- getLine
+    putStr "Enter address: "
+    address <- getLine
+    let msg = name ++ " lives at " ++ address
+    putStrLn msg
+```
+
+- Haskell is layout sensitive: you need to indent actions the same or else they won't be considered
+  part of the `do` expression
+- elements of `do` block
+  - IO action returning an ignored value (usually of type `()`) e.g. `putStr` and `putStrLn` above
+  - `var <- expr`: IO action whose return value is used to bind a variable
+  - `let var = expr`: binds a variable to a non-monadic value (N.B. no `in`)
+
+### `return`
+
+- for functions doing IO and returning a value, if the code that computes the return value
+  does no IO, you need to invoke `return` as the last operation in the block
+
+```haskell
+readlen :: IO Int
+readlen = do
+    str <- getLine
+    return (length str)
+```
+
+### I/O actions as descriptions
+
+- functions returning type `IO t` don't actually _do_ the action, but you can think of them as returning:
+  - a value of type `t`
+  - a __description__ of an IO operation
+- `>>=` then takes descriptions of 2 IO operations, and returns a description of those two operations executed in order
+- `return` associates a description of a do-nothing operation with a value
+
+### `main`
+
+```haskell
+main :: IO ()
+```
+
+- `main` is where program starts execution:
+- conceptually:
+  - OS starts program invoking the Haskell runtime system
+  - runtime system calls `main`, which returns a description of a sequence of IO operations
+  - the runtime system executes the sequence of IO operations
+- reality:
+  - compiler + runtime system together ensure each IO operation is executed once the description is computed provided:
+    - all previous operations have been executed to avoid executing operations out of order
+    - description will end up in the lost of operation descriptions returned by `main`: you don't want to execute 
+      IO operations a program doesn't actually call for
+
+### Non-immediate Execution of IO actions
+
+- existence of a description of an IO action does not mean it will eventually be executed
+- descriptions of IO operations can be passed around:
+  - build up lists of IO actions
+  - put IO actions into BST as values
+  - select a value from a list/tree, and execute it by including it in list of actions returned by `main`
+
+### IO in Haskell programs
+
+- in imperative languages (C, Java, Python), the type of a function doesn't tell you if a function does IO
+- Haskell very explicitly does
+- most Haskell programs: vast majority of functions are not IO functions, but transform data structures and perform calculations
+- IO code is then a small amount on top
+- produces __low coupling__ between IO code and non-IO code
+- __optimisations:__ code that does no IO is able to be arrange: 
+- __parallelism:__ calls to functions that do no IO can be done in parallel
+
+### Debugging printf
+
+- `unsafePerformIO :: IO t -> t` allows you to perform IO anywhere, but order of output is probably wrong
+  - useful for debugging
+  - you give it an IO operation (a function of type `IO t`
+  - `unsafePerformIO` calls it, returning a value of type `t` and a description of an IO operation
+  - `unsafePerformIO` executes the described operation and returns the value
+
+### `State` Monad
+
+- useful for computations that need to thread information throughout the computation
+- allows information to be transparently passed around a computation, and updated/accessed as needed
+- allows imperative programming style without losing declarative semantics
+
+- here's a function that adds 1 to each value in a tree.  Doesn't need a monad
+
+```haskell
+data Tree a = Empty | Node (Tree a) a (Tree a)
+    deriving Show
+
+type IntTree = Tree Int
+
+incTree :: IntTree -> IntTree
+incTree Empty = Empty
+incTree (Node l e r) = Node (incTree l) (e + 1) (incTree r)
+```
+
+- what if we want to add 1 to leftmost element, 2 to next element, ...
+- we'd need to pass an integer into our function saying what to add, and pass an integer out, saying what to add to the next element
+- we return a pair of the updated tree and the current value
+- the code is a bit complex
+
+```haskell
+incTree1 :: IntTree -> IntTree
+incTree1 tree = fst (incTree1' tree 1)
+
+incTree1' :: IntTree -> Int -> (IntTree, Int)
+incTree' Empty n = (Empty, n)
+incTree' (Node l e r) n = (Node newl (e + n1) newr, n2)
+    where (newl, n1) = incTree1' l n
+          (newr, n2) = incTree2' r (n1 + 1)
+```
+
+- the `State` monad abstracts away the type `s -> (v, s)`
+  - `s`: state
+  - `v`: value
+- using it with `do` allows you to focus on the `v` and ignore the `s` where it isn't relevant
+
+```haskell
+incTree2 :: IntTree -> IntTree
+incTree2 tree = fst (runState (incTree2' tree) 1)
+
+incTree2' :: IntTree -> State Int IntTree
+IncTree2' Empty = return Empty
+incTree2' (Node l e r) = do
+    newl <- incTree2' l
+    -- get current state
+    n <- get
+    -- set the current state
+    put (n + 1)
+    newr <- incTree2' r
+    return (Node newl (e+n) newr)
+```
+
+- as we don't need arbitrary update of the integer state, we can define a `Counter` that simply increments
+
+```haskell
+type Counter = State Int
+
+withCounter :: Int -> Counter a -> a
+withCounter init f = fst (runState f init)
+
+nextCount :: Counter Int
+nextCount = do 
+    n <- get
+    put (n+1)
+    return n
+
+incTree3 :: IntTree -> IntTree
+incTree3 tree = withCounter 1 (incTree3' tree)
+
+incTree3' :: IntTree -> Counter IntTree
+IncTree3' Empty = return Empty
+incTree3' (Node l e r) = do
+    newl <- incTree3' l
+    n <- nextCount
+    newr <- incTree3' r
+    return (Node newl (e+n) newr)
+```
+
+## Lazy Evaluation

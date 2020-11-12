@@ -669,7 +669,7 @@ properties for it to be well-behaved:
 arity: we can't map a function inside a functor value over another functor value
 using `fmap`
 - __`Applicative` type class__: applicative functors are beefed-up functors that
-  contain functions that can be applied to other functors
+  contain __functions that can be applied to other functors__
 
 ```haskell
 class (Functor f) => Applicative f where
