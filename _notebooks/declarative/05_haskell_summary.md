@@ -707,3 +707,128 @@ incTree3' (Node l e r) = do
 ```
 
 ## Lazy Evaluation
+
+- __eager evaluation:__ each expression is evaluated as soon as it is bound to a variable, whether explicitly, in an assignment statement, or implicitly during a call
+  - most programming languages
+- __lazy evaluation:__ expression is not evaluated until its value is needed, when:
+  - program wants value as input to arithmetic operation
+  - program wants to match the value against a pattern
+  - program wants to output the value
+- Haskell uses lazy evaluation
+- allows you to work with conceptually infinite data structures (e.g. `[1..]`
+- see sieve of Erastosthenes example
+
+### Representation of unevaluated expressions
+
+- the code to execute to eventually provide a value needs to be remembered
+- __suspension/thunk/promise__: Haskell compiled to C (e.g. using GHC) stores this code to execute with 
+  - a pointer to a C function
+  - all arguments you need to give to the C function
+- _suspension_: computation whose evaluation is temporarily suspended
+- _promise:_ promise to carry out a computation if needed
+- _thunk_: first name given to it in Algol-60
+
+### Parametric Polymorphism
+
+- permits functions to work independently of type variables
+- implementation requires values of all types can be represented in the same amount of memory
+  - e.g. `length` wouldn't be able to handle lists with elements of all types without this
+- word size is the size of a pointer: anything that doesn't fit into one word is represented by a pointer
+  to a chunk of memory on the heap
+- suspension's arguments can then be stored in an array of words
+  - all functions can be arranged to take arguments from a single array of words
+
+### Evaluating lazy values only once
+
+- many functions use the values of some variables multiple times, e.g. `takeWhile` uses `x` twice:
+
+```haskell
+takeWhile _ [] = []
+takeWhile p (x:xs) 
+    | p x       = x : takeWhile p xs
+    | otherwise = []
+```
+
+- you need to know the value of `x` for the test `p x`
+- this requires calling the function in the suspension representing `x`
+- if the test succeeds, you again need to know `x` to put it at the front of the output list 
+- to avoid redundant work: 
+  - call to `x`'s suspension to record the result
+  - all references to `x` then get the value from this record
+- now once the result of the call is no, you don't need the function and arguments anymore
+
+### Call by need
+
+- __call by need:__ function arguments and other expressions are evaluated only when their value is needed
+  - c.f. call by value
+
+### Implementing Control Structures
+
+- lazyness guarantees expressions will not be evaluated if its value is not needed
+- programmers can define their own control structures as functions
+
+e.g. if-then-else which returns the value of one of 3 expressions, depending on whether an expression is $>, =, < 0$:
+
+```haskell
+ite :: (Ord a, Num a) => a -> b -> b -> b -> b
+ite x lt eq gt
+    | x < 0  = lt
+    | x == 0 = eq
+    | x > 0  = gt
+```
+
+### Avoiding unnecessary work
+
+```haskell
+minimum = head . sort
+```
+
+- looks wasteful: sorting is usually $O(n^2)$ or $O(n \log{n})$
+- `minimum` should be doable in $O(n)$
+- evaluation of the sorted list however can stop after the first element has materialised
+- (still higher overhead than standard definition)
+
+### Multiple passes
+
+```haskell
+output_prog chars = do
+    let anno_chars = annotate_chars 1 1 chars
+    let tokens = scan anno_chars
+    let prog = parse tokens
+    let prog_str = show prog
+    putStrLn prog_str
+```
+
+- takes as input one data structure `chars` and calls for construction of four others: `anno_chars`, `tokens`, `prog`, `prog_str`
+- this pass structure occurs frequently
+- eager evaluation: completely construct each data structure before starting construction of the next
+  - maximum memory needed: size of largest data structure (pass n), plus size of any part of the previous data structure (pass n-1)
+    needed to compute the last part of pass n
+  - all other memory can be garbage collected before then
+- lazy evaluation: execution driven by `putStrLn`, which needs to know what the next character to print should be
+  - for each character to print, the program materialises the parts of the data structures needed to determine this
+  - memory demand: tree of suspensions from earlier passes needed to materialise the rest of the string to print
+  - can be significantly lower than eager evaluation demands
+
+### Lazy Input
+
+- in Haskell, input is implemented lazily
+- `readFile` returns the contents of the file as a string, but it returns the string lazily
+  - i.e. it reads the next character from the file _only_ when the rest of the program needs it
+
+```haskell
+parse_prog_file filename = do
+    fs <- readFile filename
+    let tokens = scan (annotate_chars 1 1 fs)
+    return (parse_prog [] tokens)
+```
+
+- when the main module calls `parse_prog_file` it gets back a tree of suspensions
+- only when the suspensions start to be forced is input file read
+- each call to `evaluate_suspension` on the tree causes only as much to be read as is needed to figure out the value of the forced data constructor
+
+## Performance
+
+## Interfacing with Foreign Languages
+
+## Parsing
