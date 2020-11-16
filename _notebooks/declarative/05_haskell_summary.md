@@ -829,6 +829,145 @@ parse_prog_file filename = do
 
 ## Performance
 
+### Effect of Lazyness on Performance
+
+- overhead from lazyness
+  - creation of suspensions, unpacking of suspension when they need to be executed
+  - each access to a value needs to check whether the value has been materialised
+- benefits from lazyness
+  - avoid executing long-running/non-terminating computation
+- whether benefits outweigh the costs depends on particulars of program and input
+- in most cases you lose a bit, sometimes you win a little, rarely you win a lot
+
+### Strictness
+
+- __bottom__ $\bot$: value of an expression whose evaluation loops infinitely, or throws an exception
+- a __strict__ function always need the values of all its arguments
+  - if any of its arguments is $\bot$ then its result will be $\bot$
+- `+` is strict
+- `ite` from previous section is non-strict
+- __strictness analysis:__ compiler pass to analyse program code and figure out which functions are/aren't strict
+  - when a strict function is found, instead of generating code that creates a suspension, it can generate code
+    that an imperative language compiler would generate, i.e. code that evaluates all arguments, then calls the function
+  - performed by some compilers including GHC
+
+### Unpredictability
+
+- lazyness makes it more challenging to understand where the program is spending most time, and where most memory gets allocated
+- small changes in when/where program demands a value can cause large changes in the parts of a suspension tree that are evaluated
+  - large change in time/space complexity
+- Haskell implementations provide advanced profilers to help with this
+
+### Memory Efficiency
+
+- immutable data structures mean that more memory needs to be allocated and written, taking time and requiring extra garbage collection
+
+#### Inserting into a BST
+
+- replace one node on each level of tree
+- for a roughly balanced tree of $n$ nodes, the height is roughly $\log_2{n}$
+- number of nodes allocated during insertion scales logarithmically with size of the tree
+- if old version of tree isn't needed: imperative does better, as it only needs to allocate a single node
+- if old version of tree is needed: imperative does worse.  Entire tree needs to be copied
+- note that any nodes that don't get updated become a part of the new tree
+  - e.g. image below shows insertion of key `h` into BST with keys `a` to `g`
+
+![Insertion into BST](img/insert-bst.png)
+
+### Deforestation
+
+- many Haskell programs have code following this pattern
+  - start with first data structure `ds1`
+  - traverse `ds1` to produce `ds2`
+  - traverse `ds2` to produce `ds3`
+- if programmer can restructure code to compute `ds3` directly from `ds1`, this will speed up the program, as:
+  - no longer need to create `ds2`
+  - 1 traversal instead of 2
+- this process, of eliminating intermediate data structure (typically a tree or similar), is called __deforestation__
+
+#### Basic deforestation
+
+- you can always deforest two calls to `map`
+```haskell
+map (+1) $ map (2*) list
+-- becomes the more succinct, elegant, efficient:j
+map ((+1) . (2*)) list
+```
+
+- similarly you can combine filters:
+
+```haskell
+
+filter (>=0) $ filter (<10) list
+-- becomes
+filter (\x -> x >= 0 && x < 10) list
+```
+### `filter_map`
+
+```haskell
+-- two list traversal
+two_pass xs = map triple (filter is_even xs)
+
+-- implement filter map to perform filtering and mapping at the same time
+filter_map :: (a -> Bool) -> (a -> b) -> [a] -> [b]
+filter_map _ _ [] = []
+filter_map p m (x:xs) = if p x then (m x):xs' else xs'
+    where xs' = filter_map p m xs
+
+-- now we can do the same with one list traversal 
+one_pass xs = filter_map is_even triple xs
+```
+
+### Standard deviations
+
+- see lecture slides
+
+### Cords
+
+- repeated appends to the end of a list take time quadratic in the final list length
+- imperative approach: keep a pointer to list tail, and destructively update tail $O(1)$
+- declarative approach: switch from lists to cords for $O(1)$ appends
+
+```haskell
+data Cord a = Nil | Leaf a | Branch (Cord a) (Cord a)
+
+append_cords :: Cord a -> Cord a -> Cord a
+append_cords a b = Branch a b
+```
+- to convert a cord to a list, you might try:
+
+```haskell
+cord_to_list :: Cord a -> [a]
+cord_to_list Nil = []
+cord_to_list (Leaf x) = [x]
+cord_to_list (Branch c1 c2) = (cord_to_list c1) ++ (cord_to_list c2)
+```
+
+- but this has the same performance problem (using append)
+  - second equation puts empty list behind all leaves
+  - all but one of the lists it creates is copied again
+- take 2: use an accumulator
+
+```haskell
+cord_to_list :: Cord a -> [a]
+cord_to_list 
+
+cord_to_list' :: Cord a -> [a] -> [a]
+cord_to_list' Nil xs = xs
+cord_to_list' (Leaf x) xs = x:xs
+cord_to_list' (Branch c1 c2) xs = cord_to_list' c1 (cord_to_list' c2 xs)
+```
+
+### Sortedness
+
+- see lecture slides
+
+### Optimisation
+
+- e.g. compilation with `ghc -dynamic -c -O3`
+- can give better results than hand-optimised code
+
 ## Interfacing with Foreign Languages
 
 ## Parsing
+
