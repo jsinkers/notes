@@ -326,3 +326,6 @@ __Issues__
 
 - Java secure server/client: need to use a __keystore__ file which contains certificates and other data needed for SSL
 
+## Kerberos
+
+
