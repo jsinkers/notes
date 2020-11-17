@@ -8,6 +8,15 @@ tags:
 
 [TOC]: #
 
+## DFS Summary
+
+- key design issues for distributed file systems
+  - effective client caching for performance similar to local file system
+  - maintaining consistency of files copied in multiple client caches
+  - recovery from server/client failure
+  - high throughput for reading/writing files
+  - scalability
+
 ## File Systems
 
 - __filesystem vs file system__:
