@@ -1,6 +1,6 @@
 ---
 title: Extra Reading
-notebook: oop
+notebook: Object Oriented Programming
 layout: note
 date: 2020-03-03 11:17
 tags: 
