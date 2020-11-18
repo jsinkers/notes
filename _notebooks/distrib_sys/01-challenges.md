@@ -1,5 +1,5 @@
 ---
-title: Distributed Systems - Challenges
+title: Challenges
 notebook: Distributed Systems
 layout: note
 date: 2020-08-12
@@ -215,4 +215,19 @@ Paradigms making heavy use of wireless networks:
 - data passed as XML/JSON
 - __SOAP protocol__ allows clients to invoke web services (XML format)
 - __REST (REpresentational State Transfer) architecture:__
+
+### Success of WWW
+
+- data is distributed over web servers
+- manageable and extensible
+  - __interoperable:__ different implementations of server/client are able to work together
+  - open system
+    - __extended__ and implemented in new ways without disturbing existing functionality
+    - open with respect to the types of __resource__ that can be published/shared
+  - process __faults are isolated__ to individual servers/clients
+  - hyperlinks: allow clients to discover other servers, without client needing to store a list of all servers
+- search engines provide indexing and rapid searching for content
+- organisations can administer their own part of the WWW with their own policies
+- API allows for wide variety of more complicated applications, instead of simply static content
+- predecessor e.g. gopher based on a subscription model, and was not widely adopted
 

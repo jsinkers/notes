@@ -174,7 +174,10 @@ Uncoupling
   - substantially more complex than client-server architecture
   - any process can make/receive connections from any other process
   - no hierarchy: all processes have same capabilities
-  - no single point of failure: if a client fails, probably won't be noticed
+  - in many systems some peers contribute more than others (seed, super peer)
+  - reliable: no single point of failure: if a client fails, probably won't be noticed
+  - available: difficult to deny service for adversaries, as no central point of control
+  - non-homogeneous: peers likely have different resources
   - e.g. BitTorrent
 - P2P vs C-S __security__: 
   - for client server to be insecure, server has to be compromised. Requires
@@ -207,7 +210,9 @@ Uncoupling
   - increases capacity of system
   - can partition/replicate across multiple hosts
   - __cluster:__ thousands of commodity processing boards
+  - e.g. data sharding
 - __cache:__ store of recently used objects that is closer to some clients than objects themselves
+  - new objects are added to the cache replacing existing objects (e.g. via LRU policy)
   - reduce network traffic and server load
   - may improve performance for client
 - __proxy server:__ increase availability/performance by reducing load on wide area network

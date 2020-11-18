@@ -13,16 +13,23 @@ tags:
 ![CAP Theorem](img/cap-theorem.png)
 
 - __consistency:__ every node agrees on current state
+  - client sees the same data throughout the transaction
+  - __strong consistency:__ when a process reads a value, it always gets the latest value
+  - __weak consistency:__ no guarantees the value read is the latest one
 - __availability:__ you go to get/set state, and the system is available to do that
+  - data availability is not compromised due to any ongoing transaction
 - e.g. drawing on collaborative whiteboard
   - propagation is required to maintain consistency
   - ideally this would happen instantaneously, but clearly that's not possible
 - __partitioning:__ network problem creating disjoint regions of distributed system
   - with distributed systems there's always a chance of partitioning occurring
+  - system functions even if the communication fails between servers
 - __CAP Theorem:__ when partitioning occurs, you need to choose between consistency and availability
 
 ## PACELC Theorem
 
+- builds on CAP theorem by discussing trade-offs in consistency, availability, partition tolerance
+  - also latency + consistency
 - PAC: partitioning? then availability vs consistency
 - ELC: else latency vs consistency
 
@@ -34,7 +41,6 @@ theorem), but else (E), even when the system is running normally in the absence
 of partitions, one has to choose between latency (L) and consistency (C).
 
 ## Fallacies of Distributed Computing
-
 
 From [Wikipedia](http://en.m.wikipedia.org/wiki/Fallacies_of_distributed_computing)
 

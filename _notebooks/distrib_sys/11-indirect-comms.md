@@ -128,6 +128,44 @@ Comparison of all 3:
 - notify members of group membership changes
 - changes to the group address
 
+### Unicast vs Multicast
+
+- __unicast:__ one sender sends message to one receiver
+  - UDP or TCP
+  - UDP: unreliable; packets may get lost, duplicated, arrive out of order, maximum packet size
+  - TCP: unicast, but handles retransmission, eliminates duplicates, fragments packets, presents messages to application layer in order
+- multicast: one sender sends message to many receivers
+  - IP multicast extends UDP
+  - message transmission therefore unreliable
+  - no notion of membership
+
+### JGroups
+
+- based on IP multicast: extends reliable unicast (1-1) message transmission (as in TCP) to multicast (1-many)
+- JGroups: toolkit for reliable messaging
+  - can create clusters whose nodes can send messsages using group membership
+  - framework provides services to enable P2P communications between nodes in a cluster
+
+#### Reliability
+
+- lossless transmission of message to all recipients
+- fragmentation 
+- FIFO ordering: messages m1 and m2 sent by P will be received by all receivers in the same order, not as m2, m1
+- atomicity: message received by all receivers, or none
+
+#### Group membership
+
+- knowledge of members of group
+- notifications when new member joins, existing member leaves, existing member has crashed
+
+#### Features
+
+- cluster creation and deletion
+- joining/leaving clusters
+- membership detection/notification
+- detection, removal of crashed nodes
+- point-to-multipoint: sending/receiving of node-to-cluster messages
+
 ## Publish-Subscribe 
 
 - __publish-subscribe systems:__ publisher disseminates events to multiple recipients via an intermediary
@@ -323,6 +361,51 @@ Range of choices for architecture
 - scales poorly
 
 ### JavaSpaces 
+
+- JavaSpaces: high-level tool for building distributed/collaborative applications
+- provides a shared space for object storage and exchange
+- uses a simple but expressive API
+- objects are stored in JavaSpaces as __serialised object entries__
+  - entries are typed: templates for one type won't match a different type
+- API
+  - `write` entries into the space
+  - `read` entries from the space (leaving it in the space)
+    - you get a random entry that matches your template
+    - if there are multiple matches, you only get one
+    - to remove all, you use a loop
+  - `take` entries from space (removing it from the space)
+  - `notify` sends notification through an event handler if entries matching a template are added
+- template: entry with 1+ fields set to null
+- matching: entry matches a template if
+  - same type/subtype
+  - every non-null field matches exactly 
+
+![JavaSpaces](img/javaspaces.png)
+
+#### Design Goals
+
+- platform to __simplify__ design and implementation of distributed systems
+- client should have few classes to maintain simplicity and reduce download time
+- client should have small footprint so it is able to run on computers with minimal memory
+- support variety of implementations
+- replication should be possible
+
+#### JavaSpaces vs Databases
+
+- not relational database
+  - relational database: 
+    - based on relational model of data, storing data in structure format using rows/columns
+    - understand data stored
+    - manipulated via SQL
+  - JavaSpaces:
+    - store entries they understand only by type and serialised form of each field
+    - no general queries in JavaSpaces, only "exact match" or "don't care"
+- not object database
+  - object database: DBMS in which information represented in form of objects
+    - OO image of stored data that can be used/modified similar to the object being in primary memory
+  - JavaSpaces: 
+    - do not provide nearly transparent, persistent, or transient layer
+    - works only on copies of entries
 
 ### Implementation Issues
 

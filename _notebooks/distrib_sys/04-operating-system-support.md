@@ -42,6 +42,10 @@ tags:
   - long time goal, but not in general use:
     - lots of apps have already been developed for existing systems
     - users prefer to have a degree of autonomy over their machines
+  - users never concerned with where programs run, or location of any resources
+  - any given host may not have all it would need to operate independently 
+
+![Network vs Distributed OS](img/network-vs-distributed-os.png)
 
 ## Core OS components
 
@@ -79,6 +83,7 @@ tags:
     - policies need to be enforced
 - __kernel__: program that is loaded from system initialisation, and is executed with full access privileges to
   all physical resources on the host computer
+  - program at core of computer's OS 
   - register in CPU maintains current mode
   - in kernel/supervisor mode: full set of instructions available, can access/control every resource
   - in user mode, only a subset of CPU instructions is available
@@ -111,6 +116,8 @@ tags:
 
 ### Address spaces
 
+- __virtual memory:__ uses hardware + software to allow a computer to treat secondary memory as though it were primary memory
+  - data that isn't being used is transferred from RAM to disk, and transferred back once it is needed
 - __virtual address space:__ most OS's allocate for each process
   - byte addressable
   - 32 bit architecture: $2^32$ byte addresses
@@ -187,9 +194,10 @@ tags:
 
 ![Worker Pool](img/server-pool-threads.png)
 
-- fixed pool of worker threads: avoids bottleneck from thread creation by creating threads in advance
+- server creates fixed pool of worker threads: avoids bottleneck from thread creation by creating threads in advance
 - each request is placed in a request (priority) queue by an IO thread
 - workers pull requests off the queue when they are free
+- useful in highly concurrent system
 - disadvantages:
   - inflexible: cannot scale up if there are insufficient workers
   - high level of switching between IO and worker threads as they manipulate the queue
@@ -259,6 +267,7 @@ tags:
 - `sleep(int millisecs)`: make thread `SUSPENDED` for specified time
 - `synchronized`: designate a method/block as belonging to a monitor associated with an individual object 
   - monitor guarantees at most one thread can execute within it at any time
+  - prevent inconsistent state by marking critical region
 - `wait()`: used to block a thread while waiting for a particular criteria
 - `notify()`: wakes/unblocks at most one thread 
 - `join()`: blocks caller until the target thread terminates

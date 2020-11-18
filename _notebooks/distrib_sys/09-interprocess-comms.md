@@ -128,7 +128,7 @@ IntAddress aComputer = IntAddress.getByName("registermachine.com")
 
 - `receive` waits indefinitely until messages received
 - can set timeouts on sockets to exit from infinite waits and check condition of 
-  sender
+  sender e.g. `Thread.interrupt()`
 - `receive` allows receiving from any port
   - can be restricted to given IP addr/port
 
@@ -221,7 +221,16 @@ IntAddress aComputer = IntAddress.getByName("registermachine.com")
 
 ## External Data Representation and Marshalling
 
-- data structures need to be flattened to a sequence of bytes for transmission 
+- files are either __binary or text format__
+  - CORBA, Java's object serialisation: binary
+- binary file formats
+  - faster, 
+  - more flexible, 
+  - uses less memory
+- texted based file formats: 
+  - easy to interpret
+  - application specific tags can be constructed and parsed with external parsers/libraries
+- data structures need to be flattened to a sequence of bytes for transmission or storage
 - approaches to allow computers to interpret data
   - use agreed external format
   - transmit in senders format, with indication of format used
@@ -254,8 +263,11 @@ IntAddress aComputer = IntAddress.getByName("registermachine.com")
 
 ### Java Object serialization
 
+- __serialisation:__ convert an object into a byte stream for storage/transmission
+- __deserialisation:__ restoring that state of an object from a serialised form
 - information about the class is included in the serialization (name, version)
 - all objects it references are serialized with it
+- the byte stream created is __platform independent__
 - references are serialised as __handles__ 
 - contents of primitive instance variables that are primitive types are written in a portable 
   format using portable format using `ObjectOutputStream` methods
@@ -367,6 +379,14 @@ public class Person implements Serializable {...}
 - MongoDB created BSON (Binary JSON) to address numeric issues
   - this can sometimes break downstream processing that expects vanilla JSON
   - can lock you in to proprietary formats (technology lock-in)
+
+### JSON vs XML
+
+- JSON
+  - lightweight: fewer bytes to represent the same information, reducing memory use and data transmission 
+  - supports arrays
+- XML
+  - has attributes for metadata within tags.  To do this in JSON requires adding an extra field
 
 ## Group Communication 
 

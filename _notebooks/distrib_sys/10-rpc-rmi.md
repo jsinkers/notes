@@ -10,11 +10,14 @@ tags:
 
 - request-reply communication: most primitive; minor improvement over underlying IPC primitives
   - 2-way exchange of messages as in client-server computing
+- RPC, RMI: mechanisms enabling a client to invoke a procedure/method from the server via communication between client and server
 - __Remote Procedure Call (RPC):__ extension of conventional procedural programming model
   - allow client programs to transparently call procedures in server programs running in separate processes,
     and in separate machines from the client
+  - i.e. to the caller, the procedures appear to be in local address space
+  - RPC system hides encoding/decoding of parameters and results, message passing, and preserves required invocation semantics
 - __Remote Method Invocation (RMI):__ extension of conventional object oriented programming model
-  - allows objects in different processes to communicate 
+  - allows objects in different processes to communicate i.e. an object in one JVM is able to invoke methods in an object in another JVM
   - extension of local method invocation: allows object in one process to invoke methods of an object living in another process
 
 ![Middleware Layers](img/remote-invocation-layers.png)

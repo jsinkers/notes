@@ -24,11 +24,17 @@ tags:
   - __file system:__ software component providing access to files
 
 - __file system:__ provides 
-  - convenient programming interface for disk storage
-  - access control
-  - file-locking (for file sharing)
+  - convenient programming interface for persistent/disk storage
+  - name space (hierarchical/flat)
+  - sharing of data between users
+    - access control
+    - file-locking 
+- access files in early days of networking
+  - FTP, Telnet
+  - lacks transparency: need to know IP address, as well as directory structure
 - __distributed file system:__ emulates non-distributed file system for client programs running
   on multiple remote computers
+  - transparency: local computing, with a remote file system
 - __file service:__ allow programs to store and access remote files as they do local ones
   - access files from any computer on intranet
   - hosts providing such services can be optimised for multiple disk drives, and can supply
@@ -81,34 +87,59 @@ tags:
 
 - multiple clients' updates should not interfere with each other
 - should be able to manage policies
+- solutions
+  - file, record-level locking
+  - isolation
 
 ### File replication
 
-- multiple copies of files over several servers: better capacity for accessing the file, better
+- multiple copies of files over several servers: reduced latency, scalability, 
   fault tolerance
+- requires other copies are updated when one copy is modified
+- full replication is challenging to implement
+- solutions
+  - cache all/part of file: gives many benefits
 
 ### Heterogeneity
 
 - client and server should be able to operate on various hardware/OS
+- i.e. design must be compatible with the file system of different OS
+- use protocols to standardise operations with server
 
 ### Fault tolerance
 
 - transient communication problems shouldn't result in file corruption 
+- system should still function as much as possible when clients/server fails
+- faults need to be detected, reported, and corrected
 - invocation semantics: can be
   - at-most-once 
   - at-least-once: simpler, but requires idempotent operations
 - servers can be __stateless__ such that there is no recovery required if a server goes down
+- solutions
+  - redundant copies of data, redundant hardware, backups, transaction logs
+  - stateless servers
+  - idempotent operations
 
 ### Consistency
 
 - multiple, concurrent access to file should see consistent representation of the file
+  - complete, current, correct
 - differences in file's location/update latencies shouldn't make the file look different at different times
 - file metadata should be consistent on all clients
+- particular concern when data is replicated
+- solutions:
+  - timestamps and ownership info
 
 ### Security
 
-- client requests should be authenticated
-- data transfer should be encrypted
+- file systems need to be protected against
+  - unathorised access
+  - data corruption
+  - loss and other threats
+- solutions:
+  - access control: ownership, permissions
+  - client requests should be authenticated
+  - data transfer should be encrypted
 
 ### Efficiency
 
@@ -325,4 +356,16 @@ tags:
 - $\checkmark$ consistency: tunable. not recommended for close synchronisation between processes
 - $\checkmark$ security: Kerberos is integrated with NFS. Secure RPC also an option
 - $\checkmark$ efficiency: acceptable, can be tuned.
+
+## Dropbox
+
+- 100+ millions users, 1 billion files/day
+- design
+  - small client with minimal resource usage
+  - works with a low-capacity/disrupted network
+  - backend scales
+- read/write ratio of 1:1 c.f. typical value of 100:1 for Twitter/Facebook
+- traffic only when changes occur
+- uses compression to reduce traffic
+
 
