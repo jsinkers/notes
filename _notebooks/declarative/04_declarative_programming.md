@@ -49,3 +49,46 @@ tags:
     - can keep previous version for comparison/undo
     - __immutability__ makes parallel programming significantly easier
 
+## Strengths of Declarative Languages
+
+- productivity: working at a higher level of abstraction
+  - focus on big picture
+- symbolic data processing simplified: 
+  - algebraic data types 
+  - parametric polymorphism
+- reliability: 
+  - compiler catches more errors
+  - memory allocation automated
+- simplified debugging: you can jump back in time
+- maintainability: type system helps locate what needs fixing
+  - typeclass system helps avoid unwanted coupling
+- parallelisable: automatically parallelisable
+
+## Strengths of Imperative languages
+
+- performance
+- existing libraries
+- programming tools
+- available expertise and programmers
+
+# Interfacing with Foreign Languages
+
+- applications often involve code written in several languages.  Reasons:
+  - interface to existing libraries
+  - write performant code in low-level languages
+  - write each part in the most appropriate language
+  - gradually migrate code base between languages
+- achieved using a __foreign language interface__
+
+## Application Binary Interface
+
+- platform: ISA + OS
+- each platform has an ABI, which dictates
+  - where callers of functions put function parameters
+  - where callee function should put result
+- by compiling different files to the same ABI, functions in one file can call functions in a 
+  separately compiled file (even compiled with a different compiler)
+- traditional way to interface languages (C-Fortran, Ada-Java): compilers of both languages generate
+  code conforming to the ABI
+
+

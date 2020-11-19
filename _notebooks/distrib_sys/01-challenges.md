@@ -231,3 +231,149 @@ Paradigms making heavy use of wireless networks:
 - API allows for wide variety of more complicated applications, instead of simply static content
 - predecessor e.g. gopher based on a subscription model, and was not widely adopted
 
+# Building a Distributed System (Paper)
+
+- distributed systems
+  - difficult to design, build, operate
+  - many more variables in the design than with a single machine
+  - root cause analysis much more difficult
+  - failures manifest as intermittent errors, decreased performance: difficult to diagnose and reproduce
+- reasons for building a DS
+  - demands of API, website etc. exceed ability of a single machine
+  - migrating an existing application to the cloud for cost saving on hardware/data centre
+    - often requires rewriting: applications will not function if not designed for DS
+
+### Architecting
+
+- service oriented architecture (SOA): loosely coupled services, each serving a small and independent function
+  - solid principle for resilient DS
+  - services are the new process: the right abstraction level for discrete functionality
+- to construct a SOA
+  - identify each function making up the business goals of the application
+  - map these into discrete services that can be scaled, with well defined fault boundaries
+- consider for each service
+  - geography: global? region based?
+  - data segregation
+  - service level agreements: latency, availability, throughput, consistency, durability guarantees
+  - security: identity, authentication, authorisation, audit
+    - data confidentiality
+    - privacy
+  - usage tracking: capcacity planning, billing
+  - deployment
+
+## Web service that resizes images
+
+### Requirements
+
+- system ingests images, converts them, makes available to customer ASAP
+  - response time acceptable to interactive user (web browser)
+- assume images aren't stored
+- customers need to identify themselves
+- usage-based pricing model
+- each data centre is isolated
+- assume maximum users 100,000
+  - maximum requests per second per region: 10,000
+- 99.9% availability in a month
+- 99th percentile of latency less than 500ms for images under 1MB
+
+### Is a distributed system needed?
+
+- 10,000 resizes per second
+- assume 256kB per image, 10 conversions per second per CPU core
+- 32 core processor can support 320 conversions per second
+- 32 image-processing servers required
+- add 20% for surge capacity: ~ 40 servers is a lower bound
+- clearly DS is justified
+
+### Services
+
+![Image Resizing Service](img/img-resize-service.png)
+
+- services:
+  - customer-facing API (e.g. REST)
+  - message queue to send requests to compute servers
+  - identity manager with authentication cache
+  - usage aggregation: analytics, billing
+- provides
+  - separation of concerns for failure modes
+  - scaling
+  - consistency
+
+### Image API
+
+- make as many pieces of DS stateless as possible: state is where challenges arise
+- geography: API servers only serve a particular region
+- availability: worst number the system/software/data centre/network can offer
+  - 99.99% availability for API: 5 mins downtime per month
+- latency: latency of a request is sum of latencies to dependent systems
+  - ~ 1-10ms
+- throughput: ~ 3 servers to handle traffic
+  - means load balancing needed; can use DNS round-robin
+- consistency: stateless
+- security: customers need credentials
+  - users cannot access other's input/output images
+- usage tracking: meter all requests on per-customer basis; API needs to be designed with this in mind
+- custom implementation as the API is highly particular to the business logic 
+
+### Message Queue
+
+- many more servers needed to handle image processing than to handle API
+- message queue: 
+  - API server is producer, image processing servers are consumer
+  - provides FIFO
+  - user resize times will degrade when system is too busy
+  - supports scalability
+  - prioritises consistency over availability
+- geography: run a MQ per region
+- data segregation: one MQ per region
+- latency: sub-ms latency, most MQs support this
+- throughput: MQ used bidirectionally, needs to support 20,000 requests per second
+- consistency: queue provides FIFO semantics, strong consistency
+
+### Platform Components
+
+#### Identity, authentication
+
+- customer management will happen far less than Web service requests
+- critical function, but not value-adding: latency must be as low as possible
+- scaling is necessary to keep up with service requests
+- authentication events aren't cacheable, but data required to serve them is
+  - largely read-only
+  - allows decoupling of data plane and management plane, such that they can be independently scaled
+  - tradeoff: 2 separate systems, with eventual consistency
+
+#### Usage collection
+
+- write intensive, and read infrequently, often only once (for billing)
+- difficult aspect: need to process larger number of records than requests with reasonable read latency
+- approach: local grouping of usage records on each API server by time/size boundaries
+
+### Architecture Takeaways
+
+- decompose business application into discrete services
+- make as much as possible stateless
+- when dealing with state, depend on CAP, understand latency, throughput, durability requirements
+
+### Implementation
+
+- usually not a good approach to survey software and glue it together: each system is implemented with assumptions by engineers implementing it
+- important to understand these assumptions and the resulting trade-offs, and how these will impact your system
+  - some software is compatible with your assumptions, other software will not be
+- when you need to implement software, assess prior art
+  - use strong points and then rejig for your needs
+
+### Testing and validation
+
+  - very difficult
+  - system needs to be empirically validated
+  - total outages relatively uncommon, degraded service for brief periods is very likely
+  - failures and degraded state need to be introduced regularly, as failures can and will happen.  This helps understand component dependencies
+  - e.g. Netflix Chaos Monkey
+
+### Operations
+
+- capture, analyse all aspects of hardware and OS, network, application software: if it moves, measure it
+- components:
+  - realtime monitoring to respond to failures
+  - analytics
+- amount of data likely will exceed amount of data serving business function: this probably requires its own DS to manage the DS

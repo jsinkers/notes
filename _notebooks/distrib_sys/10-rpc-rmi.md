@@ -22,6 +22,21 @@ tags:
 
 ![Middleware Layers](img/remote-invocation-layers.png)
 
+## Pros and Cons of RPC, RMI
+
+- __pros:__
+  - high __transparency__: caller works with remote procedure/object as if it were local
+  - general purpose, __flexible__
+- __cons:__ 
+  - high overhead for communication, marshalling/unmarshalling: latency
+
+## Example Applications
+
+- RPC: machine learning inference on your phone
+  - phone is too slow
+  - make RPC to server, which has resources to execute inference quickly
+- RMI: checking a user's password
+
 ## Request-Reply Protocol
 
 - most common exchange protocol for remote invocation
@@ -242,14 +257,17 @@ Different flavours of exchange protocols:
 - software layer between application and the communication and object reference modules, composed of
   proxies, dispatchers, and skeletons
 - __proxy:__ behaves like a local object to the invoker making RMI transparent to clients 
+  - usually an interface
   - lives in the __client__
   - instead of executing the invocation, it forwards it in a message to a remote object
   - hides details of remote object reference, marshalling, unmarshalling, sending/receiving messages from client
   - one proxy per remote object reference the process holds
-- __dispatcher:__ __server__ has 1 dispatcher + 1 skeleton for each class representing a remote object
+- __dispatcher:__  translates method ID to the real method
+  - __server__ has 1 dispatcher + 1 skeleton for each class representing a remote object
   - receives requests from the communication module
   - uses `operationId` to select appropriate method in the skeleton
 - __skeleton:__ skeleton class of remote object implementing methods of remote interface
+  - handles marshalling/unmarshalling
   - skeleton methods unmarshal arguments in the request and invoke the corresponding method in the servant
   - marshals the result in a reply message to the sending proxy's method
 

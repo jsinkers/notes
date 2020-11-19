@@ -349,6 +349,14 @@ Range of choices for architecture
 
 - processes communicate indirectly by placing tuples in a tuple space, from which other processes can read or remove them
 - tuples are accessed by pattern matching on content
+- tuple space is a repository
+  - process can add, withdraw, read tuples by atomic operations
+  - tuples can contain different values
+  - processes can inspect context via pattern matching
+- compared to message passing, tuple spaces are a higher level of abstraction
+- main challenges: 
+  - best data structure for distributed multiset of tuples
+  - efficient tuple processing and data distribution
 
 ![Tuple Spaces](img/tuple-spaces.png)
 
@@ -358,11 +366,17 @@ Range of choices for architecture
 
 - TSS = tuple space server
 - complexity in communication
-- scales poorly
+- scales poorly: difficulty in guaranteeing consistency across tuple spaces
 
 ### JavaSpaces 
 
 - JavaSpaces: high-level tool for building distributed/collaborative applications
+- one of the first implementations of tuple spaces, by Sun Microsystems
+- based on Java's Jini and RMI
+- tuples are instances of Java classes, fields are public attributes of the class
+  - tuples are restricted to containing objects and not primitive values
+- tuple space is a Java collection
+- pattern matching is performed at the byte-level, supporting OO polymorphism
 - provides a shared space for object storage and exchange
 - uses a simple but expressive API
 - objects are stored in JavaSpaces as __serialised object entries__
@@ -375,6 +389,7 @@ Range of choices for architecture
     - to remove all, you use a loop
   - `take` entries from space (removing it from the space)
   - `notify` sends notification through an event handler if entries matching a template are added
+  - aditional: `eval`: spawns new processes, allows code mobility
 - template: entry with 1+ fields set to null
 - matching: entry matches a template if
   - same type/subtype
@@ -408,4 +423,5 @@ Range of choices for architecture
     - works only on copies of entries
 
 ### Implementation Issues
+
 

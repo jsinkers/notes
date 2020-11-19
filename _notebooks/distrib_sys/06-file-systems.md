@@ -357,7 +357,9 @@ tags:
 - $\checkmark$ security: Kerberos is integrated with NFS. Secure RPC also an option
 - $\checkmark$ efficiency: acceptable, can be tuned.
 
-## Dropbox
+## Cloud Storage
+
+### Dropbox 
 
 - 100+ millions users, 1 billion files/day
 - design
@@ -367,5 +369,6 @@ tags:
 - read/write ratio of 1:1 c.f. typical value of 100:1 for Twitter/Facebook
 - traffic only when changes occur
 - uses compression to reduce traffic
+
 
 
