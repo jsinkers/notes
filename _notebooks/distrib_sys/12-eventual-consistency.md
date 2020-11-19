@@ -64,14 +64,29 @@ The fallacies are:
 - Notes on _Eventual Consistency Today: Limitations, Extensions, and Beyond (Bailis and Ghodsi), 2013_
 
 - __eventual consistency:__ if no additional updates are made to a given data item, all reads will eventually return the same value
+  - eventually, all servers converge to the same state; at some point in the future, servers are indistinguishable
   - "eventually, all accesses return the last updated value"
   - very weak, but extremely useful
   - systems are strongly consistent most of the time, and are often faster than strongly consistent counterparts
+- benefits
+  - simplifies design and operation of distributed services
+  - improves availability
+  - often consistent
+- costs
+  - some inconsistency will exist
+  - cannot provide guarantee of currency of data
 - there are properties eventual consistency can never provide: there is a cost to remaining highly available and providing low latency
 - even without partitions, a system that chooses availability over consistency benefits from low latency
 - partition tolerance is not something you can trade-off: partitions happen, and when they do, you must choose between availability and consistency
 - most of the time, availability wins over consistency 
   - e.g. social network and timeline updates: you degrade user experience by preventing user from posting if you choose consistency
+    - network partition: cannot deliver each update to all timelines
+    - consistency: do you prevent user from posting an update, or wait until partition heals before providing a response?
+    - availability: propagate update to reachable followers, delay the update to other followers until paritition heals
+    - availability approach: better user experience; all users eventually see the same timeline with all updates
+  - e.g. ATM: two users simultaneously withdrawing money from an account, and ending up with more money than the account ever held
+    - in practice banks allow this behaviour: ATMs availability outweighs the cost of temporary inconsistency
+    - banks should have well defined compensating actions: overdraft fees etc.
 - __anti-entropy:__ information exchange between replicas about what writes they have seen to ensure convergence towards consistency
   - __concurrent writes:__ if these happen, the replicas deterministically choose a winning value
   - needs to be asynchronous to prevent replicas hanging when partitions occur
@@ -112,7 +127,10 @@ The fallacies are:
   - e.g. storing time series of stock market data vs storing latest value
   - overwrites, set deletion, counter resets, negation: not logically monotonic
   - __CALM captures ACID 2.0 (associativity, commutativity, idempotence, distributed)__
-    - idempotence: you can call a function any number of times and get the same result
+    - associative: you can apply a function in any order $f(a,f(b,c)) = f(f(a,b),c)$
+    - commutative: function's arguments are order insensitive $f(a,b) = f(b,a)$
+    - idempotence: you can call a function any number of times and get the same result $f(f(x)) = f(x)$
+      - allows use of simpler, lower cost at-least-once message delivery
   - Commutative replicated data types e.g. increment-only counter
     - increment is commutative: it doesn't matter in which order two increments are applied
     - replicas understand semantics of increment instead of general purpose read/write which is not commutative
@@ -125,4 +143,4 @@ The fallacies are:
 - __causal consistency:__ each processes writes are seen in order writes follow
   reads, useful in ensuring comment threads are seen in correct order without
   dangling replies 
-
+  - strongest consistency model possible in presence of partitions
