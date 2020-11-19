@@ -106,10 +106,17 @@ e.g. some algorithms assume groups are closed
 - __FIFO ordering:__ preserve ordering from sender's perspective
   - if a process sends one message before another, it will be delivered in this order at all processes in the group
 - __Causal ordering:__ if a message happens before another message, this causal relationship will be preserved in delivery at all processes
+  - strengthening of FIFO: a message is not delivered to an application until all messages it depends on have been delivered
 - __Total ordering:__ if a message is delivered before another message at one process, the same order will be preserved at all processes
+  - all processes receive all messages in the same order
+  - doesn't require causal or FIFO order, so not stronger than these orderings
+  - FIFO/Causal can be combined with Total if needed
 
 FIFO ordering:
 ![FIFO](img/fifo-ordering.png)
+
+FIFO but not causal:
+![FIFO, not causal](img/fifo-not-causal.png)
 
 Causal Ordering:
 ![Causal ordering](img/causal-ordering.png)
