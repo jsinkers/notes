@@ -256,6 +256,7 @@ hr {
   background-color: #fff;
 }
 
+
 a#logo {
   color: #f2deff;
 }
@@ -311,29 +312,37 @@ input[type=checkbox]:checked ~ .menu-label:after {
   display: inline-block;
   padding: 0.2rem;
 }
+#results-container>* {
+    font-family: "Source Sans Pro", sans-serif;
+    font-size: 14pt;
+    line-height: 1.5;
+    color: #ffffff;
+    background-color: #000000;
+    display: list-item;
+}
 /* need to override materialize headings sizes because they are huge */
 h1 {
-  font-size: 3em !important;
+    font-size: 3em !important;
 }
 
 h2 {
-  font-size: 2.2em !important;
+    font-size: 2.2em !important;
 }
 
 h3 {
-  font-size: 1.5em !important;
+    font-size: 1.5em !important;
 }
 
 h4 {
-  font-size: 1.25em !important;
+    font-size: 1.25em !important;
 }
 
 h5 {
-  font-size: 0.83em !important;
+    font-size: 0.83em !important;
 }
 
 h6 {
-  font-size: 0.67em !important;
+    font-size: 0.67em !important;
 }
 /*
  * Equations with KaTeX
@@ -341,35 +350,35 @@ h6 {
  * Center the equation content.
  */
 .equation {
-  padding-bottom:  1rem;
-  padding-top:     1rem;
-  text-align:      center;
-  font-size:       1.5em;
+    padding-bottom:  1rem;
+    padding-top:     1rem;
+    text-align:      center;
+    font-size:       1.5em;
 }
 /* in terms of our fixed-width layout; if smaller than this, we want to
  * collapse the menu */
 @media (min-width: 40rem) {
-  .menu-label {
-    display: none;
-  }
+    .menu-label {
+        display: none;
+    }
 
-  .trigger {
-    display: inline;
-    padding-top: inherit;
-  }
+    .trigger {
+        display: inline;
+        padding-top: inherit;
+    }
 
-  .trigger-child {
-    display: inline;
-    text-align: initial;
-  }
+    .trigger-child {
+        display: inline;
+        text-align: initial;
+    }
 
-  .nav-link {
-    display: initial;
-  }
+    .nav-link {
+        display: initial;
+    }
 
-  .nav-link:before {
-    content: "| ";
-  }
+    .nav-link:before {
+        content: "| ";
+    }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -383,32 +392,42 @@ h6 {
     }
 
     a {
-      color: #66D9EF;
-      /*color: #A6E22E;*/
-      text-decoration: none;
+        color: #66D9EF;
+        /*color: #A6E22E;*/
+        text-decoration: none;
     }
 
     a:hover {
-      color: #000;
-      background-color: #66D9EF;
-      text-decoration: none;
+        color: #000;
+        background-color: #66D9EF;
+        text-decoration: none;
     }
 
     h1, h2, h3, h4, h5, h6 {
         color: #eee;
-      }
+    }
 
     #page-header, #nav-bg, a#logo, #top-nav, #top-nav a, .trigger {
-      background-color: #A6E22E;
-      /*background-color: #6300b1;*/
-      color: #202020;
+        background-color: #A6E22E;
+        /*background-color: #6300b1;*/
+        color: #202020;
+    }
+
+    #results-container, #results-container > *, #results-container > li > a {
+        font-family: "Source Sans Pro", sans-serif;
+        font-size: 14pt;
+        line-height: 1.5;
+        color: #ffffff;
+        background-color: #000000;
+        display: grid;
+        list-style-type: none;
     }
 
     #page-header h3 {
-      color: #202020;
+        color: #202020;
     }
 
-    
+
 
     a:hover > code  {
         background-color: #66D9EF;
@@ -419,33 +438,33 @@ h6 {
     }
 
     #slide-out {
-      background-color: #1b1f23;
-      color: #eee;
-      padding-left: 0 !important;
+        background-color: #1b1f23;
+        color: #eee;
+        padding-left: 0 !important;
     }
     #slide-out ul {
-      padding-left: 0 !important;
+        padding-left: 0 !important;
     }
     #slide-out a {
-      color: #eee;
+        color: #eee;
     }
 
     #slide-out .subheader {
-      color: #ddd;
-      background-color: #0e1014;
+        color: #ddd;
+        background-color: #0e1014;
     }
 }
 
 @media print {
-  #nav-bg, #logo, #top-nav { display: none; }
-  h1.title ~ p.center.gap.accent { display: none; }
-  .youtube-wrapper { display: none; }
-  html { font-size: 1em; font-family: sans-serif; }
-  body { background: none; }
-  #content { max-width: none; }
-  h1.title { text-align: center; }
-  h1, h2, h3, h4, h5, h6 { break-after: avoid-page; page-break-after: avoid; }
-  #content hr:last-of-type { display: none; }
-  #content pre { break-inside: avoid-page; page-break-inside: avoid; }
-  #content div.small:last-of-type { display: none; }
+    #nav-bg, #logo, #top-nav { display: none; }
+    h1.title ~ p.center.gap.accent { display: none; }
+    .youtube-wrapper { display: none; }
+    html { font-size: 1em; font-family: sans-serif; }
+    body { background: none; }
+    #content { max-width: none; }
+    h1.title { text-align: center; }
+    h1, h2, h3, h4, h5, h6 { break-after: avoid-page; page-break-after: avoid; }
+    #content hr:last-of-type { display: none; }
+    #content pre { break-inside: avoid-page; page-break-inside: avoid; }
+    #content div.small:last-of-type { display: none; }
 }

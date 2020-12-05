@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     var elems = document.querySelectorAll('.sidenav');
     var instances = M.Sidenav.init(elems);
+    var container = document.getElementById("results-container");
+    var searchInput = document.getElementById('search-input');
     // grab all elements in DOM with the class 'equation'
     //var tex = document.getElementsByClassName("equation");
 
@@ -16,10 +18,21 @@ document.addEventListener('DOMContentLoaded', function() {
             {left: "$", right: "$", display: false}]
     });
     var sjs = SimpleJekyllSearch({
-        searchInput: document.getElementById('search-input'),
-        resultsContainer: document.getElementById('results-container'),
-        json: '/notes/search.json'
-    })
+        searchInput: searchInput,
+        resultsContainer: container,
+        json: '/notes/search.json',
+        //fuzzy: true
+    });
+
+    // clear the 
+    document.getElementById("close-icon").addEventListener("click", function (){
+        searchInput.value = "";
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+    });
+    
+
 });
 
 // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
