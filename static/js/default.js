@@ -1,3 +1,5 @@
+---
+---
 document.addEventListener('DOMContentLoaded', function() {
     var elems = document.querySelectorAll('.sidenav');
     var instances = M.Sidenav.init(elems);
@@ -20,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var sjs = SimpleJekyllSearch({
         searchInput: searchInput,
         resultsContainer: container,
-        json: '/notes/search.json',
+        json: "{{ site.baseurl }}/search.json",
         //fuzzy: true
     });
 
-    // clear the 
+    // clear the search input and search results when the close icon is clicked
     document.getElementById("close-icon").addEventListener("click", function (){
         searchInput.value = "";
         while (container.firstChild) {
