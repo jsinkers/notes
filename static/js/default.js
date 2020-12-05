@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', function() {
             {left: "$$", right: "$$", display: true},
             {left: "$", right: "$", display: false}]
     });
+    var sjs = SimpleJekyllSearch({
+        searchInput: document.getElementById('search-input'),
+        resultsContainer: document.getElementById('results-container'),
+        json: '/notes/search.json'
+    })
 });
 
 // Initialize collapsible (uncomment the lines below if you use the dropdown variation)

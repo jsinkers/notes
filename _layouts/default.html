@@ -6,6 +6,9 @@
 <body>
 
 {% include nav.html %}
+<!-- HTML elements for search -->
+<input type="text" id="search-input" placeholder="Search blog posts..">
+<ul id="results-container"></ul>
 <ul id="slide-out" class="sidenav">
     <li><a class="header" href="{{ site.baseurl }}/">notes</a></li>
     <li>
@@ -22,7 +25,7 @@
 <script src="{{ site.baseurl }}/static/katex_dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/mathtex-script-type.min.js" integrity="sha384-LJ2FmexL77rmGm6SIpxq7y+XA6bkLzGZEgCywzKOZG/ws4va9fUVu2neMjvc3zdv" crossorigin="anonymous"></script>
-<script type="text/javascript" src="{{ site.baseurl }}/static/js/default.js"></script>
+<script src="https://unpkg.com/simple-jekyll-search@latest/dest/simple-jekyll-search.min.js"></script><script type="text/javascript" src="{{ site.baseurl }}/static/js/default.js"></script>
 </body>
 
 </html>

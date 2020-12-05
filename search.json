@@ -1,0 +1,19 @@
+---
+layout: none
+---
+[
+  {% assign notebooks = site.notebooks | group_by: "notebook" %}
+  {% for notebook in notebooks %}
+      {% for note in notebook.items %}
+        {
+          "title"    : "{{ note.title | escape }}",
+          "category" : "{{ note.category | jsonify }}",
+          "tags"     : "{{ note.tags | join: ', ' }}",
+          "url"      : "{{ site.baseurl }}{{ note.url }}",
+          "date"     : "{{ note.date }}"
+        } {% unless forloop.last %},{% endunless %}
+      {% endfor %}
+        {% unless forloop.last %},{% endunless %}
+  {% endfor %}
+]
+
