@@ -130,7 +130,7 @@ implies $c_0 = ... = c_{n-1} = 0$.
 
 - __change of basis/transition matrix:__ from basis $\mathcal{B}$ to $\mathcal{D}$ is a matrix $M_{\mathcal{D} \leftarrow \mathcal{B}}$ s.t. for any matrix $\mathbb{V}$:
 $$
-V_\mathcal{D} = M_{\mathcal{D} \leftarrow \mathcal{B}} * V_\mathcal{B}
+V_{\mathcal{D}} = M_{\mathcal{D} \leftarrow \mathcal{B}} * V_{\mathcal{B}}
 $$
 
 - i.e. the matrix gets the coefficients with respect to one basis from the coefficients with respect to another basis

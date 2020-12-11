@@ -76,7 +76,7 @@ tags:
 - consider the following sequence of operations:
 
 $$
-\bold{v} \rightarrow U\bold{v} \rightarrow U^\dagger U\bold{v} \rightarrow I\bold{v} = {v}$
+\bold{v} \rightarrow U\bold{v} \rightarrow U^\dagger U\bold{v} \rightarrow I\bold{v} = {v}
 $$
 
 - you get the identity matrix: in graph terms this means "stay where you are".  $U^\dagger$ undoes the action of $U$, leaving you
@@ -120,7 +120,7 @@ $$
 
 ### Exponential growth
 
-m Cartesian product of $n$ vertex graph with $p$ vertex graph is an $np$ vertex graph
+- Cartesian product of $n$ vertex graph with $p$ vertex graph is an $np$ vertex graph
 - if you have an $n$ vertex graph G with $m$ different marbles, you need to look at the graph
 
 $$
