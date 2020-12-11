@@ -460,10 +460,8 @@ $$
 - this cannot be done (in general).  Consider the following 2 particle system in state $\ket\psi$
 
 $$
-\begin{align}
-\ket\psi &= \ket{x_0}\otimes\ket{y_0} + \ket{x_1}\otimes\ket{y_1} \\
-      &= 1\ket{x_0}\otimes\ket{y_0} 0\ket{x_0}\otimes\ket{y_1} + 0\ket{x_1}\otimes\ket{y_0} + \ket{x_1}\otimes\ket{y_1} \\
-\end{align}
+\ket\psi = \ket{x_0}\otimes\ket{y_0} + \ket{x_1}\otimes\ket{y_1} \\
+      = 1\ket{x_0}\otimes\ket{y_0} 0\ket{x_0}\otimes\ket{y_1} + 0\ket{x_1}\otimes\ket{y_0} + \ket{x_1}\otimes\ket{y_1} \\
 $$
 
 - attempt to write $\ket\psi$ as the tensor product of 2 states from respective subsystems
@@ -494,7 +492,7 @@ $$
 - the basis for the entire system is:
 
 $$
-\{\uparrow_L\otimes\uparrow_R, \uparrow_L\otimes\downarrow_R, \downarrow_L\otimes\uparrow_R, \downarrow_L\otimes\downarrow_R\}$
+\{\uparrow_L\otimes\uparrow_R, \uparrow_L\otimes\downarrow_R, \downarrow_L\otimes\uparrow_R, \downarrow_L\otimes\downarrow_R\}
 $$
 
 - the entangled particles can then be described by:

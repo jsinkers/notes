@@ -71,3 +71,97 @@ void main() {
 ## Sources
 
 [Learn OpenGL](https://learnopengl.com)
+
+## Transformations
+
+### Homogeneous coordinates
+
+- in order to do matrix translations, an additional coordinate is needed
+- the homogeneous coordinate $w$ is added as a component of the vector
+- the 3D vector is derived by dividing the $x,y,z$ components by $w$, but usually $w = 1$, so no conversion is required
+- if $w$ is 0, the vector is a _direction vector_ as it cannot be translated
+
+### Scaling
+
+Scaling by $(S_1, S_2, S_3)$ on a vector $(x,y,z)$ can be done with the following matrix:
+
+$$
+\begin{bmatrix}
+  S_1 & 0 & 0 & 0 \\
+  0 & S_2 & 0 & 0 \\
+  0 & 0 & S_3 & 0 \\
+  0 & 0 & 0 & 1 \\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+  x \\
+  y \\
+  z \\
+  1 \\
+\end{bmatrix}
+= 
+\begin{bmatrix}
+  S_1x \\
+  S_2y \\
+  S_3z \\
+  1 \\
+\end{bmatrix}
+$$
+
+### Translation
+
+- translation of a vector by $(T_x, T_y, T_z)$ can be achieved with the following matrix:
+$$
+\begin{bmatrix}
+  1 & 0 & 0 & T_x \\
+  0 & 1 & 0 & T_y \\
+  0 & 0 & 1 & T_z \\
+  0 & 0 & 0 & 1 \\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+  x \\
+  y \\
+  z \\
+  1 \\
+\end{bmatrix}
+= 
+\begin{bmatrix}
+  x + T_x \\
+  y + T_y \\
+  z + T_z \\
+  1 \\
+\end{bmatrix}
+$$
+
+### Rotations
+
+- specified with an angle and a rotation axis
+- rotation about the $x$-axis:
+
+$$
+\begin{bmatrix}
+  1 & 0 & 0 & 0 \\
+  0 & \cos \theta & -\sin \theta & 0 \\
+  0 & \sin \theta0 & \cos \theta & 0 \\
+  0 & 0 & 0 & 1 \\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+  x \\
+  y \\
+  z \\
+  1 \\
+\end{bmatrix}
+= 
+\begin{bmatrix}
+  x \\
+  \cos\theta y - \sin\theta z\\
+  \sin\theta y + \cos\theta z\\
+  1 \\
+\end{bmatrix}
+$$
+
+- there are similar matrices around the other axes
+- by combining these matrices you can achieve arbitrary rotations
+  - __gimbal lock__ is possible using this approach, can be avoided by quaternions
