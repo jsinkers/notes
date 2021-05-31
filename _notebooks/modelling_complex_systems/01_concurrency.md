@@ -1,5 +1,4 @@
 ---
-p> " 'Q' in normal mode enters Ex mode. You almost never want this.
 title: Concurrency
 notebook: Modelling Complex Software Systems
 layout: note
@@ -301,6 +300,7 @@ while (true) {
   p = 0;
 }
 ```
+
 ## Java: Monitors and synchronisation 
 
 - correct algorithms for mutex are tedious and complex to implement
@@ -339,11 +339,6 @@ class SynchedObject extends Thread {
   }
 }
 ```
-
-### Volatile variables 
-
-- declaring variable  `volatile` directs JVM to reload its value every time it needs to refer to it
-  - otherwise compiler may optimise code to load value once only
 
 ### Monitors
 
@@ -386,6 +381,444 @@ class MonitorAccount extends Account {
     }
 }
 ```
+
+### Lightweight monitors
+
+- every object has a lock: to execute a `synchronized` method, a process first needs to acquire the object's lock
+- the lock is released upon return
+- a process P, holding the lock on object o, can relinquish the lock by invoking `wait()`
+  - P is then __waiting__ on o
+- a process Q may execute `o.notify()`, changing some waiting process' state to __locking__
+  - Q must have o's lock, and be running, for this to occur
+  - the notifier holds the lock until the end of the synchronised method/code block
+- Java monitors are lightweight, and don't guarantee fairness
+  - some programming languages include priority: Java does not.
+  - it is essentially random which thread will be chosen
+  - typical pattern: `while () { wait() }`
+    - common mistake: using `if` where `while` should be used
+  - original monitor concepts allowed for different wait sets, each waiting for a specific condition to hold.  Java does not
+    - instead Java uses `notifyAll()` to release all processes waiting on the object
+
+### Implementation
+
+- for a class to meet the requirements of a monitor:
+  - all attributes `private`
+  - all methods   `synchronized` 
+- if a class satisfies these requirements, all methods are treated as atomic events
+
+### Volatile variables
+
+- declaring variable  `volatile` directs JVM to reload its value every time it needs to refer to it
+  - otherwise compiler may optimise code to load value once only
+- compilers/VMs load the value of a variable into a cache for efficiency
+- if value is modified by one thread, other threads relying on cached values may not detect this,
+  and use the stale cached value
+- updates to variable values may be made initially in the cache, and not immediately be written back to memory
+- declaration of variables as `volatile` directs VM to read/write that variable directly to/from memory
+
+### Process states
+
+- synchronisation constructs (e.g. monitors) can produce a different non-runnable state in which the process is blocked
+- __blocked__ process relies on other processes to __unblock__ it, after which it is again __runnable__
+
+![Blocked Java States](img/blocked-java-states.png)
+
+### Synchronisation constructs
+
+| Level of abstraction | Construct | 
+|----------------------|-----------|
+| High                 | Monitor   |
+|                      | Semaphore |
+| Low                  | Protocol variables |
+
 ## Java: Semaphores 
 
-- 
+- __semaphore:__ $(v, W)$, simple, versatile concurrent device for managing access to a shared resource
+  - __value $v \in \mathbb{N}$:__ number of currently available access permits
+  - __wait set $W$:__ processes currently waiting for access
+- must be initialised $S := (k, \{\})$
+  - $k$: maximum number of threads simultaneously accessing the resource
+- atomic operations: `wait`, `signal`
+
+### Analogy: Hotel with $k$ rooms
+
+- 1 guest per room
+- at the door is a receptionist
+- outside are people wanting a room
+- receptionist gives out the 10 keys they have.  Number of keys decreases as each key is handed out
+- once all keys have been handed out, others must wait outside until a key is returned
+
+### Operations
+
+- `S.wait()`: receive permit if available, otherwise get added to the wait set
+- `S.signal()`: return a permit, unblock an arbitrary process
+
+```python
+S.wait():
+
+if S.v > 0
+  # provide permit
+  S.v--
+else 
+  # add process p to wait set 
+  S.w = union(S.W, p)
+  p.state = blocked
+```
+
+```python
+S.signal():
+
+if S.W == {}
+  # empty wait set, so keep the permit
+  S.v++
+else 
+  # hand out permit to someone in the wait set
+  choose q from S.W
+  # remove q from wait set
+  S.W = S.W \ {q}
+  q.state = runnable
+```
+
+### Binary Semaphore: Mutex
+
+- if $S.v \in \{0,1\}$, $S$ is called __binary/mutex__ as it ensures mutual exclusion
+- semaphores are implemented in many programming languages, as well as at the hardware level
+
+### Solution of Mutex Problem
+
+- using a binary semaphore:
+
+```bash
+binary semaphore S = (1, {});
+
+Process P loop:
+p1:  non_critical_p();
+p2:  S.wait();
+p3:  critical_p();
+p4:  S.signal();
+
+Process Q loop:
+q1: non_critical_q();
+q2: S.wait();
+q3: critical_q();
+q4: S.signal();
+```
+
+### State Diagrams
+
+- digraph: nodes - states, edges - transitions
+- state gives info about a process at a point in time: values of instruction pointer + local variables
+- below shows semaphore solution - only shows `signal, wait` operations:
+
+![Semaphore mutual exclusion](img/semaphore-mutex.png)
+
+- can show 
+  - correctness of solution (i.e. mutual exclusion): there is no state `p4, q4`
+  - absence of deadlock: deadlock would be a node with no outgoing edges
+  - absence of starvation
+
+### Controlling execution order
+
+- use of 2 semaphores to control sorting
+
+```bash
+integer array A
+binary semaphore S1 = (0, {})
+binary semaphore S2 = (0, {})
+
+p1: sort low half
+p2: S1.signal()
+p3: 
+
+q1: sort high half
+q2: S2.signal()
+q3:
+
+# wait for both semaphores to become available
+m1: S1.wait()
+m2: S2.wait()
+m3: merge halves
+```
+
+### Strong semaphores
+
+- binary semaphore solution to mutex problem generalises to $N$ processes
+- when $N > 2$: no longer guarantee of freedom from __starvation__
+  - blocked processes are taken arbitrarily from a set
+  - fair implementation: processes wait in a __queue__
+  - removes starvation, and then we have __strong semaphore__
+
+### Bounded Buffer Problem
+
+- e.g. streaming video via YouTube
+  - Producer: server
+  - Consumer: browser
+  - want regular, consistent speed of video even with noisy data transfer
+  - use a buffer to smooth this out, using a queue of video frames
+  - need a way to add to/remove from queue
+  - buffer has finite size: 
+    - cannot add data to a full buffer
+    - cannot remove data from an empty buffer
+- common pattern in concurrent/async systems
+- Producer process `p`
+- Consumer process `q`
+- `p` generates items for `q` to process
+- if they have similar average but varying speed, a __buffer__ can smooth overall processing and speed it up,
+  permitting asynchronous communication between `p` and `q`
+- general semaphores can be used for this:
+  - two semaphores $S1, S2$ maintain a loop invariant $S1.v + S2.v = n$
+  - $n$: buffer size
+- let's call the semaphores `notEmpty, notFull`
+
+```bash
+buffer = empty queue;
+// no permits available for removal from queue
+semaphore notEmpty = (0, {});
+// n permits available for adding to queue
+semaphore notFull = (n, {});
+
+Producer
+idem d
+loop
+  # produce items
+  p1: d = produce();
+  # wait for buffer to have space
+  p2: notFull.wait();
+  p3: buffer.put(d);
+  # indicate data has been put onto buffer
+  p4: notEmpty.signal();
+
+Consumer
+item d
+loop
+  # wait until the buffer has items to consume
+  q1: notEmpty.wait();
+  q2: d = buffer.take();
+  # indicate item taken from buffer
+  q3: notFull.signal();
+  q4: consume(d);
+```
+
+### Java semaphores
+
+- `java.util.concurrent` has `Semaphore` class
+  - `acquire()` = wait
+  - `release()` = signal
+- has optional argument to make it a strong semaphore, by default they are weak
+
+### Java Thread states in detail
+
+![Java thread states](img/java-thread-states-in-detail.png)
+
+### Peterson's mutex algorithm
+
+```java
+static int turn = 1;
+static int p = 0;
+static int q = 0;
+
+while (true) {
+p1:  non_critical_P();
+p2:  p = 1;
+p3:  turn = 2;
+     // give Q a turn.  wait till it is complete
+p4:  while (q && turn == 2);
+p5:  critical_p();
+p6:  p = 0;
+}
+
+while (true) {
+q1:  non_critical_q();
+q2:  q = 1;
+q3:  turn = 1;
+     // give P a turn.  wait till it is comqlete
+q4:  while (p && turn == 2);
+q5:  critical_q();
+q6:  q = 0;
+}
+```
+
+- finite number of states:
+  - possibly as many as 288 states, but most are unreachable
+- each state is a tuple $(p_i, q_i, p, q turn)$
+- can exclude statements that aren't part of the protocol $p_1, p_5, q_1, q_5$
+- 14 states of interest
+- can see from state diagram
+  - mutex achieved: states (p6, q6, ...) are unreachable
+  - no deadlock: no state of form (p4, q4, ...) is stuck (i.e. can always progress when both are waiting to enter critical region)
+  - no starvation: from each state (p4,...) a state (p6,...) can be reached.  The same holds for q4.
+
+## Formal modelling with FSP
+
+- Finite State Processes (FSP): language based on Communicating Sequential Processes (CSP) and Calculus of Communicating Systems (CCS)
+- rules for manipulating/reasoning about expressions in these languages: process algebra
+- use of FSP vs CSP/CCS
+  - machine readable syntax
+  - models are finite.  The others can have infinite system states, making them much more difficult to reason about
+  - allows us to execute them and exhaustively prove properties about them
+
+### Advantages of formal modelling
+
+- forces preciseness in thinking
+- provides rigour needed to analyse models, compare with physical circumstances and make trade-offs
+
+### LTS 
+
+- __Labelled transition system (LTS):__ __finite state machine__ used as a model of our programs
+- doesn't specify timing, only considers sequence
+  - alternative formalisms do consider timing
+
+### FSP 
+
+- graphical representation works for small systems but quickly becomes unmanageable/unreadable for real problems
+  - huge number of states/transitions
+- hence we use an algebraic language, __finite state processes__, to describe process models
+- each FSP model has a corresponding LTS model
+
+### Concepts
+
+- process model consists of 
+  - alphabet: atomic actions that can occur in a process
+  - definition of legal sequences of atomic actions
+- processes, and synchronisation of concurrent processes is described using algebraic operators
+
+### Action prefix operator `->`
+
+If x is an action and P a process, then x -> P describes a process that first engages in action x and then behaves as described by P
+
+- always has 
+  - atomic action as left operand
+  - process as right operand
+- repetitive behaviour: use recursion
+- atomic actions: lower case
+- process names: upper case
+
+### Subprocesses `,`
+
+- subprocesses can be defined local to the definition of a process using `,`
+
+```
+PROCESS = SUBPROCESS,
+SUBPROCESS = (action1 -> SUBPROCESS2),
+SUBPROCESS 2 = (action2 -> SUBPROCESS).
+```
+
+### Choice `|`
+
+- choice operation `|` describes a process that can execute more than one possible sequence of actions
+- `(x -> P | y -> Q)` describes a process which initially engages in either x or y, followed by process P or Q respectively
+- FSP does not distinguish input/output actions
+  - actions that form part of a choice are usually considered inputs
+  - actions that offer no choice are usually considered outputs
+
+### Non-deterministic choice
+
+- `(x -> P | x -> Q)`: describes process that engages in x then behaves as P or Q
+- x is prefix in both options
+- choice is made by process, not environment: x could be an input from the environment, but the choice of P/Q is not controlled by it
+
+### Indexed Processes
+
+- can use an index to model a process that can take multiple values
+- increases expressiveness of FSP
+- e.g. buffer that can contain a single input value, ranging from 0-3, and then outputs the value
+
+```
+BUFFER = (in[i:0..3] -> out[i] -> BUFFER).
+```
+
+### Constants and Ranges
+
+- constants can only take integer values
+- ranges are finite ranges of integers
+
+```
+const N = 3
+range T = 0..N
+
+BUFF = (in[i:T] -> STORE[i]),
+STORE[i:T] = (out[i] -> BUFF).
+```
+
+### Guarded actions
+
+- guarded action allows a context condition to be added to options in a choice
+- `(when B x -> P | y -> Q)`: 
+  - when guard B is true, actions x and y are both eligible to be chosen
+  - when guard B is false, action x cannot be chosen
+- counter
+
+```
+COUNT(N=3) = COUNT[0],
+COUNT[i:0..N] = ( when (i<N) inc -> COUNT[i+1]
+                | when (i>0) dec -> COUNT[i-1]
+                ).
+```
+
+### STOP process
+
+- `STOP` is a special, predefined process that engages in no further actions
+- used for defining processes that terminate
+
+## Concurrency in FSP
+
+### Parallel composition `||`
+
+- if P and Q are processes, `(P || Q)` represents concurrent execution of P and Q
+- semantics specify 2 processes will interleave: only a single atomic action from either will execute at one time
+- when a process P is defined by parallel composition, its name must be prefixed `||P`
+
+### Parallel composition rules
+
+- algebraic laws - for all P, Q, R:
+  - commutativity: `(P || Q) == (Q || P)`
+  - associativity:  `((P || Q) || R) == (P || (Q || R))`
+- composite processes are 1st class citizens and can be interleaved with other processes
+- i.e. we can build up large, complicated systems from simpler systems
+
+### Shared Actions
+
+- if processes in composition have actions in common, these actions are __shared__
+  - this models process interaction
+- unshared actions may be arbitrarily interleaved
+- shared actions must be executed simultaneously by all processes that participate in that shared action
+  - i.e. other processes will be blocked until able to take that action
+
+### Relabelling actions
+
+- sometimes convenient to make actions relevant to the local process, and rename them so that they are shared in a composite process
+- `P/{new1/old1, ..., newN/oldN}` is the same as P but with action `old1` renamed to `new1` etc.
+
+### Process Labelling
+
+- to distinguish between different instances of the same process, we can prepend each action label of an instance with a distinct instance name
+- `a:P` prefixes each action label in P with a
+- you can also use an array of prefixes: `||N_CLIENTS(N=3) = (c[i:1..N]:CLIENT).`
+- equivalently: `||N_CLIENTS(M=3) = (forall[i:1..M] c[i].CLIENT).`
+- to ensure composite process of the server with clients then shares actions, you will need to prepend the prefixes for all action labels and add transitions
+- `{a1,..,ax}::P` replaces every action label `n` in P's alphabet with the labels `a1.n, ..., ax.n`.  Every transition `n->X` in P is replaced with transitions
+  `({a1.n,..,ax.n}->X)`
+  - `{a1,..,ax}`: shorthand for set of transitions `(a1 -> X), ..., (ax -> X)`
+
+### Client-Server example
+
+- N clients and one server:
+
+```
+CLIENT = (call -> wait -> continue -> CLIENT).
+SERVER = (request -> service -> reply -> CLIENT).
+
+||N_CLIENT_SERVER(N=2) = 
+    (  forall[i:1..N] (c[i]:CLIENT) 
+    || {c[i..N]}::(SERVER/{call/request, wait/reply})
+    ).
+```
+
+### Variable hiding
+
+- you can hide variables to reduce complexity
+- `P\{a1,...,aN}` is the same as P with actions `a1, ..., aN` removed, making them silent.  
+- silent actions are name `tau` and are never shared
+- alternatively you can list variables that are not to be hidden: `P@{a1,...,aN}` is the same as P with all action names other than `a1,...,aN` removed
+
+### 
