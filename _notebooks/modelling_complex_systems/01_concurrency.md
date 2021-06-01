@@ -821,4 +821,288 @@ SERVER = (request -> service -> reply -> CLIENT).
 - silent actions are name `tau` and are never shared
 - alternatively you can list variables that are not to be hidden: `P@{a1,...,aN}` is the same as P with all action names other than `a1,...,aN` removed
 
-### 
+## FSP Synchronisation
+
+- we can use LTSA to check for problems such as deadlock, interference automatically
+- __deadlock:__ process is blocked waiting for a condition that will never become true
+- __livelock:__ busy wait deadlock; process is spinning while waiting for a condition that will never become true
+  - can happen if concurrent processes are mutually waiting for each other
+
+### Coffman Conditions
+
+4 necessary and sufficient conditions.  All must occur for deadlock to happen
+
+1. __serially reusable resources:__ processes must __share__ some reusable resources between themselves under __mutual exclusion__
+2. __incremental acquisition:__ processes __hold on__ to allocated resources __while waiting__ for other resources
+3. __no preemption:__ once a process has acquired a resource, it can only release it __voluntarily__, i.e. it cannot be preempted/forced to release it
+4. __wait-for cycle:__ a __cycle__ exists in which each process holds a resource which its __successor__ is waiting for
+
+- e.g. serially reusable resource: 2 people at dinner order steak, with only 1 steak knife at the table
+  - to eat steak, the steak knife is required
+  - need to wait for the knife to be available to proceed
+- e.g. incremental acquisition: once you have the knife, wait until you also acquire a fork
+- any deadlock in concurrent systems can be broken down to 4 Coffman conditions
+- Corollary: to __remove__ deadlock, break any of the Coffman conditions
+
+### Monitors: FSP vs Java
+
+- FSP monitors map well to Java monitors: `when cond act -> NEW_STATE` becomes
+
+```java
+public synchronized void act() throws InterruptedException {
+    while (!cond) wait();
+    // modify monitor data
+    notifyAll();
+}
+```
+
+### Bounded buffers using monitors
+
+- buffer with finite size, into which items are inserted by a producer, and removed by a consumer in FIFO manner
+- due to finite size, items can only be inserted if buffer is not full, otherwise the producer is blocked.  
+- Items can only be removed if it is not empty, otherwise the consumer is blocked
+
+```
+// bounded buffer using monitor
+
+// buffer size 
+const N = 4
+range U = 0..N
+
+BUFFER = BUFF[0],
+BUFF[i:U] = ( when (i < N) put -> BUFF[i+1]
+      			| when (i > 0) get -> BUFF[i-1]
+		      	).
+
+PRODUCER = (put -> PRODUCER).
+CONSUMER = (get -> CONSUMER).
+
+||BOUNDED_BUFFER = (PRODUCER || CONSUMER || BUFFER).
+```
+
+- note FSP implementation is much simpler than Java implementation: FSP is concise and expressive
+
+### Bounded buffers using semaphores
+
+## Checking Safety in FSP
+
+### Counter
+
+```
+const N = 4
+range T = 0..N
+
+VAR = VAR[0],
+// variable can be read/written to 
+VAR[u:T] = (read[u] -> VAR[u] | write[v:T] -> VAR[v]).
+
+CTR = ( read[x:T] -> 
+        ( when (x<N) increment -> write[x+1] -> CTR
+        | when (x==N) end -> END
+        )
+      )+{read[T], write[T]}.
+
+// create a shared counter
+||SHARED_COUNTER = ({a,b}:CTR || {a,b}::VAR).
+```        
+
+### Alphabet Extensions
+
+- __alphabet:__ set of action a process engages in
+- in above e.g. CTR process has alphabet `{read[0], ..., read[4], write[1], ..., write[4]}`
+- `write[0]` is not part of the alphabet, as CTR never performs this action
+- when CTR is composed with VAR, this means `write[0]` can be executed at any time
+- extend the alphabet of CTR to prevent this problem
+
+### Checking for interference
+
+- find a trace such that both processes write the same value
+
+```
+INTERFERENCE = (a.write[v:T] -> b.write[v] -> ERROR).
+
+||SHARED_COUNTER = ({a,b}:CTR || {a,b}::VAR || INTERFERENCE).
+```
+
+ERROR is a predefined process signalling an error in the model, causing deadlock.
+
+- now safety check shows deadlock, produced by both processes writing the same value to the variable
+- e.g. both processes write value 1: interference
+
+```
+a.read.0
+a.increment
+b.read.0
+a.write.1
+b.increment
+b.write.1
+```
+
+### Mutual Exclusion
+
+- create a LOCK process to allow synchronisation between counters
+
+```
+LOCK = (acquire -> release -> LOCK).
+```
+
+- modify CTR so it has to acquire a lock on VAR before executing the critical section, and release afterwards
+
+```
+CTR = ( acquire -> read[x:T] -> 
+        ( when (x<N) increment -> write[x+1] -> release -> CTR
+        | when (x==N) release -> END
+        )
+      )+{read[T], write[T]}.
+
+
+||LOCKED_SHAREDCOUNTER = ({a,b}:CTR || {a,b}::(LOCK||VAR)).
+```
+
+- if we add in the `INTERFERENCE` process, we see it fails to find a trace for
+  interference, but a deadlock is found (because INTERFERENCE expects a to
+  write before b)
+- instead of making INTERFERENCE more complicated, we should instead use __properties__
+  - the approach used above specifies negative behaviours that can occur: sometimes more powerful to use 
+    the inverse
+
+### Safety and Liveness Properties
+
+- methodology:
+  - describe concurrent processes using FSP
+  - describe property of model, i.e. something true for every possible trace/execution of that model
+- categories of properties of interest for concurrent systems:
+  - __safety:__ nothing bad happens during execution.  E.g. deadlock
+    - sequential system safety property: satisfies some assertion each time a given program point is reached
+    - concurrent system: e.g. absence of deadlock/interference
+  - __liveness:__ something good eventually happens. e.g. all processes trying to access a critical section eventually get access
+    - sequential system: system terminates
+    - concurrent system: as non-terminating, relates to resource access
+ 
+### Error States
+
+ - `ERROR`: pre-defined process signalling termination in an error state, i.e. a state we don't want to move into
+  - labelled -1
+  - no outgoing transitions
+  - can be used to indicate erroneous behaviour: explicitly identify erroneous action
+
+### Safety Properties
+
+- better to consider __desired system behaviour__ rather than enumerating all possible undesirable behaviours
+- i.e. specify desirable properties and check the model maintains them: __safety properties__
+- specified with `property` keyword
+- LTSA compiler adds outgoing action to error state for all actions in process alphabet that aren't outgoing actions
+  - LTS is then complete: all actions can occur from all states, invalid actions leading to the error state
+  - safety properties must be deterministic processes: no non-deterministic choice
+- NB safety properties don't affect normal behaviour of original process because all combinations of actions are allowed: all previous transitions remain,
+  and all shared actions can be synchronised
+  - if behaviour violating safety property occurs, the result in the composite process is the error state
+
+```
+ACTUATOR = (command -> ACT),
+ACT = (respond -> ACTUATOR | command -> ACTUATOR).
+
+property SAFE_ACTUATOR = (command -> respond -> SAFE_ACTUATOR).
+
+||CHECK_ACTUATOR = (ACTUATOR || SAFE_ACTUATOR).
+```
+
+### Safety property: interference
+
+- returning to counter e.g. 
+- when a value `v` is written, the next value written is `v+1`
+
+```
+property NO_INTERFERENCE = ({a,b}.write[v:T] -> (when (v<N) {a,b}.write[v+1] -> NO_INTERFERENCE)).
+
+||SHARED_COUNTER = ({a,b}:CTR || {a,b}::VAR || NO_INTERFERENCE).
+```
+
+- `{a,b}.write`: either `a` or `b` can engage in `write`
+- the property therefore doesn't care who writes the value, as long as the next value is one higher
+- the guard `(v<N)` prevents `N+1` being written
+- safety property processes must be composed with the other processes
+
+#### Without lock
+
+```
+const N = 4
+range T = 0..N
+
+VAR = VAR[0],
+VAR[u:T] = (read[u] -> VAR[u] | write[v:T] -> VAR[v]).
+
+CTR = (read[x:T] -> ( when (x<N) increment -> write[x+1] -> CTR
+					| when (x == N) end -> END
+				))+{read[T], write[T]}.
+
+property NO_INTERFERENCE = ({a,b}.write[v:T] -> (when (v<N) {a,b}.write[v+1] -> NO_INTERFERENCE)).
+
+||SHARED_COUNTER = ({a,b}:CTR || {a,b}::VAR || NO_INTERFERENCE).
+```
+
+- property NO_INTERFERENCE violation
+
+#### With lock
+
+```
+const N = 4
+range T = 0..N
+
+VAR = VAR[0],
+VAR[u:T] = (read[u] -> VAR[u] | write[v:T] -> VAR[v]).
+
+LOCK = (acquire -> release -> LOCK).
+CTR = ( acquire -> read[x:T] -> 
+        ( when (x<N) increment -> write[x+1] -> release -> CTR
+        | when (x==N) release -> END
+        )
+      )+{read[T], write[T]}.
+
+property NO_INTERFERENCE = ({a,b}.write[v:T] -> (when (v<N) {a,b}.write[v+1] -> NO_INTERFERENCE)).
+
+||LOCKED_SHAREDCOUNTER = ({a,b}:CTR || {a,b}::(LOCK||VAR) || NO_INTERFERENCE).
+```
+
+- no deadlocks/errors produced, i.e. no interference
+- gives more confidence that there is no interference cf. INTERFERENCE process
+
+### Safety: Mutual Exclusion with Semaphores
+
+- model of M concurrent loops requiring access to a critical section
+- each loop executes the following (mutex = binary semaphore)
+  - up/signal: return permit
+  - down/wait: acquire permit
+  - enter/exit: entering/exiting critical region
+- safety property defined for mutual exclusion
+
+```
+// example of mutual exclusion with 10 processes attempting to access critical region, using binary semaphore
+
+// number of loops
+const M = 10
+
+// up/signal: return permit
+// down/wait: block until permit acquired
+SEMAPHORE(X=1) = SEMAPHORE[X],
+SEMAPHORE[i:0..X] = 
+	( when (i < X) signal -> SEMAPHORE[i+1]
+	| when (i > 0) wait -> SEMAPHORE[i-1]
+	).
+
+LOOP = (mutex.wait -> enter -> exit -> mutex.signal -> LOOP).
+
+// check safety property: mutual exclusion, when a process enters critical
+// region, the same process must exit critical region
+property MUTEX = (p[i:1..M].enter -> p[i].exit -> MUTEX).
+
+// compose M loops with binary semaphore
+||M_LOOPS = (  p[1..M]:LOOP 
+            || {p[1..M]}::mutex:SEMAPHORE(1)
+            || MUTEX
+            ).
+
+```
+
+- now let semaphore have 2 permits: we get a MUTEX property violation, as multiple processes can enter critical region.
+- this approach of deliberately introducing an error is useful for checking safety violations are detected as expected (i.e. that they are correctly specified.
