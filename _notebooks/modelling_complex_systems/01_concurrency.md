@@ -844,6 +844,14 @@ SERVER = (request -> service -> reply -> CLIENT).
 - any deadlock in concurrent systems can be broken down to 4 Coffman conditions
 - Corollary: to __remove__ deadlock, break any of the Coffman conditions
 
+### LTSA Deadlock
+
+- automatic checks via BFS on LTS (labelled transition system)
+- terminates when
+  - finds a state with no outgoing transitions = deadlock
+  - has searched all states = no deadlock
+- when a deadlock is found, BFS finds a shortest possible trace to deadlock
+
 ### Monitors: FSP vs Java
 
 - FSP monitors map well to Java monitors: `when cond act -> NEW_STATE` becomes
@@ -883,6 +891,110 @@ CONSUMER = (get -> CONSUMER).
 - note FSP implementation is much simpler than Java implementation: FSP is concise and expressive
 
 ### Bounded buffers using semaphores
+
+- 2 semaphores: each blocks when value is 0
+  - empty: semaphore that blocks when buffer is empty, initialised to N, allowing `put` before a `get` occurs
+  - full: semaphore that blocks when buffer is full, initialised to 0; blocks calls to `get` initially
+- given `put`, empty is decremented, full is incremented
+- given `get`, full is decremented, empty is incremented
+
+```
+// bounded buffer using semaphores
+
+// buffer size 
+const N = 4
+range U = 0..N
+
+// up/signal: return permit
+// down/wait: block until permit acquired
+SEMAPHORE(X=N) = SEMAPHORE[X],
+SEMAPHORE[i:U] = 
+	( when (i < N) signal -> SEMAPHORE[i+1]
+	| when (i > 0) wait -> SEMAPHORE[i-1]
+	).
+
+BUFFER =
+	// given a put, one empty token is removed, and one full token is acquired
+	( empty.wait -> put -> full.signal -> BUFFER
+	// given a get, one full token is removed, and one empty token is acquired
+	| full.wait -> get -> empty.signal -> BUFFER
+	).
+
+PRODUCER = (put -> PRODUCER).
+CONSUMER = (get -> CONSUMER).
+
+// empty: semaphore that blocks when buffer is empty
+// full: semaphore that blocks when buffer is full
+||BOUNDED_BUFFER = (empty:SEMAPHORE(N) || full:SEMAPHORE(0) 
+					|| PRODUCER || CONSUMER || BUFFER).
+```
+
+- `full.wait` placed before `get` to prevent deadlock via incremental acquisition
+  - execution of `get` process obtains lock for buffer, then tries to claim `full` semaphore as well
+  - buffer lock should be acquired after semaphore is acquired
+  - see con_07 for more details
+- however with a half-full buffer, this approach blocks the other process (consumer/producer) from the other semaphore
+- more efficient design: leave semaphore access to producer/consumer
+
+```
+BUFFER = (put -> BUFFER | get -> BUFFER).
+PRODUCER = (empty.wait -> put -> full.signal -> PRODUCER).
+CONSUMER = (full.wait -> get -> empty.signal -> CONSUMER).
+```
+
+### Dining Philosophers problem
+
+- 5 philosophers at circular table
+- philosophers alternately think and eat
+- large plate of spaghetti in centre of table
+- to eat, a philosopher needs 2 forks
+- only 5 forks at table, one between each pair of philosophers
+- each philosopher only uses forks to immediate left/right
+
+- forks are shared resource
+
+### Philosophers 1: Deadlock
+
+```
+const N = 5
+
+PHILOSOPHER = (think -> left.get -> right.get -> eat -> left.release -> right.release -> PHILOSOPHER).
+
+FORK = (get -> release -> FORK).
+
+||DINING_PHILOSOPHERS = 
+	(  forall[i:0..N-1] p[i]:PHILOSOPHER
+	|| forall[i:0..N-1] {p[i].left,p[((i-1)+N)%5].right}::FORK
+	).
+```
+
+- produces deadlock: each philosopher takes left fork: this is a __wait-for cycle__
+
+### Philosophers 2
+
+- how do we resolve this? let's remove the wait-for cycle
+  - let's have odd-numbered philosophers behave differently to even-numbered philosophers:
+    - odd #: pick up right fork first
+    - even #: pick up left fork first
+- LTSA confirms this has no deadlocks
+
+```
+const N = 5
+
+PHILOSOPHER(I=0) = 
+	// even philosopher: left fork first
+	( when (I%2 == 0) think -> left.get -> right.get -> eat -> left.release -> right.release -> PHILOSOPHER
+	// odd philosopher: right fork first
+	| when (I%2 == 1) right.get -> left.get -> eat -> left.release -> right.release -> PHILOSOPHER
+	). 
+
+FORK = (get -> release -> FORK).
+
+||DINING_PHILOSOPHERS = 
+	(  forall[i:0..N-1] p[i]:PHILOSOPHER(i)
+	|| forall[i:0..N-1] {p[i].left,p[((i-1)+N)%5].right}::FORK
+	).
+```
 
 ## Checking Safety in FSP
 
@@ -1101,8 +1213,402 @@ property MUTEX = (p[i:1..M].enter -> p[i].exit -> MUTEX).
             || {p[1..M]}::mutex:SEMAPHORE(1)
             || MUTEX
             ).
-
 ```
 
 - now let semaphore have 2 permits: we get a MUTEX property violation, as multiple processes can enter critical region.
 - this approach of deliberately introducing an error is useful for checking safety violations are detected as expected (i.e. that they are correctly specified.
+
+## Checking liveness in FSP
+
+- __liveness:__ something good eventually happens; dual/opposite of safety property
+- __progress property:__ liveness property stating that a specified action will eventually execute
+  - opposite of starvation
+  - simpler to specify than safety properties, but powerful
+  - starvation can be as harmful as deadlock if starved processes are critical
+
+### Toin coss and Fair Choice
+
+```
+COIN = (toss -> heads -> COIN | toss -> tails -> COIN).
+```
+
+- an infinite number of coin tosses with a __fair__ coin would produce infinite number of heads and infinite number of tails
+- __fair choice:__ if a choice over a set of transitions is executed infinitely often, every transition in the set will be executed infinitely often
+- if a single transition occurs infinitely often, it must be the case that at any state, that action will occur at some point in the future 
+
+### Progress Properties in FSP
+
+- `progress P = {a1, ..., aN}` defines a progress property `P` that asserts that, in an infinite execution of a target system, at least 1 
+  of the actions `a1, ..., aN` will be executed infinitely often.
+- if no progress property is specified, LTSA uses default progress property, that every action in the alphabet of the system occurs infinitely often
+- for the coin toss:
+
+```
+progress HEADS = {heads}
+progress TAILS = {tails}
+```
+
+- checking progress in LTSA reveals no violations
+
+### Trick coin
+
+```
+// choose between fair coin and trick coin
+TWOCOIN = (pick -> COIN | pick -> TRICK),
+COIN = (toss -> heads -> COIN | toss -> tails -> COIN),
+// trick coin only returns heads
+TRICK = (toss -> heads -> TRICK).
+```
+
+- checking the progress properties reveals progress violation: tails may never occur
+- note that this property is not violated by `TWOCOIN`: `progress HEADSTAILS = {heads, tails}`
+  - only 1 of the actions in the set needs to occur infinitely often
+
+### Progress Analysis
+
+- to check progress properties, LTSA:
+  - finds all __terminal sets of states__, which are __strongly connected components (SCC)__ of the LTS
+  - finds actions that can happen only finitely often 
+
+#### Terminal Sets
+
+- SCCs are equivalence class of nodes under _mutually reachable_ relation:
+  - a __terminal set $T$__ of states is a set in which each state in $T$ is reachable from all other states in $T$, and there is no transition 
+    from within $T$ to a state outside $T$
+
+![Strongly connected components](img/strongly-connected-components.png)
+
+- SCCs in the image: {1,2} and {3,4,5}.  Once you are in one of these regions, you can't get out.
+
+#### Actions occurring finitely often
+
+- FSP models have a finite number of states
+- to be visited infinitely often, a state must belong to a terminal set
+- assuming fair choice, unless an action is in __all__ terminal sets, it cannot be guaranteed to occur infinitely often for all traces
+- to check if a progress property holds, consider each terminal  set $T$:
+  - for each action in the progress property set, is the action used between 2 states in $T$?
+  - if for some $T$ __none__ of the actions in the progress property set occur as transitions in $T$, the property does __not__ hold
+- progress property $P$ holds $\iff \exists$ action $a \in P$ s.t. $\forall$ terminal sets $T$, $\exists$ states $U,V \in T: a$ is used between $U,V$
+
+#### LTSA Output
+
+- Trace to terminal set of states: gives a trace leading to a terminal set void of the required actions
+- Cycle in terminal set: gives some cycle of actions in that terminal set
+- Actions in terminal set: gives the set of actions used in the terminal set
+
+### Readers/writers problem
+
+- occurs in shared-access databases
+- DB typically allows access from many processes simultaneously
+- each thread is either
+  - __reader:__ only reads from DB
+  - __writer:__ writes to DB.  Must have exclusive access to DB when accessing it
+- if there are no writers, multiple readers should be able to access the DB concurrently
+- model: import actions are acquisitions/releases of locks
+
+- access to DB will be restricted via read/write lock
+  - read lock can be acquired if no process is writing to DB
+  - write lock can be acquired if no process is reading/writing
+- multiple processes can read
+- only one process can write
+
+```
+// readers-writers problem
+
+// set of actions is useful for extending alphabet
+set Actions = {acquireRead, releaseRead, acquireWrite, releaseWrite}
+
+READER = (acquireRead -> examine -> releaseRead -> READER)+Actions.
+WRITER = (acquireWrite -> modify -> releaseWrite -> WRITER)+Actions.
+
+const False = 0
+const True = 1
+range Bool = False..True
+
+const NReaders = 5
+const NWriters = 1
+
+LOCK = LOCK[0][False],
+LOCK[i:0..NReaders][b:Bool] = 
+	( when (i == 0 && !b) acquireWrite -> LOCK[i][True]
+	| when (b) releaseWrite -> LOCK[i][False]
+    | when (i > 0) releaseRead -> LOCK[i-1][b]
+	| when (i < NReaders && !b) acquireRead -> LOCK[i+1][b]
+	).
+
+||READERS_WRITERS = (  r[1..NReaders]:READER 
+                    || w[1..NWriters]:WRITER 
+                    || {r[1..NReaders],w[1..NWriters]}::LOCK).
+```
+
+### Readers/writers safety property
+
+- __safety property:__ a writer can only acquire the write lock when no other process is reading/writing
+  - a reader can only acquire a read lock when no process is writing
+
+```
+property SAFE_RW = ( acquireRead -> READING[1] | acquireWrite -> WRITING),
+// record the number of readers holding a read lock
+READING[i:1..NReaders] = (acquireRead -> READING[i+1]
+						 | when (i>1) releaseRead -> READING[i-1]
+						 | when (i == 1) releaseRead -> SAFE_RW
+						 ),
+// block until the writer releases
+WRITING = (releaseWrite -> SAFE_RW).
+
+||READERS_WRITERS = (  r[1..NReaders]:READER 
+				    || w[1..NWriters]:WRITER 
+					|| {r[1..NReaders],w[1..NWriters]}::LOCK
+					|| {r[1..NReaders],w[1..NWriters]}::SAFE_RW
+					).
+```
+
+- there are no safety violations
+
+### Readers/writers progress property
+
+- __progress property:__ all readers should eventually be able to read from DB, and all writers should eventually be able to write
+- the following actually says __some__ reader should eventually read, and __some__ writer should eventually write
+- as readers are identical, this is probably fine
+- no progress violations:
+
+```
+progress WRITE[i:1..NWriters] = {w[i].acquireWrite}
+progress READ[i:1..NReaders] = {r[i].acquireRead}
+```
+
+### Progress in a stressed system
+
+- LTSA assumes fair choice: all options in all choices will be eventually taken
+- in readers/writers e.g., some chosen are only enabled if DB can keep up with requests
+- if there are always >= 1 reader reading the DB, __all writers starve__
+- we can simulate the stressed system to show this using action priority
+
+### FSP Action Priority
+
+- __high priority operator:__ `P<<{a1,...,aN}` specifies actions `{a1,...,aN}` have higher priority than all other actions in P
+- __low priority operator:__ `P>>{a1,...,aN}` specifies actions `{a1,...,aN}` have lower priority than all other actions in P
+- when there is a choice between an action `a` in `{a1,...,aN}` and action `b` not in the set
+  - high priority: action `a` will be chosen 
+  - low priority: action `b` will be chosen
+- priority operators remove transitions from the process. e.g. process `HIGH`
+
+```
+P = (a -> b -> P | c -> d -> P).
+// a is higher priority than all other actions
+||HIGH = P<<{a}.
+```
+is equivalent to: `HIGH = (a -> b -> HIGH)`
+
+### Readers-Writers Action priority
+
+- place DB under many requests, i.e. give readers an advantage
+  - give release actions lower priority - always execute acquire over release, and keep multiple readers holding locks
+
+```
+||RW_PROGRESS = READERS_WRITERS>>{r[1..NReaders].releaseRead, w[1..NWriters].releaseWrite}.
+```
+
+- now LTSA reports progress violation for `WRITE.1`, as there are traces through the system cause starvation of all writers
+
+### Improved readers-writers
+
+- prevent writers from starving
+  - add an action `requestWrite` for writers
+  - add a parameter `nWaiting` to `LOCK` to record the number of waiting writers
+  - this will ensure readers can only acquire read locks if there are no writers waiting
+  - will now cause readers to starve
+- prevent readers from starving
+  - add boolean parameter `readerTurn` to `LOCK` to allow readers to acquire locks if a writer has just had a turn
+
+```
+LOCK = LOCK[0][False][0][False],
+LOCK[i:0..NReaders][writing:Bool][nWaiting:0..NWriters][readerTurn:Bool] = 
+	( when (!writing && (nWaiting == 0 || readerTurn)) 	
+		acquireRead -> LOCK[i+1][writing][nWaiting][readerTurn]
+    | releaseRead -> LOCK[i-1][writing][nWaiting][False]
+	| when (i == 0 && !writing) 
+		acquireWrite -> LOCK[i][True][nWaiting-1][readerTurn]
+	| requestWrite -> LOCK[i][writing][nWaiting+1][readerTurn]
+	| releaseWrite -> LOCK[i][False][nWaiting][True]
+	).
+```
+
+- no violations detected by LTSA
+
+## Temporal Logic
+
+- safety/progress properties hold true for every execution of a concurrent system
+- not as powerful as __logical properties__ comprising propositions and connectives (propositional logic)
+- describe properties about the state of a system at a given instant
+- FSP models have no state: they consist of actions that occur in time
+
+### Linear Temporal Logic (LTL)
+
+- __LTL predicates__
+  - allow more flexibility than propositional logic or safety/liveness properties
+  - allow specification of more intricate system properties (able to be checked using LTSA)
+
+### Logic for Actions
+
+- atomic propositions in logic are concerned with the state of a system e.g. `i >= 0`
+- in concurrency, we are concerned with ordering of actions
+- you could adopt the propositional logic idea: `a` is true when action `a` executions, and false at all other times
+- this isn't very useful, as only one proposition is true at a time
+- we are interested in properties about sequences of actions over time
+- temporal logics allow discussion of __duration__ and __relative__ timing of events (cf. absolute time)
+
+### FSP Fluents
+
+- __fluent:__ property that can change over time
+  - used to describe properties of a system over its lifetime, rather than at an instant
+  - heavily used in logic and AI
+- FSP fluent: `fluent FL = <{s1, ..., sN}, {e1, ..., eN}>`
+  - `{s1,...,sN}`, `{e1,...,eN}` are actions
+  - `FL` is the proposition
+  - `FL` is initially false
+  - `FL` becomes true when any of the actions in `{s1,...sN}` occur
+  - `FL` becomes false again when any of the actions in `{e1,...,eN}` occur
+- to specify a fluent that is initially true: `fluent FL = <{s1, ..., sN}, {e1, ..., eN}> initially 1` 
+- 1 represents True, 0 represents False
+- e.g. `fluent GREEN = <{green}, {yellow, red}> initially 1`
+  - initially true
+  - becomes true when `green` action occurs
+  - becomes false when `yellow` or `red` occur
+  - different from an action: remains true when actions other than `yellow` or `red` occur
+
+### FSP Indexed Fluents
+
+- you can define indexed fluents for multiple traffic lights
+
+```
+fluent GREEN[i:1..2] = <{green[i]}, {yellow[i], red[i]}> initially 1
+```
+
+### FSP Fluent Expressions
+
+- can use propositional logic connectives
+  - `&&`, $\wedge$
+  - `||`, $\vee$
+  - `!`, $\neg$
+  - `->`, $\rightarrow$
+  - `<->`, $\iff$
+- bounded universal and existential quantifiers:
+  - `forall[i:1..2] GREEN[i]`, $\forall$
+  - `exists[i:1..2] GREEN[i]`, $\exists$
+
+- to express that we don't want 2 lights green at the same time: 
+  - `!forall[i:1..2] GREEN[i]`$\equiv$`!(GREEN[1] && GREEN[2]`$\equiv$`exists[i:1..2] !GREEN[i]`
+
+### Temporal Logic: Always and Eventually
+
+- so far we have specified properties of a single point in time
+- truth/falsehood depends on the trace up to that point
+- to express properties w.r.t an entire timeline: __temporal operators__
+  - specify properties about all traces in our model, and thus of the model
+
+#### Always
+
+- LTL formula `[]F` (always F) is true iff the formula F is true at the __current__ instant __and__ at __every__ instant in the future
+  - $\square F$
+
+![always](img/always.png)
+
+#### Eventually
+
+- LTL formula `<>F` (eventually F) is true iff the formula F is true at the __current__ instant __or__  at __some__ instant in the future
+  - $\diamond F$
+
+![eventually](img/eventually.png)
+
+#### Example
+
+```
+fluent GREEN = <{green}, {yellow,red}> initially 1
+fluent YELLOW = <{yellow}, {green, red}> initially 0
+fluent RED = <{red}, {yellow, green}> initially 0
+
+// the light is always green, yellow, or red
+assert ALWAYS_A_COLOUR = [](GREEN || YELLOW || RED)
+
+// the light will eventually become red
+assert EVENTUALLY_RED = <>RED
+```
+
+- actions vs fluents: `[](green || yellow || red)` does not hold, because other actions can occur
+  - at those points in time, none of `green, yellow, red` hold, but one of the fluents does
+
+### Safety and Liveness
+
+- __always:__ used to describe __safety__ properties
+- __eventually:__ used to describe __liveness__ properties
+- far more flexibility than `property` keyword: progress property requires infinitely many occurrences
+- consider the terminating system 
+
+```
+A = (a -> b -> END | c -> b -> END)
+```
+
+- `b` will eventually occur: `assert B = <>b`
+- LTSA will report no violations
+- `b` doesn't occur infinitely often, which is what a progress property specifies
+- with LTL we can express `b` eventually occurs, even if only once
+
+### Combining temporal operators
+
+- $\diamond F$: F will become true, not that F remains true
+- F remains true: $\diamond \square F$: it's eventually the case that F will always be true
+
+![eventually always](img/eventually-always.png)
+
+- very different from $\square\diamond F$: its always the case that eventually F will become true (may or may not remain true indefinitely)
+
+![always eventually](img/always-eventually.png)
+
+- $\square\diamond F$ won't hold if F becomes false indefinitely
+
+### Temporal logic laws
+
+- $\square$ and $\diamond$ are __dual__ operators
+- $\neg\square F \equiv \diamond\neg F$: its not the case that F is always true/its eventually the case that F is false
+![neg always F](img/neg-always-f.png)
+
+- $\neg\diamond F \equiv \square\neg F$: its not the case that F will eventually become true/its always the case that F doesn't hold 
+![neg eventually F](img/neg-eventually-f.png)
+
+### Temporal Logic Expressiveness
+
+- arbitrary combination of temporal operators via usual connectives
+- permits expression of intricate properties of a concurrent system
+- Consider processes P, Q run concurrently, vying for some resource
+  - p: action P performs when in its critical section (with the resource)
+  - q: ditto for Q
+- $p \rightarrow \diamond q$: if P is currently in its critical section, then Q will eventually get to be in its critical section
+- $\square(p \rightarrow\diamond q)$: Q will not be starved
+
+### Until operator
+
+- always/eventually have limited expressive power as they are monadic (applied to a single formula)
+- correctness specifications often involve relating several propositions
+  - e.g. P enters its critical section at most once before Q enters its critical section
+- __until__ operator allows specification that a certain property is true until another property becomes true
+- `F U G` is true iff G eventually becomes true, and F is true until that instant
+  - doesn't imply F becomes false at that instant, once G becomes true, F is no longer of interest
+
+![until](img/until.png)
+
+- in traffic light: light is initially green, and should stay green until the button is pushed
+  -   `assert INITIALLY_GREEN = (GREEN U button)`
+
+### Next Operator
+
+- __next__ operator specifies a certain property is true at the next instant
+- the LTL formula `X F` is true iff F is true at the __next__ instant
+  - next instant $\equiv$ when the next action occurs
+- e.g. when button is pushed, the light will go yellow at the next instant:
+  -  `assert BUTTON_TO_YELLOW = (button -> X YELLOW)`
+  - here we could replace fluent `YELLOW` with the action `yellow` with the same result: the fluent becomes true when `yellow` occurs
+
+### Mutual Exclusion revisited
+
+
