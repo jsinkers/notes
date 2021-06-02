@@ -1611,4 +1611,171 @@ A = (a -> b -> END | c -> b -> END)
 
 ### Mutual Exclusion revisited
 
+- N processes wanting to enter/exit a critical region
+  - loop of processes acquiring permit to semaphore before being able to enter/exit critical section
+- define a fluent indicating whether process is in critical section
+- define safety property: mutual exclusion: only one process in its critical section at a time
+- define progress property: no starvation: all processes eventually get to enter critical section
 
+```
+// binary semaphore
+const K = 1
+// 3 processes
+const N = 3
+
+LOOP = (mutex.down -> enter -> exit -> mutex.up -> LOOP).
+
+SEMAPHORE = SEMAPHORE[K],
+SEMAPHORE[i:0..K] = ( when (i < K) up -> SEMAPHORE[i+1]
+                    | when (i > 0) down -> SEMAPHORE[i-1]
+                    ).
+
+||N_LOOPS = (p[1..N]:LOOP || {p[1..N]}::mutex:SEMAPHORE).
+
+// fluent that holds when a process is in its critical section
+fluent IN_CRITICAL[i:1..N] = <{p[i].enter}, {p[i].exit}>
+
+// safety: mutual exclusion: only one thread in critical section at a time
+// its always the case that there do not exist 2 processes in critical section at the same instant
+assert MUTUAL_EXCLUSION = []!(exists[i:1..N-1] (IN_CRITICAL[i] && IN_CRITICAL[i+1..N]))
+
+// liveness: progress, eventually all processes get to enter their critical section
+// for all processes, it is eventually the case that it enters its critical section
+assert EVENTUALLY_ENTER = forall[i:1..N] <>p[i].enter
+```
+
+### Other mutex properties
+
+- no process enters its critical section before locking the mutex
+
+```
+// no process enters critical section before locking mutex
+// it's the case that a process must not be in critical section until mutex acquired
+assert NO_ENTER_BEFORE_MUTEX = forall[i:1..N] (!IN_CRITICAL[i] U p[i].mutex.down)
+```
+
+- when a process locks the mutex, it will be in its critical section at the next tick
+  - i.e. no other process will do anything - the very next thing to happen will be the process entering critical section
+
+```
+// when a process locks the mutex, it will be in its critical section at the next tick
+assert LOCKED_OUT = forall[i:1..N] (p[i].mutex.down -> X IN_CRITICAL[i])
+```
+
+- __response__ property: if a thread enters its critical section, it must eventually exit
+
+```
+// when a thread enters its critical section, it must eventually exit
+// for all processes, its always the case that a process entering its critical section must eventually exit
+assert MUST_EXIT = forall[i:1..N] [](IN_CRITICAL[i] -> <>!IN_CRITICAL[i])
+```
+
+### Checking all properties
+
+- can combine to check all properties at once
+- LTSA won't tell you which property has failed, so if any fails you need to check each manually
+```
+assert ALL_PROPERTIES = (MUTUAL_EXCLUSION && EVENTUALLY_ENTER && NO_ENTER_BEFORE_MUTEX && LOCKED_OUT && MUST_EXIT)
+```
+
+### Real world model checking
+
+- as systems grow in size and state space, logical approaches for system definition can be a much more efficient way to explore, describe
+  and check behaviour than the LTSA approaches used
+- formal verification is a much larger topic
+- model checking specifications, written in temporal logic variants are important tools to prove correctness of concurrent systems,
+  communication protocols, and hardware aspects (cache coherence)
+- 1990, McMillan: binary decision diagrams + algorithm => symbolic model checking
+  - ability to reason automatically about systems with large number of states $10^{20}+$
+  - used approach to verify correctness of cache protocol of Encore Gigamax multiprocessor
+  - random simulation not effective
+  - able to track down potential deadlock and resolve
+  - many other circuits/protocols have been verified using model checking
+
+
+## Concurrent Programming Languages
+
+### Concurrency via Shared Memory
+
+- processes/threads interact with one another (communicate) via __reading and writing to shared memory__
+- critical to protect integrity of data stored in shared memory by ensuring only one process has access to it at a time
+  - e.g. semaphores, monitors
+- issues:
+  - commands to control access to shared memory are scattered all over codebase
+    - it's difficult to implement correctly
+    - hard to read, error prone, difficult to modify
+- Java approach: provide higher order concurrent objects, making concurrent code simpler to write and more efficient e.g.
+  - `Lock`: explicit version of implicit lock used by synchronised code
+    - fairness: queue of waiting processes
+    - ability to give up if lock is not available immediately/after timeout
+  - `ThreadPool`: collection of constantly running threads
+    - reused as required as tasks queue/complete
+    - reduced overhead of allocation/deallocation of threads
+  - `BlockingQueue`: thread-safe, FIFO data structure
+    - blocks/times out when queue is full/empty when attempting to add/remove items
+
+### Concurrency via message passing
+
+- FSP: no shared memory
+  - processes interact through shared actions, which could be used to send/receive data
+- derived from Hoare's Communicating sequential processes (CSP) model
+  - inspiration for Go, Erlang, Concurrent ML, Rust, Occam
+- message passing allows us to avoid many of the issues that arise from shared memory
+
+### Message passing
+
+- communication requires a send process/receive process
+- __synchronous__ communication: exchange of message is _atomic_ action requiring participation of sender and receiver
+  - e.g. FSP actions
+  - unavailability of either party blocks the other
+  - act of communicating synchronises execution of 2 processes
+
+#### Message Protocols - Synchronous message: sender waits
+
+![sender waits](img/sync-sender-waits.png)
+
+#### Message Protocols - Synchronous message: receiver waits
+
+![receiver waits](img/sync-receiver-waits.png)
+
+### Asynchronous Communication
+
+- __asynchronous communication:__ no temporal dependence between execution of 2 processes
+  - decoupled need for sender/receiver to be engaging in communication at the same time
+  - receiver could be executing another statement when message is sent, and check communication channel later for messages
+  - requires communication channel is capable of buffering messages
+
+#### Message Protocols - Asynchronous message
+
+![async](img/async-message.png)
+
+#### Message Protocols - Simulating asynchronous messages
+
+![simulate async](img/simulate-async.png)
+
+#### Message Protocols - Simulating synchronous messages via async channel
+
+![simulate sync](img/simulate-sync.png)
+
+### Analogies
+
+- synchronous message ~ telephone call
+  - both participants need to be available
+  - activity is synchronised at point of the call
+  - if one is unavailable, the other is blocked
+- asynchronous message ~ email
+  - participant may send any number of messages
+  - receiver may choose to check incoming email at any time
+  - capacity is limited
+
+### Addressing
+
+- __asymmetric:__ receiver doesn't know identity of caller (e.g. phone call)
+- __symmetric:__ receiver knows identify of sender (e.g. email)
+
+### Data Flow
+
+- __one way__ (email)
+- __two way__ (phone call
+
+- Choice of protocol depends on harware + requirements of the scenario
