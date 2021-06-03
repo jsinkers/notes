@@ -797,3 +797,608 @@ $$\frac{dR}{dt} = \gamma I - mR$$
   - analytical results provide more general insights
   - only applicable under certain conditions: larger population, larger number of infectious people
 
+## Cellular Automata
+
+### Mathematical, top down models
+
+- complex systems are systems whose behaviour emerges from interactions between many individual parts
+  - Lotka-Volterra: 
+    - parts = animals (predator/prey)
+    - interactions: predation
+  - SIR model:
+    - parts = people
+    - interaction = disease transmission
+- ODE approach: represent state w.r.t. global/macro variables, and define update rules w.r.t. change of global variables over time
+  - top-down approach
+  - LV
+    - variables: size of predator/prey population
+    - update: rates of birth, death, predation
+  - SIR:
+    - variables: proportion of population in S/I/R
+    - update: rates of infection, recovery
+- ODE approach makes assumptions: treat all individuals as identical, with equal chance of interaction
+  - ignore heterogeneity of individuals and interactions
+  - these assumptions were limitations of models
+  - LV:
+    - some predator/prey may be weaker/stronger
+    - some preadtor/prey may be faster/slower
+    - predator/prey populations might be not be uniformly spatially distributed 
+  - SIR model
+    - different age groups may be more susceptible/infectious
+    - non-uniform spatial distribution - e.g. cluster of unvaccinated people
+- ODE models could be extended to reflect heterogeneity, but number of equations would increase dramatically
+ 
+### Computational models
+
+- bottom up approach, represent microstate
+- reflect heterogeneity in populations
+- approaches
+  - cellular automata models
+  - agent based models
+  - network models
+
+### Spatial Model
+
+- e.g. SIR model with each person occupying a fixed location on a 2D grid
+- consider
+  - data structure: 2D array
+  - state representation: value of S, I, R for each cell of 2D array
+  - who interacts with whom: immediate neighbourhood
+    - those further away have lower probability of being infected
+  - update rules
+
+### Cellular Automata
+
+- CAs are a type of discrete dynamical system exhibiting complex behaviour resulting from simple, local rules
+  - 1940s: von Neumann and Stanislav Ulam
+- __automaton:__ theoretical machine that updates internal state based on 
+  - external inputs
+  - its own previous state
+- __cellular automaton:__ array of automata (cells) where inputs to one cell are current states of nearby cells
+
+![ca](img/ca.png)
+
+### Properties
+
+- time: discrete
+- space: discrete (e.g. 1D, 2D, ...)
+- system state: discrete, in finite set of states
+  - entire system therefore has finite, countable number of states
+- update rules: defined w.r.t. local interactions between components
+  - no global function describing state
+
+### Applications
+
+- simulation of physical systems
+  - particle methods in fluid dynamics
+  - earthquakes
+  - bushfires
+- simulation of biological/social systems
+  - artificial life: self replication
+  - pattern formation e.g. on seashells, chemical signal interactions
+  - social simulation: e.g. wealth distribution
+- computing
+  - theory: CAs with universal computing properties
+  - graphics/image processing: texture simulation, surface effects
+  - games: emergent game play
+
+### Formal definition
+
+- a finite automata consists of a finite set of cell states $\Sigma$
+- finite input alphabet $\alpha$
+- transition function $\Delta : \Sigma^N \rightarrow N$ mapping from set of neighbourhood states to set of cell states
+- state of a neighbourhood is a function of states of the automata covered by the neighbourhood template
+- input alphabet $\alpha$ for each automaton consists of set of possible neighbourhood states
+- $K :=|\Sigma|$ is the number of cell states
+- $|\alpha| = |\Delta| = |\Sigma^N| = K^N$ is number of possible neighbourhood states
+- as there are $K$ choices of state to assign as the next state for each of $\alpha$ neighbour states, there are $K^{K^N}$ possible transition functions $\Delta$
+- $D^K_N$ is the set of all possible transition functions that can be define for $N$ neighbours and $K$ states
+- even a tiny model has a large set of possible behaviours it can exhibit
+- e.g. 2D CA using 8 states per cell, with a 5 cell neighbourhood
+  - $K = 8, N = 5$
+  - $D^8_5 = 8^{8^5} \approx 10^{30000}$ possible transition functions
+- gives lots of flexibility to capture some behaviour we are interested in
+
+### 1D CA
+
+- neighbourhood: cell itself and 2 adjacent neighbours
+
+![1d ca](img/1d-ca.png)
+
+- $k$: number of states
+- $n$: number of cells in neighbourhood
+- $k^n$ possible combinations of neighbourhood states
+- $k^{k^n}$: possible update rules
+
+- e.g. states = {0,1}, adjacent neighbours.  $k = 2, n = 3$ then $8$ possible input states, and $256$ possible update rules
+- transformations
+  - mirror: reflection about vertical axis
+  - complement
+- as a result there are only 88 distinct rules
+- naming rules: interpret sequence of 8 output values as base-2 number
+  - $0b01011010 = 90$
+  - so rule 90 has update rule $01011010$
+  - i.e. transition function for rule 90 is 
+    - $000 \rightarrow 0$
+    - $001 \rightarrow 1$
+    - $010 \rightarrow 0$
+    - $011 \rightarrow 1$
+    - $100 \rightarrow 1$
+    - $101 \rightarrow 0$
+    - $110 \rightarrow 1$
+    - $111 \rightarrow 0$
+
+#### Rule 30
+
+- chaotic, aperiodic behaviour
+  - sensitive to starting conditions
+- resembles patterns seen in nature e.g. seashells
+
+![rule 30](img/Rule30Big.jpg)
+
+#### Rule 110
+
+- Turing complete: capable of universal computation
+- i.e. can find a rule set to transform input -> output
+- moving left -> right
+- collision/interaction performs computation
+
+![rule 110](img/Rule110Big.jpg)
+
+#### Discrete Time Dynamics
+
+- long term behaviour: what happens as $t \rightarrow \infty$
+- __state space:__ set of all possible states; discrete and finite
+- __trajectories:__ sequences of states
+- can observe __transients, fixed point attractors, limit cycle attractors__
+- __basin of attraction:__ states leading to each attractor
+
+![discrete time dynamics](img/discrete-time-dynamics.png)
+
+#### Wolfram classes
+
+- "many (perhaps all) CA fall into four basic behaviour classes"
+
+1. __Fixed homogeneous state:__ system freezes into a fixed state after a short time
+2. __Fixed inhomogeneous state:__ system develops periodic/limit cycle behaviour
+3. __Chaotic/aperiodic behaviour:__ system continuously changes in unpredictable ways, and in some cases has sensitive dependence on initial conditions
+4. __Evolve to complex localised structures:__ evolves in highly patterned but unstable ways; complex interactions between local structures; focus of study for computational properties
+
+![wolfram classes](img/wolfram-classes.png)
+
+### 2D CAs
+
+- common neighbourhoods: 
+  - von Neumann: 5 cells $\{(0,0), (\pm1,0),(0,\pm 1)\}$
+  - Moore neighbourhood: 9 cells $\{-1,0,1\}\times \{-1,0,1\}$
+
+![von Neumann vs Moore neighbourhoods](img/von-neumann-moore.png)
+
+### Conway's Game of Life
+
+- John Conway, 1970
+- Turing complete
+- Rules
+  - each cell alive (black)/dead (white)
+  - loneliness: alive cell with $<$ 2 living neighbours dies
+  - overcrowding: alive cell with $>$ 3 living neighbours dies
+  - survival: alive cell with 2 or 3 living neighbours stays alive
+  - reproduction: if a dead cell has exactly 3 living neighbours it comes alive
+- initial pattern constitutes first generation
+- long term behaviour: organised patterns emerge
+
+![life](img/life.png)
+
+- can be used to implement information carrying signals and logical operations
+
+![life turing](img/life-turing.png)
+
+- classic example of complex system
+  - many components
+  - local interactions
+  - decentralised control
+  - parallel processing
+  - emergent global behaviour
+  - self-organisation
+- makes strong assumptions: all updates are synchronous, all updates are deterministic
+
+## CA Model Implementation
+
+- ODE models: top down; CA models: bottom up
+- CA models better suited when macro-rules are hard to formulate
+- not straightforward to analyse behaviour
+- good for testing questions e.g. "can local mechanism X generate phenomenon Y?"
+
+### Design Decisions
+
+#### Space
+
+- How is space represented?
+  - discrete/continuous
+- How are agents located in space?
+  - single/multiple occupancy of cells
+  - proximate vs long range interactions
+
+#### Time
+
+- How is time represented?
+- How does order of events affect behaviour?
+- Considerations:
+  - order in which state of each cell is updated
+    - synchronous: each component updated simultaneously
+    - asynchronous: components updated one at a time; what ordering to use?
+  - discrete time: check what happens at each time step
+  - continuous: what event happens next, and when does it happen 
+    - e.g. random event occurs according to a probability distribution
+
+#### Information
+
+- what information do cells use?
+- how do cells obtain it?
+
+- considerations:
+  - scope of variables: global, cell (patch), agent (turtle)
+  - how variables accessed/modified
+  - spatial range of sensing - what is neighbourhood
+
+#### State Update
+
+- Deterministic or stochastic?
+  - deterministic: future state uniquely determined by current state + update rules
+  - stochastic: some randomness is involved
+- How does this decision affect behaviour?
+
+### CA Lotka-Volterra 
+
+- how to build a CA model of fox-rabbit population dynamics?
+  - represent each individual explicitly, rather than macro-variable of size of each population
+  - observe population size
+- __space:__ 2d regular lattice
+  -  only 1 animal can occupy a grid space
+- __time:__ discrete time steps
+- __information:__ each individual is only aware of immediate neighbours
+- __state:__ $x_{i,j} \in {0,1,2}$
+  - 0: empty
+  - 1: rabbit (prey)
+  - 2: fox (predator)
+- __update rules__
+  - pick a cell $A$ at random
+  - choose one of $A$s neighbours $B$ at random
+  - prey reproduction: if $A$ contains rabbit and $B$ empty, then with probability $\alpha$, rabbit reproduces and $B$ contains a new rabbit
+  - prey death: if $A$ contains fox and $B$ contains a rabbit, or vice versa, then with probability $\beta$ rabbit is eaten
+    - predator reproduction: if this happens, with probability $\delta$ cell formerly containing rabbit now contains a fox
+  - predator death: if $A$ contains a fox and $B$ is empty, with probability $\gamma$, fox dies
+  - animal movement: if $A$ is empty, and $B$ contains a fox/rabbit, adjacent animal moves from $B$ to $A$
+- NB never modelled movement in ODE
+
+### CA SIR
+
+- represent each individually explicitly, observe population fractions in each state S/I/R
+- discrete time
+- only one person occupies a grid cell at a time, people's location is fixed
+- fraction of population $p$ initially infected, with the remainder susceptible
+#### Model 1
+
+- __state:__ $x_{i,j} \in {0,1,2}$
+  - 0: susceptible
+  - 1: infectious
+  - 2: recovered
+- update rules
+  - susceptible person infected by infectious neighbour with probability $\beta$
+  - infectious person recovers with probability $\gamma$
+
+#### Model 2
+  
+- temporary immunity: people become susceptible at a rate $\omega$
+- on average, people are immune for $r = \frac{1}{\omega}$ days
+- __state:__ $x_{i,j} \in [0, q+r]$
+  - 0: susceptible
+  - $1,...,q$: infectious
+  - $q+1, ... q+r$: recovered/immune
+- __update rules:__
+  - susceptible becomes infected if at least one neighbour is infectious
+  - infectious person recovers after $q$ days
+  - recovered person loses immunity and becomes susceptible after $r$ days
+
+### Exploring model behaviour
+
+- parameter sweep
+  - systematic variation of each parameter to understand effect on system behaviour
+  - when model behaviour is stochastic, run for each parameter set multiple times and compute statistics for behaviour of system, e.g. mean and stdev
+
+### Extensions to basic CA
+
+- asynchronous CA: update cells at different times
+- probabilistic CA: stochastic update rules
+- non-homogeneous CA: context-sensitive rules varying by cell
+- network-structured CA: define neighbourhood by network topology, rather than grid adjacency
+
+### Pros/cons of CAs
+
+- __Advantages__
+  - simple, easy to implement
+  - represent interactions/behaviours that are difficulit to model via ODEs
+  - reflect intrinsic individuality of system components
+- __Disadvantages__
+  - relatively constrained: topology, interactions, individual behaviour
+  - global behaviour more difficult to interpret
+
+## Agent-based Models
+
+- ABMs, like CAs, focus on modelling components of system and interactions (bottom up)
+- 3 elements
+  - agents
+  - environment
+  - interactions
+- provide more flexibility than CAs in representation of agent behaviour and interaction structure
+- can consider them a generalisation of CAs
+- more modelling insights are required when designing models
+- design goal: achieve same aggregate dynamics as observed in real world
+- research goal: gain insight into how aggregate dynamics emerge from interactions between agents
+
+### Flocking behaviour
+
+- flocking of birds/fish is a canonical example of complex system
+  - no central control
+  - birds sense immediate neighbours only, not whole flock
+  - emergent global behaviour of flocking based on local interactions
+- Reynolds, 1986: ABM model of flocking behaviour
+
+#### Agent 
+
+- agent: boid 
+  - reflexive agents with internal state of speed and heading
+  - future behaviour: based on current state and reflexive reaction to sensory input
+    - forward motion
+    - turn left/right
+    - accelerate/decelerate
+  - no long term goals
+  - no notion of utility to maximise
+  - no learning from past experience
+  - simply reacts
+  - minimal agent
+
+#### Environment
+
+- environment: other boids in the flock
+  - neighbourhood function: sensory range of boid (how far away it can perceive other agents
+
+![boid neighbourhood](img/boid-neighbourhood.png)
+
+#### Rules
+
+- separation: collision avoidance
+  - boids steer to avoid crowding nearby boids
+
+![boid sep](img/boid-separation.png)
+
+- cohesion: safety in numbers
+  - boids steer towards average location of nearby boids
+
+![boid cohesion](img/boid-cohesion.png)
+
+- alignment
+  - boids steer towards average bearing of nearby boids
+
+![boid align](img/boid-align.png)
+
+- with these simple rules, we see self-organising groups of birds
+
+### Agent Characteristics
+
+- __self-contained:__ modular component of a system
+  - has a boundary; clearly distinguished from/recognised by other agents
+  - e.g. flocking model: boids are clearly distinguishable and recognised by other boids
+- __autonomous:__ functions independently in environment, and in interactions with other agents
+  - e.g. flocking model: behaviour of each boid entirely defined by information it obtains about local environment
+- __dynamic state:__ agent has attributes that can change over time
+  - current state determines future actions/behaviour
+  - e.g. flocking model: boid's state is heading and speed, determining motion of boid and modified based on information received about local environment
+- __social:__ dynamic interactions with other agents that influence their behaviour; interaction stimulated by spatial proximity
+  - e.g. flocking: interact by perceiving/reaction to location/behaviour of other boids
+- __adaptive:__ agent _may_ have ability to learn/adapt its behaviour based on past experience
+  - e.g. prey boids move at different speeds - faster moving ones live longer and reproduce more often.  If inherited, prey population evolves to move faster
+- __goal-directed:__ agent may have goals it is attempting to achieve via its behaviours
+  - e.g. prey boids may want to avoid predators and collect material to build their nest
+- __heterogeneous:__ system may have agents of different types (e.g. predator/prey), or be a result of agents' history (e.g. energy level)
+  - more complex ABM: numerous types of agent e.g. resident, planner, business, developer, lobbyist for land use model
+
+### Environment 
+
+- agents monitor and react to environment
+- CA grids were very simple environments
+- may be __static__ (unchanging), may be influenced by agent behaviour (e.g. harvesting of grain in wealth distribution) or independently __dynamic__
+- real environments typically dynamic and often stochastic
+  - may not be able to foresee all possible environment states and how agents would respond to them
+- richer environments
+  - continuous
+  - higher dimensional
+  - multiple layers: e.g. land use model - soil composition, transportation network, land value, ...
+  - complex feedback loops: e.g. atmospheric/climate models that consider agent behaviours
+
+### Interactions
+
+- defining characteristic of complex systems: __local interactions between agents__ as per agent neighbourhood
+- agent neighbourhood may be __dynamic__
+- neighbourhoods may be defined __spatially__ or as __networks__ with particular topology
+- interactions may be direct/indirect (e.g. mediated by environment)
+  - e.g. termites building a nest may communicate 
+    - directly: physical/chemical signals
+    - indirectly: placing/removing building materials that influences other termite behaviour
+
+### Foraging in an Ant Colony
+
+- efficient food foraging
+- 1960s: Wilson, evolutionary biologist 
+- individual ants perform limited range of tasks, picking up/dropping food based on simple decision rules
+- inputs to decision rules are __chemical signals (pheromones)__, from
+  - direct interactions with nearby ants (synchronous)
+  - stigmergic interactions by pheromones deposited by ants in environment (asynchronous)
+    - stigmergic: stigma (mark, sign) + ergon (work, action); an agent's actions leave signs in environment which other agents sense and respond to 
+
+#### Experiment 1: Equal length bridge
+
+- experiment: food source placed opposite nest separated by a bridge with 2 equal paths
+- ants randomly choose either bridge initially
+- ants deposit pheromones as they move
+- if by random chance, a few more ants select one bridge, a greater amount of pheromone accumulates on it
+- future ants are then more likely to take this bridge
+
+#### Experiment 2: Unequal length bridge
+
+- experiment: food source placed opposite nest separated by a bridge with 1 leg much longer than the other
+- shorter branch accumulates more pheromone because journey is shorter, with ants depositing pheromone on both outward/return journeys
+  - less diffusion on shorter leg
+  - amplification of initial fluctuations: positive feedback
+- ant colony optimisation
+
+#### Ant rules
+
+- if an ant is not carrying food
+  - move randomly around environment
+  - if it encounters food pheromones, move in direction of strongest signal
+- if an ant encounters food, pick it up
+- if an ant is carrying food
+  - follow nest pheromone gradient back towards nest
+  - deposit food pheromones into environment while moving=
+
+#### Environment
+
+- nest pheromone gradient diffusing out from nest
+- food pheromones evaporate over time
+
+### Agent decision making
+
+- often agents are designed to make rational decisions i.e. act to maximise expected value of behaviour given information received
+- rational $\not =$ omniscient: agent may have imperfect information; doesn't mean agents make perfect decisions
+- rational $\not =$ clairvoyant: agent action may not produce intended outcome
+- rational $\not =$ successful necessarily
+- rational $\rightarrow$ exploration, learning, adaptation
+- e.g. boid doesn't know what is happening on other side of the network
+- e.g. wealth distribution model: agents have limited vision, and choose direction to move prior to harvesting; once harvesting occurs, there may be no grain in 
+  direction they are heading, causing some delay.  But it is rational, based on information available, to head in direction with most grain
+
+#### Decision making strategies
+
+- probabilistic: represent decisions via distributions
+- rule-based: model decision making process; if-then-else; deterministic mapping from inputs to outputs
+- adaptive: agents may learn via reinforcement/evolution
+
+Choice of strategy depends on purpose of model
+Ranges from simple to complex: usually best to keep it as simple as possible until complicated rules necessary
+
+### Agent Types
+
+#### Reflexive agents
+
+- perceive some aspect of environment via sensors
+- according to some set of rules, choose behaviour
+- simplest agent type
+- little/no internal state
+- no internal history
+- no planning for long term goal
+- no ability to change behavioural rules/learn over time
+
+![reflexive agent](img/reflexive.png)
+
+#### Reflexive agents with internal state
+
+- slightly more complex: holds internal state to keep track of past actions, consequences
+- richer perception of current state of the world
+- able to react to __trends__ (increase/decrease) in some environmental variable, or detect __oscillations__ and react
+
+![reflexive-internal](img/reflexive-internal.png)
+
+#### Goal driven agents
+
+- select action based on current/past world state, as well as based on desired future world state
+- builds internal model of its environment, which it uses to test effects of possible actions
+- selects action that brings environment state closer to goal state
+
+![goal-driven](img/goal-drive.png)
+
+#### Utilitarian agents
+
+- refinement of goal-driven agent
+- possible future states not assessed against specific goal state, but are evaluated according to a utility function
+- e.g. trading agent: seeks to maximise profit; specific means to achieve this not necessarily defined, as long as profit is maximised
+
+![utilitarian](img/utilitarian.png)
+
+#### Learning agent
+
+- adapts rules it uses to make choice in response to feedback from past performance
+- e.g. artificial neural networks
+
+### Summary
+
+- ABMs:
+  - agent + environment + interactions between other agents and environment
+  - decentralised information/decision making; reproduce emergent behaviour and self-organisation characteristic of complex systems
+  - wide variety of domains: economics, political science, ecology, social science
+  - can be much more elaborate than CAs
+
+## ABM Development and Applications
+
+- goal of ABMs: explanatory insight into way real world complex systems work
+  - how do ant colonies forage in absence of central leader?
+  - how will infectious disease spread through a population?
+  - what market dynamics arise from agents making self-interested decisions?
+- naturally occurring complex systems suggest new solutions to real world problems in computing, engineering, system design:
+  - optimisation
+  - load balancing
+  - robotics
+  - ...
+
+### Parcel delivery
+
+- trends: shift from delivery of letters, with fixed destinations and route, to parcels, with varying destinations day to day
+- Xmas 2015: 1.3 million parcels per day in Dec 2015, different addresses each day
+  - what is most efficient route for driver to follow?
+- if a typical driver delivers 50 parcels/day how many possible routes are there? $n!$ possible routes
+  - some of these will be obviously suboptimal
+  - optimal/shortest route will not necessarily be clear
+  - infeasible to evaluate $n!$ routes
+
+#### Travelling salesman problem (TSP)
+
+- given list of cities and distances between each pair of cities, what is shortest possible route visiting each city exactly once, and returning to the original city
+- NP-complete:
+  - solutions verified in polynomial type
+  - solutions cannot be located in polynomial type (possibly exponential)
+  - heuristic/approximate approaches often required
+  - used as benchmark for optimisation algorithms
+- many problems in other domains isomorphic to TSP
+  - as long as problem can be represented as identifying efficient path on a graph, any heuristic developed for solving TSP will be applicable 
+  - e.g. bioinformatics: nodes - fragments of DNA sequence; edges - similarity between fragments
+
+#### Ant colony optimisation
+
+- ant colonies display ability to efficiently locate efficient routes
+- can be used to identify efficient paths between nodes in network
+- Dorgio, 1992: algorithm developed; applied to vehicle routing/scheduling/image processing/circuit design/...
+  - timetable schedules
+  - set partitions
+
+![aco](img/aco.png)
+
+- ants move from nest (N) to food source (F), before returning to N
+- as ants move they deposit pheromone
+- when choosing direction to move, ants move toward high pheromone concentrations
+- pheromones evaporate over time
+- ants that choose shorter routes deposit pheromone along those routes more frequently, leading to accumulation on shorter routes
+ - positive feedback: more ants take these routes, depositing more pheromones along them
+
+#### Ant colony optimisation algorithm
+
+1. distribute $N$ ants at random among nodes
+2. each ant randomly choose new node to travel to, based on
+  - pheromone concentration on edge to that node, weighted by $\alpha$
+  - distance to that node, weight by $\beta$
+  - must not have visited the node previously
+3. repeat 2 until each ant has visited all nodes
+4. calculate total route length for each ant
+5. ant with shortest route deposits pheromone along edges in their route, with concentration inversely proportional to route length,
+   making this edge more likely to be chosen in the future
+6. pheromones evaporate at rate $\rho$
+
