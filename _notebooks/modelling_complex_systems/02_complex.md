@@ -1402,3 +1402,631 @@ Ranges from simple to complex: usually best to keep it as simple as possible unt
    making this edge more likely to be chosen in the future
 6. pheromones evaporate at rate $\rho$
 
+## Networks: Theory and Models
+
+- networks are used to define structure of interactions between agents
+
+### Research 
+
+#### Euler's 7 bridges, 1735
+
+- Euler and 7 bridges of Konigsberg: generate walk around city crossing each bridge exactly once
+  - Euler found general solution to this problem
+  - start of study of networks
+  - solution exists if all nodes have even degree, or exactly 2 nodes have odd degree
+
+#### Milgram's small world experiments, 1960s
+
+- social scientist
+- experiment to measure degree of interconnection of population
+- led to 6 degrees of separation
+- networks with low degrees of separation are common in many domains
+  - e.g. network of movie actors: nodes - actors, edges - actors have starred in a film together
+
+#### Other research
+
+- operations, 1900s-: logistics, shortest path, optimisation
+- social networks, 1960s-: shift from studying individuals to groups to relationships
+- modern network science, 1990s-: abstract models; seek general insights into systems on basis of shared structural properties
+  - applicable to wide variety of domains
+
+#### Examples
+
+- map of portions of the Internet: 
+  - examine growth over time
+  - identify structural features: weakly/densely connected regions
+  - presence of central hubs indicates vulnerable points
+
+![Internet](img/network-internet.png)
+
+### Why networks?
+
+- increasing amount of data on interactions available
+- network science helps make sense of it
+- learn something about __functional properties__ by studying __structural properties__
+- insights may generalise across domains
+- networks are ubiquitous
+
+### Properties
+
+- network: graph + data
+  - set of nodes/vertices, $N$
+  - set of edges/links $E \subseteq N \times N$
+  - graph: ordered pair of finite sets $G = (N,E)$ 
+- can represent
+  - graphically
+  - adjacency matrix
+  - adjacency list
+- structural properties have functional consequences
+
+#### Network type by nodes
+
+- __unipartite:__ all nodes of the same type
+- __bipartite:__ nodes of 2 types
+  - e.g. actors and movies they have appeared in
+- __k-partite:__ nodes of k types
+ 
+#### Network type by edges
+
+- __directed:__ e.g. web pages and links between them
+- __undirected__
+
+#### Initial Assumptions
+
+- unipartite networks with undirected edges
+- no parallel edges: only one edge between 2 nodes
+- no self-connections: no edges from a node to itself
+
+#### Density
+
+- __$D$, Density:__ ratio of number of edges in network to number of possible edges
+- network with $N$ nodes, $E$ edges can have up to $\frac{N(N-1)}{2}$ edges
+
+$$D = \frac{2E}{N(N-1)}$$
+
+![density](img/density.png)
+
+- suggests efficient way to store network
+  - sparse: store as adjacency list, otherwise adjacency matrix is mostly $0$s
+  - dense: store as adjacency matrix
+
+#### Degree
+
+- __degree $k_i$ of node $i$:__ number of edges between node $i$ and other nodes
+- nodes with high degree are typically more important
+- __average degree $<k>$:__ $<k> = \frac{2E}{N}$
+- __degree distribution $P(k)$:__ probability distribution of degrees over all nodes in the network
+  - $P(k) = \frac{N_k}{N}$, where $N_k$ is number of nodes of degree $k$
+  - degree distributions for many real world networks are highly skewed
+
+#### Distance
+
+- __distance $d_{ij}$__ between nodes $i$ and $j$ is the length of the __shortest path__ between those 2 nodes
+  - topology has a large impact on distance
+- __characteristic path length $L$:__ average distance (shortest path) between all pairs of nodes in the network
+
+$$L = \frac{1}{N(N-1)} \Sigma_{i\not = j}{d_{ij}}$$
+
+- __diameter:__ longest distance between any two nodes, i.e. $\max_{i\not =j}{d_{ij}}$
+  - longest shortest path between any 2 nodes
+  - largest number of nodes that need to be traversed to move from one node to another without backtracking/looping
+
+![distance](img/distance.png)
+
+#### Clustering
+
+- __clustering coefficient $C$:__ measure of clique-ishness in network
+  - the extent to which if Alice is friends with Bob and Carol, Bob and Carol are likely to be friends with each other
+  - clustering coefficient of a node $i$: proportion of possible triangles containing $i$ that exist
+
+![clustering](img/clustering.png)
+
+- in above image, working out the clustering coefficient $C_A$, the 3 possible triangles are $AXY, AYZ, AXZ$
+- left: edges present so all 3 triangles are filled; $C_A = 1$
+- mid: only $AXY$ exists, so $C_A = 1/3$
+- right: no triangles exist, so $C_A = 0$
+
+$$C = \frac{T_c}{T_c+T_o}$$
+
+- $T_c$: number of closed triplets (set of 3 interconnected nodes, each node is connected to the other 2)
+- $T_o$: number of open triplets: set of 3 nodes in which exactly 1 node links the other 2
+
+- clustering coefficient of node $i$: ratio between number of edges that exist $E_i$ between these nodes and total number possible $\frac{k_i(k_i-1)}{2}$:
+
+$$C_i = \frac{2E_i}{k_i(k_i-1)}$$
+
+- clustering coefficient of a network: typically __average__ clustering coefficient of all nodes
+
+#### Centrality
+
+- measure of which are most important nodes/edges
+- many definitions:
+  - number of shortest paths passing through a particular edge/node
+  - extent to which a node is connected to other important nodes
+
+![centrality](img/centrality.png)
+
+- centrality may be important: e.g. if above figure represents Internet between Australia and the rest of the world, then
+  breaking the central node means Australia loses connectivity
+
+#### Assortativity
+
+- extent to which similar nodes tend to be connected to each other=
+- w.r.t. degree:
+  - __highly__ assortative: high degree nodes are all connected to each other
+    - indicative of a robust network.  Even if a hub breaks, other routes exist
+  - __disassortative:__ high degree nodes tend to be connected to low degree nodes
+
+### Network Types
+
+- several network classes demonstrating different structural properties
+  - regular
+  - random
+  - small world
+  - scale free
+
+### Regular Lattices
+
+- every node has exactly $m$ edges
+- degree distribution is given by $p_k = 1 if k = m else 0$
+
+![degree distribution](img/reg-lattice-degree-distrib.png)
+
+- can associate these with CA models
+
+- 2D lattice
+  - e.g. 2D CA with von Neumann neighbourhood
+  - longest path length is high, scaling with size
+  - triplets are open, so low clustering coefficient
+
+![regular lattice](img/regularlattice.png)
+
+- 1D CA with wrapping coordinates represented by a ring
+  - depicted uses 2 neighbours either side
+  - large diameter: long time to get to other side of ring
+  - all triplets are closed: high clustering coefficient
+ 
+![circular lattice](img/circular-lattice.png)
+
+### Random Networks
+
+- opposite side of spectrum regular lattices
+- __Erdos-Renyi__ random graphs, 1950s: start with $N$ nodes and add edges between pairs of nodes at random
+  - e.g. sample each edge with a given probability
+- low clustering coefficient: low chance of closing triplets, unless you add enough edges to make network dense
+- short characteristic path length: random links make it easy to get from one side to the other
+
+![random network](img/random.png)
+
+### Small World Networks
+
+- 1990s: somewhere in between regular and random
+- intended to reflect characteristics of real world social networks
+- algorithm
+  - start with regular lattice of even degree $m$
+  - randomly rewire a proportion $p$ of the edges, or add new edges at random
+
+![small world](img/small-world.png)
+
+#### Rewiring in small world networks
+
+- $p = 0$: regular lattice
+- $p = 1$: completely random lattice
+- $p \rightarrow 1$: 
+  - clustering $C \propto (1-p)^3$
+  - characteristic path length approaches $\frac{\log{N}}{\log{m}}$
+- for some intermediate value of $p$: 
+  - high clustering coefficient
+  - low characteristic path length
+
+$C(p)/C(0)$: average clustering coefficient of a lattice with proportion $p$ edges rewired relative to $0$ edges rewired
+$L(p)/L(0)$: average shortest path of a lattice with proportion $p$ edges rewired relative to $0$ edges rewired
+
+- after a small number of rewirings (e.g. $p = 0.01$)
+  - average shortest path length drops dramatically (ratio$\approx 20\%$)
+  - average clustering coefficient remains relatively high (ratio $\approx 95\%$)
+
+![rewiring](img/rewiring.png)
+
+- small world networks give technique to produce networks with similar characteristics to real world networks
+
+### Scale free networks
+
+- __degree distribution__ follows a __power law__ distribution: $p_k \sim k^{-\gamma}$
+- $\gamma$ typically 2-3
+
+![degree distribution](img/scale-free-degree-distribution.png)
+
+- most nodes in network are of very low degree (i.e. they have few neighbours)
+- small number of nodes have very high degree (many neighbours)
+- resembles real world social network
+
+![scale free network](img/scale-free-network.png)
+
+- size of node scaled to reflect degree
+- well connected core, with weakly connected periphery
+
+#### Constructing Scale Free network
+
+- growth and preferential attachment
+
+1. start with small number of randomly connected nodes
+2. add a new node to the network
+3. connect the new node to $m$ existing nodes with a probability proportional to the current degree of those nodes
+4. repeat steps 2 and 3. 
+
+- as network _grows_, positive feedback leads to a small number of nodes gaining a disproportionate number of edges
+
+#### Properties of Scale free networks
+
+- relatively high clustering coefficient
+- short average path length
+- highly __robust__ to random error
+  - if random node fails, connectivity of overall network is unlikely to be affected
+- tradeoff: highly __sensitive__ to targeted atttack
+  - if specific high degree node is targeted and incapacitated, connectivity of overall network can be affected dramatically
+  - e.g. computer networks and effects of targeted attack cf. random failure
+
+### Summary
+
+- broad variety of systems can be described w.r.t. network structure
+- doing so allows us to quantify/analyse system structure w.r.t. simple properties
+- properties have functional consequences that may generalise across domains
+
+## Network Dynamics and ABMS
+
+- look at relationship between networks and ABMs
+- what is the impact of networks on dynamical behaviour of ABMs
+
+### Network Dynamics
+
+- __dynamics on networks:__ static structural properties of networks
+  - network structure static
+  - state of nodes changes
+- __dynamics of networks:__ how networks evolve over time
+  - network structure changes
+
+### Dynamics on Networks: SIR Disease Model
+
+- we explored CA model of disease transmission on 2D grid
+- grid can be represented as __regular lattice__ so we can generalise our approach to consider spread of infection across __any network__
+- may want to rethink update rules e.g. consider density
+
+![sir revisiion](img/sir-revision.png)
+
+- what effect might network structure have on dynamics of disease spread?
+- which nodes in a network are at greatest risk
+  - of being infected
+  - of infecting others
+- what does this suggest about approaches to prevent spread of infection?
+  - e.g. where to focus vaccination, whether quarantine is required
+- __short characteristic path length $\implies$ rapid disease spread__
+
+#### STI Transmission 
+
+![sexual partner network](img/sexual-relations.png)
+
+- bipartite: male/female
+- many disconnected components: chance of being infected is much lower if you are in a small connected component compared to the large connected component
+
+#### SARS 2002-2003
+
+- can representation chain of transmission
+
+![sars](img/sars-chain-of-trans.png)
+
+- those people having many contacts with other people have
+  - higher chance of becoming infected
+  - higher chance of infecting others
+- probably good candidates for vaccination/treatment
+- another example of high-degree nodes being important
+- influence of structural properties on transmission dynamics
+  - characteristic path length: longer path length means slow spread through population
+  - density: increased contacts means faster spread
+
+### Dynamics of Networks
+
+- simple examples of network dynamics
+  - growth model for creating scale-free networks
+  - rewiring model for creating small world networks
+- in such models, the state of a node may be unimportant
+- more complex dynamic behaviour: network state and network structure change simultaneously
+- SIR disease model
+  - rewiring of edges: travel
+  - what effect might this have: connect up regions previously disconnected, resulting in spread across more of the population
+
+### Adaptive networks
+
+- changing node state (local dynamics) + changing network state (topological evolution)
+- e.g. road network/traffic system
+  - nodes: locations
+  - edges: roads
+  - roads have a capacity, and can become congested: a property of network state
+  - in response to this congestion new roads may be built: change to network topology
+  - this may cause patterns of travel to change
+  - in general very difficult to predict the impact of a change to road network, necessitating modelling and simulation
+
+![adaptive networks](img/adaptive-networks.png)
+
+### Networks and ABMs
+
+- what is the relationship between ABMs and networks?
+- simple case
+  - agent maps to node
+  - network topology determines patterns of interaction
+- __network models preferred over spatial models when:__
+  - __relationships__ among agents are more important than physical locations
+    - e.g. network: model of info spreading through population (via phone/email)
+    - cf. spatial: model of fire spreading through forest
+  - interaction between agents are not grounded in physical proximity
+    - e.g. network: model of interacting software agents
+    - cf. spatial: predator-prey
+
+## Petri Nets
+
+- Petri nets are an elegant formalism for analysing and describing complex distributed systems
+
+### Constructs
+
+- Petri net: bipartite directed graph
+- node types: places, transitions
+- edges: arcs
+
+#### Places $P$
+
+- passive system component
+- represented as circle/ellipse
+- has discrete states and can store things
+
+![place](img/place)
+
+#### Transitions $T$
+
+- active system component
+- represented as square/rectangle
+- consumes, produces or transports things stored in places
+
+![transition](img/transition.png)
+
+#### Arcs $F$
+
+- logical relation between system 
+- $F$ for flow relation
+- relates place-transition or transition-place
+- never relates place-place or transition-transition
+
+![arc](img/arc.png)
+
+#### Net Structures
+
+- a net structure is a triple $N = (P, T, F)$ of places, transitions, and arcs.
+- $F \subseteq (P\times T)\cup (T\times P)$
+
+![net structure](img/net-structure.png)
+
+$$N = (P, T, F)$$
+$$P = \{A,B,C,D,E,F,G,H\}$$
+$$T = \{a, b, c, d, e\}$$
+$$F = \{(a,B), (a,E), (a,F), (A,a), (E,a), (G,a),...\}$$
+
+#### Tokens
+
+- a token is a thing that can be stored in a place
+- tokens are things that can be consumed, produced, transferred by a transition
+- can indicate a condition that is satisfied for the occurrence of a transition
+- drawn as black dots inside places, or using a symbolic token to refer to a concrete thing
+- __elementary net systems__ only use abstract tokens (i.e. black dot tokens)
+
+![token](img/token.png)
+
+#### Marking
+
+- __marking:__ encodes _state_ of a system
+  - arrangement of __tokens__ across places of a net structure
+
+#### Elementary net systems
+
+- __elementary net system $S$__ is a pair $(N, M_0)$
+- net structure $N=(P,T,F)$
+  - $P,T$ finite and disjoint $P \cap T = \emptyset$
+- $M_0: P \rightarrow \N^+$: initial marking
+  - each place $p \in P$ holds $M_0(p)$ tokens 
+- net system $S$ describes current state of control flow and availability of resources
+
+![cookie vending machine](img/cookie-vending-machine.png)
+
+Markings can be represented in one of the following ways:
+$$M_0 = \{(A,0),(B,0),(C,0),(D,1),(E,5),(F,0),(G,1),(H,5)\}$$
+$$M_0 = DEEEEEGHHHHH$$
+
+#### Pre- and Post-set
+
+- for a net structure $(P,T,F)$, consider an element $x\in P\cup T$
+- __pre-set:__ all inputs of element $x$
+$$\bullet x := \{y \in P \cup T\space |\space (y, x) \in F\}$$
+- __post-set:__ all outputs of element $x$
+$$x\bullet  := \{y \in P \cup T\space|\space  (x, y) \in F\}$$
+
+#### Transition Enablement
+
+- rule determines which transitions are enabled for execution/can fire
+- given net system $(N, M)$ with $N=(P,T,F)$, marking $M$ __enables__ transition $t\in T$ if every place in
+  the pre-set of $t$ contains at least one token, i.e:
+$$\forall p \in \bullet t: M(p) \ge 1$$
+
+![enabled transition](img/enabled-tranisition.png)
+
+#### Step rule
+
+- how does the system transition between states?
+- an enabled transition $t$ can __occur__
+- an occurrence of an enabled transition $t$ of a net system $(N,M)$ results in a __step__
+$$M\xrightarrow{t}M'$$
+- marking $M'$ describes the next state of the system resulting from $M$ by first __destroying__ one token in every place in the pre-set of $t$
+  and then creating one fresh token in every place in the post-set of $t$
+- if $p\in \bullet t$ and $p\not\in t\bullet$: $M'(p) = M(p) - 1$
+- if $p\in t\bullet$ and $p\not\in \bullet t$: $M'(p) = M(p) + 1$
+- otherwise $M'(p) = M(p)$
+
+![step rule](img/step-rule.png)
+
+- which transition occurs is non-deterministic for elementary nets
+
+#### Example: Cookie vending machine
+
+![vending machine steps](img/cookie-vending-machine-steps.png)
+
+- once `counter` reaches $0$, transition $a$ becomes disabled: all cookies have been dispensed
+
+#### Hot and Cold Transitions
+
+- __hot transition:__ internal to system
+  - assume that if enabled they will eventually become disabled or eventually occur
+  - e.g. `a, b, return coin`
+- __cold transition:__ triggered by external system (e.g. customer)
+  - not guaranteed they will ever occur
+  - e.g. `insert coin, take packet`
+  - marked with $\epsilon$
+  - rare: usually found at interface to the environment
+
+### Interleaving Semantics
+
+#### Reachable Markings
+
+- a reachable marking is one you can get to from the initial marking by following a sequence of steps
+
+For a net system $S = (N, M_0)$ a marking $M$ of $N$ is a __reachable marking__ of $S$ if $\exists$ sequence of stops 
+$$M_0 \xrightarrow{t_1}M_1 \xrightarrow{t_2}...\xrightarrow{t_n}M_n$$
+
+- $n\in \N^+$
+- $M_n = M$
+
+
+- a marking is a __final marking__ of $N$ in which __no hot transitions are enabled__
+- the system can remain in a final marking forever (or a cold transition occurs)
+
+![petri eg](img/petri-eg.png)
+
+#### Sequential Runs/Occurrence Sequences
+
+- a __sequential run__ of a net system $S = (N, M_0)$ is a possibly infinite sequence of steps of $S$ that starts with the initial marking $M_0$
+$$M_0 \xrightarrow{t_1}M_1 \xrightarrow{t_2}M_2 \xrightarrow{t_3}...$$
+- __complete__ sequential runs 
+  - a __finite__ sequential run is __complete__ if it leads to a final marking of $S$
+  - an __infinite__ sequential run is __complete__ if no additional step can be inserted into it
+
+![petri eg-2](img/petri-eg-2.png)
+
+#### Interleaving semantics
+
+- __interleaving semantics:__ collection of all __complete sequential runs__ of $S$
+
+#### Marking Graphs/Reachability Graphs
+
+- the reachable markings and steps of a net system $S$ generate the __marking graph__ of $S$
+- nodes: reachable markings
+- edges: steps between reachable markings
+- initial marking: arrow leading in
+- each final marking: circle with dashed border
+
+![marking graph](img/marking-graph.png)
+
+- e.g. above marking graph only has 5 reachable markings
+- each sequential run of a net system is a directed walk in the marking graph
+- each directed walk starting at $M_0$ is a sequential run
+- a _finite_ marking graph can describe an _infinite_ collection of sequential runs
+
+#### Marking graphs and LTS
+
+- a marking graph of a net system is essentially a labelled transition system (LTS)
+- marking graphs are therefore amenable to the same analysis and tools applied to LTS e.g. safety, liveness, LTL properties
+
+### Concurrency Semantics
+
+- Petri nets are able to __describe concurrent actions explicitly__
+- we now know how to interpret Petri net systems as a collection of __sequential__ runs
+- we can also interpret it as a collection of __distributed__ runs, but first we need the concept of __actions__
+
+#### Actions
+
+- main building block of a distributed run
+- an __action__ describes a step
+- actions explicitly capture __causes (preconditions)__ and __effects__ (conditions following the transition) of the step on the system
+
+![Action](img/action.png)
+
+- note that the __action is a net system__
+
+#### Distributed Runs/Causal Nets
+
+- a distributed run is a net system produced by a composition of actions (also net systems)
+- a __distributed run/causal net__ of a net system $S = (N, M_0)$ is a possibly infinite, acyclic net structure
+  describing an uninterrupted part of the behaviour of S
+- each transition $t$ of $S$ with $\bullet t$ and $t \bullet$ represents an action
+- a distributed run is __complete__ $\iff$ 
+  - places without incoming arcs represent __initial marking__, and
+  - places without outgoing arcs represent a __final marking__
+
+![distributed run](img/distributed-run.png)
+
+#### Concurrency semantics
+
+- __concurrency semantics:__ collection of all complete distributed runs of $S$
+
+#### Sequential vs Distributed Runs
+
+- consider the systems below:
+
+![systems](img/concurrency-vs-semantics-1.png)
+
+- both systems have identical complete __sequential__ runs: 
+  - $ACE \xrightarrow{a} BCE \xrightarrow{b} BDE$
+  - $ACE \xrightarrow{b} ADE \xrightarrow{a} BDE$
+- however complete __distributed__ runs for these two net systems are distinct:
+
+![distributed runs](img/concurrency-vs-semantics-2.png)
+
+- i.e. __while the interleaving semantics are identical, the concurrency semantics are different__
+- for $S_1$: $a \parallel b$, i.e. these transitions can be simultaneously enabled
+- for $S_2$: $a \leadsto b$, i.e. in order for $b$ to execute it needs resource $E$ which is produced by $a$
+
+#### Causality and Concurrency Relations
+
+- distributed runs encode __causality__ and __concurrency relations__ between actions
+- __$x$ causally precedes $y$, $x \leadsto y$__
+  - specified by a chain of arcs from element $x$ to element $y$ in a causal net 
+- if $x \not \leadsto y \space\wedge\space y \not \leadsto x \implies x \parallel y$
+  - i.e. if 2 elements of a distributed run are not causal , then they are __concurrent__
+- causality, inverse causality, concurrency relations partition the Cartesian product of elements of a causal net
+  - i.e. we can represent them as a matrix
+
+![concurrency relations](img/causality-relations.png)
+
+- e.g. $b\parallel B$: when $b$ can occur, $B$ has a token
+
+### Petri nets and Software Engineering
+
+- Petri nets can be used to build, simulate, analyse abstract software models
+  - in particular: distributed systems
+- concepts we have seen can be used to describe control flow of distributed software systems and simple data structures
+- high-level Petri nets extend elementary nets: stochastic, temporal properties of transition occurrence
+- here's an example of a net system which describes a non-sequential program that adds two non-negative numbers:
+
+![program](img/non-sequential-program.png)
+
+- spin up two threads: in one thread, increment $y$, in the other, decrement $x$
+- these transitions can occur truly concurrently: if you construct distributed runs of the system, there is no chain of arcs between these transitions,
+  and correspondingly there is no causal relation between them
+
+### Summary
+
+Petri nets:
+- can be interpreted according to different semantics, including interleaving and concurrency
+- explicitly model causality and concurrent relations between actions
+  - occurrence of actions in sequence by chance can be distinguished from a
+    situation when occurrence of action is a prerequisite for the occurrence
+    of the next action
+  - actions that may occur in any order, but never simultaneously, can be distinguished from actions that can truly occur simultaneously
+- can describe systems with infinitely many reachable states
+- are a natural formalism for describing distributed systems: distributed DBs and asynchronous communication protocols
+- rich body of knowledge on verifying formal properties of systems: reachability, boundedness, safety, liveness
