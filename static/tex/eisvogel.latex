@@ -142,6 +142,8 @@ $else$
 \setstretch{1.2}
 $endif$
 \usepackage{amssymb,amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 % add symbol for Reals, Integers, Naturals
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Z}{\mathbb{Z}}

@@ -183,7 +183,7 @@ $$w_j^{i+1} = \frac{w_j^i}{Z_i}\exp{\alpha_i}$$
 
 - classification by weighted vote
 
-$$C^*(x) = \argmax_y \sum_{j=1}^{T}\alpha_j\delta(C_j(x)=y)$$
+$$C^{*}(x) = \argmax_y \sum_{j=1}^{T}\alpha_j\delta(C_j(x)=y)$$
 
 ### Assessment
 
