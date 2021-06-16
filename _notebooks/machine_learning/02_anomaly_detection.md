@@ -182,4 +182,119 @@ $$S = \frac{1}{n-1}\sum_{i=1}^{n}(x_i)-\bar x)(x_i-\bar x)'$$
     - compute the difference $\Delta = L_t(D)-L_{t+1}(D)$
     - if $\Delta > c$, some threshold value, then $x_t$ declared an anomaly and permanently moved to $A$
 
+## Proximity-based Anomaly Detection
 
+- idea: anomalies are objects far from other objects
+- an object is anomalous if the nearest neighbours are far away
+- i.e. the proximity of the object deviates significantly from the proximity of most other objects in the same dataset
+- approach: outlier score: distance to $k$-th nearest neighbour
+- score is sensitive to choice of $k$
+- can produce some counterintuitive results:
+
+![proximity](img/proximity-anomaly-1.png)
+
+![proximity2](img/proximity-anomaly-2.png)
+
+- in above image, 5-NN is used.  Point D is close to a cluster, and so has a low anomaly score.  However the cluster is very dense - so probably should be considered
+  an outlier
+
+### Pros
+
+- easier to define proximity measure than to determine statistical distribution of dataset
+- quantitative measure of degree to which object is an outlier
+- deals with multiple modes (i.e. multiple clusters)
+
+### Cons
+
+- $O(n^2)$ complexity
+- score is sensitive to choice of $k$
+- doesn't work well if data has widely variable density
+
+## Density-based Anomaly Detection
+
+- idea: outliers are objects in regions of low density
+- outlier score: inverse of density around a point
+  - scores are based on proximity
+- example scores:
+  - number of points in a fixed radius $d$
+  - inverse of average distance to k-nearest neighbours
+  - $N(x, k)$: $k$ nearest neighbours of point $x$
+
+$$\text{density}(x, k) = (\frac{1}{k}\sum_{y\in N(x,k)} \text{distance}(x,y))^{-1}$$
+
+- works poorly if data has variable density
+
+### Relative Density Outlier Score
+
+- define __Local outlier factor (LOF):__ reciprocal of average distance to $k$ nearest neighbours, relative to that of the $k$ neighbours
+
+$$\text{relative density}(x,k) = \frac{\text{density}(x,k)}{\frac{1}{k}\sum_{y\in N(x,k)}\text{density}(y,k)}$$
+
+![Density-based outlier detection ](img/density-based-outliers.png)
+
+- in above image: 
+  - proximity-based NN approach: 
+    - $o_2$ not considered outlier as absolute distance to cluster is low
+  - LOF approach:
+    - $o_1, o_2$ considered outliers
+
+### Pros
+
+- quantitative measure of degree to which object is an outlier
+- works well even if data has variable density
+
+### Cons
+
+- $O(n^2)$ complexity
+- need to choose parameters appropriately
+  - $k$ for nearest neighbours
+  - $d$ for distance threshold 
+
+## Cluster-based Outlier Detection
+
+- outliers: objects that don't belong strongly to any cluster
+- generalisation of proximity/density based methods
+- approaches
+  - assess degree to which object belongs to any cluster
+  - eliminate objects to improve objective function
+  - discard small clusters which are far from other clusters
+- issue
+  - outliers may affect initial formation of clusters
+    - e.g. k-means is very sensitive to seeds
+
+![cluster based outlier detection](img/cluster-based-outlier-detection.png)
+
+### Degree to which object belongs to any cluster
+
+- for k-means, use __distance__ to cluster centres
+- for variable density clusters, use __relative distance__
+
+$$\frac{\text{distance}(x, \text{centroid}_c)}{\text{median}(\{\text{distance}(x',\text{centroid}_c)|x'\in c)\}}$$
+
+- similar concepts for density-based and connectivity-based clusters
+
+- if you used distance, instead of relative distance, points in low density clusters may get counterintuitively high outlier scores
+- use of relative distance fixes this (similar to relative density approach)
+
+### Eliminate objects to improve objective function
+
+- steps
+  - form initial set of clusters
+  - remove object which most improves objective function
+  - repeat until ...
+
+### Discard small clusters far from other clusters
+
+- need to define thresholds for small and far
+
+### Pros
+
+- some clustering techniques are $O(n)$ complexity
+- extends outlier concept from single objects to groups of objects
+
+### Cons
+
+- requires thresholds for minimum size, distance to be set
+- sensitive to number of clusters chosen
+- hard to associate an outlier score with objects
+- outliers may effect the initial formation of clusters
