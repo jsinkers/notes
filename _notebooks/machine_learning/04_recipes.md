@@ -17,7 +17,11 @@ $$\theta \leftarrow \theta - \eta\nabla f(\theta)$$
 
 ### Manhattan - L1
 
+$$d(x,y) = \sum_i |x_i - y_i|$$
+
 ### Euclidean - L2
+
+$$d(x,y) = \sum_i (x_i - y_i)^2$$
 
 ### Cosine
 
@@ -25,13 +29,77 @@ $$\theta \leftarrow \theta - \eta\nabla f(\theta)$$
 
 ### Hamming
 
+
 ## K-Nearest Neighbours
+
+- compute distances between test point and training points
+- sort distances
+- choose top $k$ as neighbours
+- compute weight for each neighbour
+- aggregate neighbour weights for each class
+- assign training instance to class with highest weight
+
+### Uniform Weighting
+
+- $w_i = 1$
+
+### Inverse Distance Weighting
+
+- introduce small parameter $\epsilon$
+
+$$w_i = \frac{1}{d_i+\epsilon}$$
+
+### Inverse Linear Distance Weighting
+
+$$w_i = \frac{d_k-d_i}{d_k-d_1}$$
+
+- $d_i$: distance of $j$th neighbour
+- $d_k$: maximum distance amongst neighbours
+- $d_1$: minimum distance amongst neighbours
+
+## Naive Bayes
+
+- assumption: conditional independence given class:
+
+$$P(x_1,...,x_m|y) \approx \prod_iP(x_i|y)$$
 
 ### Epsilon Smoothing
 
+- if we calculate $P(x_m|y) = 0$ then set $P(x_m|y)=\epsilon \ll \frac{1}{N}$
+- reduces most comparison to cardinality of $\epsilon$: fewest wins
+
 ### Laplace Smoothing
 
-## Naive Bayes
+- add pseudocount $\alpha$ (typically 1) to every feature count observed during training
+- $M$: number of distinct values of attribute $x_m$
+
+$$P(x_m = j | y = k) = \frac{\alpha + \text{count}(y=k,x_m=j)}{M\alpha + \text{count}(y=k)}$$
+
+### Classifier
+
+$$\hat y = \argmax_{y\in Y}P(y)P(x_1,...,x_m|y) = \argmax_{y \in Y} P(y)\prod_{i=1}^m P(x_i|y)$$
+
+To construct the model:
+
+```
+for each attribute x_i 
+  for each class value c
+    for each attribute value v
+      count instances with x_i=v and label c
+    compute proportions
+```
+
+- then to make a prediction, compute for each class
+
+$$P(y)\prod_{i=1}^m P(x_i|y)$$
+
+### Underlying probabilistic model
+
+$$P(x,y) = \prod_{i=1}^n P(y^i)\prod_{m=1}^M P(x_m^i|y^i)$$
+
+## Logistic Regression
+
+$$\hat y = \begin{cases} 1: \sigma(\theta^Tx)>0.5 \\ 0 : \text{otherwise}\end{cases}$$
 
 
 ## Decision Tree
@@ -81,42 +149,6 @@ function id3(root):
       for each leaf node leaf_i:
           id3(leaf_i)
 ```
-
-## Unsupervised Learning
-
-### k-means
-
-```
-initialise k seeds as cluster centroids
-repeat 
-  compute distance of all points to cluster centroids
-  assign points to the closest cluster
-  recompute cluster centroid
-until clusters don't change
-```
-
-### Agglomerative clustering
-
-```
-initialise all instances as individual clusters
-while (# clusters) > 1
-  compute triangular elements of proximity matrix between each cluster centroid
-  locate the smallest proximity: cluster these instances
-  compute updated cluster centroid (typically group average)
-```
-
-## Evaluation
-
-### 
-
-
-### Cluster - entropy
-
-
-### Cluster - purity
-
-
-### Evaluation 
 
 ## Perceptron 
 
@@ -172,5 +204,105 @@ _- i.e. multiply learning rate, $\eta$, the node's $\delta$, and the node's inpu
   - update all $\theta$s at once.  For node $i$ in layer $l$
 $$\theta_i^l \leftarrow \theta_i^l +\Delta\theta_i^l$$
 - continue until stop criteria reached
+
+## Unsupervised Learning
+
+### k-means
+
+```
+initialise k seeds as cluster centroids
+repeat 
+  compute distance of all points to cluster centroids
+  assign points to the closest cluster
+  recompute cluster centroid
+until clusters don't change
+```
+
+### Agglomerative clustering
+
+```
+initialise all instances as individual clusters
+while (# clusters) > 1
+  compute triangular elements of proximity matrix between each cluster centroid
+  locate the smallest proximity: cluster these instances
+  compute updated cluster centroid (typically group average)
+```
+
+### Cluster - entropy
+
+
+### Cluster - purity
+
+
+## Evaluation
+
+### Accuracy
+
+$$Acc = \frac{TP+TN}{TP+TN+FP+FN}$$
+
+### Error
+
+$$E = 1-Acc$$
+
+### Precision 
+
+$$P = \frac{TP}{TP+FP}$$
+
+### Recall
+
+$$R = \frac{TP}{TP+FN}$$
+
+### F-Score
+
+$$F_\beta = \frac{(1+\beta)^2 PR}{\beta^2 P +R}$$
+
+$$F_1 = \frac{2PR}{P +R}$$
+
+### Macro-average
+
+- calculate per class, then average, e.g. precision
+
+$$P_M = \frac{1}{c}\sum_i P_i$$
+
+### Micro-average
+
+- combine all test instances into a pool, then compute
+
+$$P_\mu = \frac{\sum_i TP_i}{\sum_i (TP_i+FP_i)}$$
+
+### Weighted Average
+
+- weight per-class values by proportion of instances per class
+
+$$P_w = \sum_i \frac{P_in_i}{N}$$
+
+## Feature Selection
+
+### Pointwise Mutual Information (PMI)
+
+- discrepancy between observed joint probability of attribute $A$ and class $C$ and the expected joint probability if $A$ and $C$ independent
+
+$$PMI(A,C) = \log_2\frac{P(A,C)}{P(A)P(C)}$$
+
+- $PMI\gg 0$: useful; $A,C$ occur much more often than random
+- $PMI = 0$: useless
+- $PMI \ll 0$: $A,C$ negatively correlated
+
+### Mutual Information
+
+- expected value of PMI over all possible events (all combinations of $a,\bar a,c, \bar c$)
+- define $0\log 0 \equiv 0$
+
+$$MI(A,C) = \sum_{i\in\{a,\bar a\}}\sum_{j\in\{c,\bar c\}}P(i,j)PMI(i,j) = \sum_{i\in\{a,\bar a\}}\sum_{j\in\{c,\bar c\}}P(i,j)\log_2\frac{P(A,C)}{P(A)P(C)}$$
+
+- for each attribute 
+  - produce contingency table of counts of $\{a,\bar a\}$ vs counts of $\{c,\bar c\}$, and totals
+  - compute MI for each attribute
+- select attributes with highest MI
+
+### Evaluation 
+
+## Semi-Supervised Learning
+
 
 
